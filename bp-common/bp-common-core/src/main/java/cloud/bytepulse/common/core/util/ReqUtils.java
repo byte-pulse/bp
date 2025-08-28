@@ -1,0 +1,107 @@
+package cloud.bytepulse.common.core.util;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import kong.unirest.core.HttpResponse;
+import kong.unirest.core.Unirest;
+import lombok.Data;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.Set;
+
+/**
+ * nginx工具类
+ * <p>
+ * # 传递真实客户端IP相关头信息
+ * proxy_set_header Host $host;
+ * proxy_set_header X-Real-IP $remote_addr;
+ * proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+ * proxy_set_header X-Forwarded-Proto $scheme;
+ * <p>
+ * # 其他需要传递的头
+ * proxy_set_header Proxy-Client-IP $remote_addr;
+ * proxy_set_header WL-Proxy-Client-IP $remote_addr;
+ * proxy_set_header HTTP_CLIENT_IP $remote_addr;
+ * proxy_set_header HTTP_X_FORWARDED_FOR $proxy_add_x_forwarded_for;
+ * <p>
+ * # 保持原始User-Agent
+ * proxy_set_header User-Agent $http_user_agent;
+ *
+ * @author jiejiebiezheyang
+ * @since 2023-05-20 21:31
+ */
+public class ReqUtils {
+
+    /**
+     * 配置了nginx反向代理后,获取ip
+     */
+    public static String getIP(HttpServletRequest request) {
+        String ip = null;
+        ip = request.getHeader("x-forwarded-for");
+        if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (!StringUtils.hasText(ip) || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        //使用代理，则获取第一个IP地址
+        if (ip.length() > 15) {
+            if (ip.indexOf(",") > 0) {
+                ip = ip.substring(0, ip.indexOf(","));
+            }
+        }
+        return ip;
+    }
+
+    /**
+     * 获取ip
+     */
+    public static String getIP() {
+        return getIP(getRequest());
+    }
+
+    /**
+     * 获取当前请求对象
+     */
+    public static HttpServletRequest getRequest() {
+        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        assert requestAttributes != null;
+        return requestAttributes.getRequest();
+    }
+
+    /**
+     * 路径是否匹配
+     */
+    public static boolean isPathMatching(Set<String> paths, String apiPath) {
+        AntPathMatcher matcher = new AntPathMatcher();
+        for (String path : paths) {
+            if (matcher.match(path, apiPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 路径是否匹配
+     */
+    public static boolean isPathMatching(String path, String apiPath) {
+        AntPathMatcher matcher = new AntPathMatcher();
+        return matcher.match(path, apiPath);
+    }
+}
