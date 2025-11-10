@@ -26,4 +26,29 @@ public class BytePulseException extends RuntimeException {
         super(message);
         this.errorCode = -1;
     }
+
+    public BytePulseException(String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = -1;
+    }
+
+    public BytePulseException(int errorCode, String message) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+
+    public BytePulseException(int errorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
+    public BytePulseException(ErrorCode errorCode) {
+        super(errorCode.message());
+        this.errorCode = errorCode.code();
+    }
+
+    public BytePulseException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode.message(), cause);
+        this.errorCode = errorCode.code();
+    }
 }
