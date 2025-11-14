@@ -63,4 +63,56 @@ public class ErrorCodeChecker implements ApplicationRunner {
                 Class<?> clazz = Class.forName(beanDefinition.getBeanClassName());
 
                 if (!clazz.isEnum()) continue;
+
+                Object[] enumConstants = clazz.getEnumConstants();
+
+                for (Object obj : enumConstants) {
+
+                    ErrorCode errorCode = (ErrorCode) obj;
+
+                    int code = errorCode.code();
+
+                    // 当前枚举位置 (类名 + 枚举名)
+                    String location = clazz.getName() + "." + ((Enum<?>) obj).name();
+
+                    // 如果没有这个 code, 初始化一个 list
+                    codeMap.computeIfAbsent(code, k -> new ArrayList<>())
+                            .add(location);
+                }
+            }
+        }
+
+        // 收集所有重复项
+        List<String> duplicateMessages = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<String>> entry : codeMap.entrySet()) {
+
+            int code = entry.getKey();
+            List<String> locations = entry.getValue();
+
+            // 只要出现次数 > 1 就是重复
+            if (locations.size() > 1) {
+
+                StringBuilder sb = new StringBuilder();
+                sb.append("错误码 ").append(code).append(" 重复 (")
+                        .append(locations.size()).append(" 处):\n");
+
+                for (String loc : locations) {
+                    sb.append("    - ").append(loc).append("\n");
+                }
+
+                duplicateMessages.add(sb.toString());
+            }
+        }
+
+        // 如果存在重复, 一次性抛出
+        if (!duplicateMessages.isEmpty()) {
+
+            throw new IllegalStateException(
+                    "\n============================= 错误码重复检测失败 =============================\n" +
+                            String.join("\n", duplicateMessages) +
+                            "\n============================================================================"
+            );
+        }
+    }
 }
