@@ -109,4 +109,92 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> badRequest(String message, T data) {
         return new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), message, data);
     }
+
+    /**
+     * 参数校验失败、JSON 格式错误 , 业务逻辑错误
+     */
+    public static ApiResponse<Void> badRequest(String message) {
+        return badRequest(message, null);
+    }
+
+    /**
+     * 服务器内部错误
+     */
+    public static ApiResponse<Void> error(String message) {
+        return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), message);
+    }
+
+    /**
+     * 服务器内部错误
+     */
+    public static ApiResponse<Void> error() {
+        return error(getReasonPhrase(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
+    /**
+     * 未登录
+     */
+    public static ApiResponse<Void> unauthorized(String message) {
+        return new ApiResponse<>(HttpStatus.UNAUTHORIZED.value(), message);
+    }
+
+    /**
+     * 未登录
+     */
+    public static ApiResponse<Void> unauthorized() {
+        return unauthorized(getReasonPhrase(HttpStatus.UNAUTHORIZED));
+    }
+
+    /**
+     * 无权限
+     */
+    public static ApiResponse<Void> forbidden() {
+        return new ApiResponse<>(HttpStatus.FORBIDDEN.value(), getReasonPhrase(HttpStatus.FORBIDDEN));
+    }
+
+    /**
+     * 404
+     */
+    public static ApiResponse<Void> notFound() {
+        return new ApiResponse<>(HttpStatus.NOT_FOUND.value(), getReasonPhrase(HttpStatus.NOT_FOUND));
+    }
+
+    /**
+     * 401 输出
+     */
+    public static void printUnauthorized(HttpServletResponse response, String msg) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().println(JSON.toJSONString(ApiResponse.unauthorized(msg)));
+    }
+
+    /**
+     * 404 输出
+     *
+     */
+    public static void printNotFound(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.NOT_FOUND.value());
+        response.setContentType("application/json;charset=UTF-8");
+        ApiResponse<Void> notFound = ApiResponse.notFound();
+        notFound.message = "资源不存在:" + request.getRequestURI();
+        response.getWriter().println(JSON.toJSONString(notFound));
+    }
+
+    /**
+     * 返回 httpStatus 中文简短原因
+     *
+     * @param httpStatus http 状态码
+     */
+    private static String getReasonPhrase(HttpStatus httpStatus) {
+        return switch (httpStatus) {
+            case OK -> "成功";
+            case BAD_REQUEST -> "错误的请求";
+            case UNAUTHORIZED -> "未认证";
+            case FORBIDDEN -> "无权限";
+            case NOT_FOUND -> "资源不存在";
+            case METHOD_NOT_ALLOWED -> "方法不允许";
+            case INTERNAL_SERVER_ERROR -> "服务器内部错误";
+            default -> "未知错误";
+        };
+    }
 }
