@@ -55,4 +55,58 @@ public class AppProperties {
         @NotBlank
         private String prefix = "bp:";
     }
+
+    @Data
+    public static class ExternalApiProperties {
+        /**
+         * 解密用户密钥
+         */
+        @NotBlank
+        private String secretKey;
+        /**
+         * iv
+         */
+        @NotBlank
+        private String iv;
+    }
+
+    @Data
+    public static class MinioProperties {
+
+        /**
+         * minio 服务器地址
+         */
+        @NotBlank
+        private String endpoint = "http://127.0.0.1:9000";
+        /**
+         * minio 访问 key
+         */
+        @NotBlank
+        private String accessKey;
+        /**
+         * minio 访问密钥
+         */
+        @NotBlank
+        private String secretKey;
+        /**
+         * minio 存储桶名称
+         */
+        @NotBlank
+        private String bucketName;
+    }
+
+    /**
+     * 验证码配置
+     */
+    @Data
+    public static class CaptchaProperties {
+        @NotNull
+        private Integer width = 160;
+        @NotNull
+        private Integer height = 60;
+        @NotNull
+        private Integer length = 4;
+        @NotNull
+        private Long expirationSeconds = 30L;
+    }
 }
