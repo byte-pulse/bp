@@ -45,9 +45,11 @@
             </Root>
             <Logger name="cloud.bytepulse" level="debug" additivity="false">
                 <AppenderRef ref="asyncConsole"/>
+                <AppenderRef ref="asyncRollingFile" level="error"/>
             </Logger>
             <Logger name="org.springframework" level="info" additivity="false">
                 <AppenderRef ref="asyncConsole"/>
+                <AppenderRef ref="asyncRollingFile" level="error"/>
             </Logger>
         </SpringProfile>
 
