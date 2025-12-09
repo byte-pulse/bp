@@ -1,0 +1,127 @@
+package cloud.bytepulse.bp.app.auth.service.service.impl;
+
+
+import cloud.bytepulse.bp.app.auth.dto.auth.LoginDTO;
+import cloud.bytepulse.bp.app.auth.service.service.AuthService;
+import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
+import cloud.bytepulse.bp.common.utils.JWTUtils;
+import cloud.bytepulse.bp.common.utils.RedisUtils;
+import cloud.bytepulse.bp.common.utils.ReqUtils;
+import cloud.bytepulse.bp.domain.ApiResponse;
+import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
+import cloud.bytepulse.bp.domain.models.auth.domain.LoginUser;
+import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
+import cloud.bytepulse.bp.domain.models.entity.SysUser;
+import cn.hutool.captcha.CaptchaUtil;
+import cn.hutool.captcha.GifCaptcha;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import static cloud.bytepulse.bp.domain.models.auth.domain.LoginUser.NEED_RE_LOGIN;
+
+/**
+ * @author jiejiebiezheyang
+ * @since 2024-03-03 11:00
+ */
+@Slf4j
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class AuthServiceImpl implements AuthService {
+
+    private final AuthenticationManager authenticationManager;
+
+    private final RedisUtils redisUtils;
+
+    private final SysUserMapper sysUserMapper;
+
+    /**
+     * 获取验证码
+     */
+    @Override
+    public ApiResponse captcha() throws IOException {
+        HashMap<String, String> map = new HashMap<>();
+
+        GifCaptcha gifCaptcha = CaptchaUtil.createGifCaptcha(160, 60, 4);
+        String imageBase64Data = gifCaptcha.getImageBase64Data();
+        map.put("captcha", imageBase64Data);
+        String uid = UUID.randomUUID().toString().replaceAll("-", "");
+        map.put("uid", uid);
+
+        // 结果存入redis
+        redisUtils.setCacheObject("captcha:" + uid, gifCaptcha.getCode(), 30L, TimeUnit.SECONDS);
+        return ApiResponse.success(map);
+    }
+
+    /**
+     * 登录
+     */
+    @Override
+    public ApiResponse login(LoginDTO loginDTO) {
+        // 验证码
+        String uid = redisUtils.getCacheObject("captcha:" + loginDTO.getUid());
+        redisUtils.deleteObject("captcha:" + loginDTO.getUid());
+        if (uid == null || !uid.equalsIgnoreCase(loginDTO.getCaptcha())) {
+            return ApiResponse.badRequest("验证码错误");
+        }
+        // 使用authenticate进行认证
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword());
+        Authentication authenticate = authenticationManager.authenticate(authentication);
+        // 认证没通过,给出提示
+        if (authenticate == null) {
+            return ApiResponse.unauthorized("登陆失败");
+        }
+        // 认证通过
+        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+        LoginUserInfo loginUserInfo = loginUser.getLoginUserInfo();
+        // 返回给前端的数据
+        LoginResultVO loginResultVO = new LoginResultVO();
+        loginResultVO.setUserId(loginUserInfo.getUserId());
+        loginResultVO.setNickname(loginUserInfo.getNickname());
+        loginResultVO.setUsername(loginUserInfo.getUsername());
+        loginResultVO.setLastLogin(loginUserInfo.getLastLogin());
+        loginResultVO.setLastLoginIp(loginUserInfo.getLastLoginIp());
+        // 更新登录记录
+        SysUser user = new SysUser();
+        user.setId(loginUserInfo.getUserId());
+        user.setLastLoginIp(ReqUtils.getIP());
+        user.setLastLogin(new Date());
+        sysUserMapper.updateById(user);
+
+        // 生成UUID作为token指纹
+        String fingerprint = UUID.randomUUID().toString();
+        loginUserInfo.setSessionId(fingerprint);
+        // 使用 userId 和 角色 生成token,返回token
+        String userId = String.valueOf(loginUser.getLoginUserInfo().getUserId());
+        JWTUtils.Payload payload = new JWTUtils.Payload();
+        payload.with("userId", userId).with("fingerprint", fingerprint);
+        String token = JWTUtils.createToken(payload, 60 * 60 * 24 * 7);
+        // 把用户信息存入redis
+        redisUtils.setCacheObject("login:" + userId, loginUser, 3600L * 60L, TimeUnit.SECONDS);
+        // 返回token给前端
+        loginResultVO.setToken(token);
+        // 移除需要重新登录的标记
+        NEED_RE_LOGIN.remove(Integer.valueOf(userId));
+        return ApiResponse.success(loginResultVO);
+    }
+
+    /**
+     * 登录状态测试
+     */
+    @Override
+    public ApiResponse check() {
+        return ApiResponse.success();
+    }
+}

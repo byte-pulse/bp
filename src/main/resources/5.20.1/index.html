@@ -1,0 +1,99 @@
+<!-- HTML for static distribution bundle build -->
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <title>BytePulse API 文档</title>
+    <link rel="stylesheet" type="text/css" href="./swagger-ui.css"/>
+    <link rel="stylesheet" type="text/css" href="index.css"/>
+    <link id="my_theme" rel="stylesheet" type="text/css" href=""/>
+    <link rel="icon" type="image/ico" href="/favicon.ico"/>
+    <style>
+        .auth-btn-wrapper {
+            justify-content: start !important;
+            column-gap: 24px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="swagger-ui"></div>
+<script src="./swagger-ui-bundle.js" charset="UTF-8"></script>
+<script src="./swagger-ui-standalone-preset.js" charset="UTF-8"></script>
+<script src="./swagger-initializer.js" charset="UTF-8"></script>
+<script>
+    function initTheme() {
+        const themeSwitcher = document.createElement('div');
+        themeSwitcher.style.marginTop = '10px';
+        themeSwitcher.style.display = 'flex';
+        themeSwitcher.style.flexDirection = 'column'
+
+        const label = document.createElement('label');
+        label.setAttribute('for', 'themeSwitcher');
+        label.innerText = '🌈 Theme：';
+        themeSwitcher.appendChild(label)
+
+        let themes = [
+            {name: 'Material', path: './theme-material.css'},
+            {name: 'Flattop', path: './theme-flattop.css'},
+            {name: 'Muted', path: './theme-muted.css'},
+            {name: 'Newspaper', path: './theme-newspaper.css'},
+            {name: 'Outline', path: './theme-outline.css'},
+            {name: 'Monokai', path: './theme-monokai.css'},
+            {name: 'Feeling Blue', path: './theme-feeling-blue.css'},
+            {name: 'Classic', path: ''},
+        ]
+
+        const select = document.createElement('select');
+        select.setAttribute('id', 'themeSwitcher');
+        select.style.maxWidth = '150px';
+
+        for (let i = 0; i < themes.length; i++) {
+            const themesKey = themes[i];
+            const optionElement = document.createElement('option');
+            optionElement.setAttribute('value', themesKey.name);
+            optionElement.innerText = themesKey.name
+            select.appendChild(optionElement)
+        }
+
+        themeSwitcher.appendChild(select)
+
+        let timer = setInterval(() => {
+            const infoDivs = document.getElementsByClassName('info');
+            if (infoDivs.length > 0) {
+                clearInterval(timer);
+                console.log(infoDivs.length)
+                console.log(infoDivs[0])
+                console.log(themeSwitcher)
+                infoDivs[0].appendChild(themeSwitcher);
+            }
+        }, 200);
+
+        const myTheme = document.getElementById('my_theme')
+
+        select.addEventListener('change', (event) => {
+            const selectedTheme = event.target.value;
+            myTheme.href = themes.find(t => t.name === selectedTheme).path
+            localStorage.setItem('theme', selectedTheme)
+        });
+
+        let lastTheme = localStorage.getItem('theme')
+        if (lastTheme) {
+            select.value = lastTheme
+            const t = themes.find(t => t.name === lastTheme)
+            if (t) {
+                myTheme.href = t.path
+            }
+        } else {
+            select.value = 'Classic'
+            myTheme.href = themes.find(t => t.name === 'Classic').path
+        }
+    }
+
+    let initThemeTimer = setTimeout(() => {
+        initTheme()
+        clearTimeout(initThemeTimer)
+    }, 2000)
+</script>
+</body>
+</html>
