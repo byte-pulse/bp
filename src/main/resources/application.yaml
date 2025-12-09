@@ -71,7 +71,7 @@ redis:
   prefix: "admin:"
 
 project:
-  url: https://gitee.com/byte-pulse
+  url: https://gitee.com/byte-pulse/bp
 
 exception:
   processer:
