@@ -82,4 +82,72 @@ public class DateUtils {
             long minutes = duration.toMinutes();
             return minutes + "分钟前";
         } else {
+            return "刚刚";
+        }
+    }
+
+    /**
+     * 兼容旧版Date的辅助方法
+     */
+    public static String easyReadable(Date date) {
+        LocalDateTime dateTime = LocalDateTime.ofInstant(
+                date.toInstant(), ZoneId.systemDefault()
+        );
+        return easyReadable(dateTime);
+    }
+
+
+    /**
+     * x天x时x分x秒格式
+     */
+    public static String getTimeStr(long millisecond) {
+        long seconds = millisecond % 60;
+        long minutes = (millisecond / 60) % 60;
+        long hours = (millisecond / 3600) % 24;
+        long days = millisecond / (3600 * 24);
+        return String.format("%d天%d时%d分%d秒", days, hours, minutes, seconds);
+    }
+
+    /**
+     * 字符串转指定格式日期
+     *
+     * @param pattern 日期格式
+     * @param dateStr 日期字符串
+     * @return {@link Date}
+     * @throws ParseException 日期解析失败
+     */
+    public static LocalDateTime parse(String pattern, String dateStr) throws ParseException {
+        // 定义日期格式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        // 解析日期
+        return LocalDateTime.parse(dateStr, formatter);
+    }
+
+    /**
+     * 日期转指定格式字符串
+     *
+     * @param pattern 日期格式
+     * @param date    日期
+     * @return {@link Date}
+     */
+    public static String parseDate(String pattern, LocalDateTime date) {
+        // 定义日期格式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        // 获取当前时间并格式化
+        return date.format(formatter);
+    }
+
+    /**
+     * 当前时间
+     */
+    public static String now() {
+        return parseDate("yyyy-MM-dd HH:mm:ss", LocalDateTime.now());
+    }
+
+    /**
+     * 当前日期
+     */
+    public static String today() {
+        return parseDate("yyyy-MM-dd", LocalDateTime.now());
+    }
 }
