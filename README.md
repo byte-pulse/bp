@@ -127,16 +127,6 @@ public ApiResponse<String> publicEndpoint() {
 }
 ```
 
-### @Log
-记录操作日志：
-```java
-@Log(value = "用户登录")
-@PostMapping("/login")
-public ApiResponse<LoginResultVO> login(@RequestBody LoginDTO loginDTO) {
-    // 业务逻辑
-}
-```
-
 ### @RequestLimit
 接口请求限流：
 ```java

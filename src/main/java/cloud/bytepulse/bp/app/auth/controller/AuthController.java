@@ -4,7 +4,7 @@ import cloud.bytepulse.bp.app.auth.dto.auth.LoginDTO;
 import cloud.bytepulse.bp.app.auth.service.service.AuthService;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.framwork.annotation.Anonymous;
-import cloud.bytepulse.bp.framwork.annotation.Log;
+import cloud.bytepulse.bp.framwork.annotation.NoLogging;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -29,15 +29,14 @@ public class AuthController {
 
     @GetMapping("/captcha")
     @Operation(summary = "获取验证码")
-    @Log(value = "管理-获取验证码")
     @Anonymous
+    @NoLogging
     public ApiResponse captcha() throws IOException {
         return authService.captcha();
     }
 
     @PostMapping("/login")
     @Operation(summary = "登录")
-    @Log(value = "管理-用户登录", persist = true)
     @Anonymous
     public ApiResponse login(@RequestBody @Validated LoginDTO loginDTO) {
         return authService.login(loginDTO);
@@ -45,7 +44,7 @@ public class AuthController {
 
     @GetMapping("/check")
     @Operation(summary = "检查登陆状态")
-    @Log(value = "管理-检查登陆状态")
+    @NoLogging
     public ApiResponse check() {
         return authService.check();
     }

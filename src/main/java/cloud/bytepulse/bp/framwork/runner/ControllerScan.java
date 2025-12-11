@@ -2,7 +2,9 @@ package cloud.bytepulse.bp.framwork.runner;
 
 
 import cloud.bytepulse.bp.framwork.annotation.Anonymous;
+import cloud.bytepulse.bp.framwork.annotation.NoLogging;
 import cloud.bytepulse.bp.framwork.constant.AnonymousConstant;
+import cloud.bytepulse.bp.framwork.constant.LoggingConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
@@ -29,7 +31,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
-public class AnonymousScan implements BeanFactoryPostProcessor {
+public class ControllerScan implements BeanFactoryPostProcessor {
 
 
     private static final String[] BasePackages = {"cloud.bytepulse.**.controller"};
@@ -45,16 +47,21 @@ public class AnonymousScan implements BeanFactoryPostProcessor {
 
                 String controllerPrefix = extractPath(clazz.getAnnotation(RequestMapping.class));
                 boolean classHasAnonymous = clazz.isAnnotationPresent(Anonymous.class);
+                boolean classHasNoLogging = clazz.isAnnotationPresent(NoLogging.class);
 
                 for (Method method : clazz.getDeclaredMethods()) {
                     boolean hasAnonymous = classHasAnonymous || method.isAnnotationPresent(Anonymous.class);
-                    if (!hasAnonymous) continue;
-
+                    boolean hasNoLogging = classHasNoLogging || method.isAnnotationPresent(NoLogging.class);
                     String methodPath = extractPathFromMethod(method);
                     String fullPath = normalizePath(controllerPrefix, methodPath);
-
-                    AnonymousConstant.ANONYMOUS.add(fullPath);
-                    log.debug("添加匿名接口: {}", fullPath);
+                    // 添加所有需要日志的接口
+                    if (!hasNoLogging) {
+                        LoggingConstant.NEED_LOGGING.add(fullPath);
+                    }
+                    if (hasAnonymous) {
+                        AnonymousConstant.ANONYMOUS.add(fullPath);
+                        log.debug("添加匿名接口: {}", fullPath);
+                    }
                 }
             }
             log.debug("匿名接口扫描完成: {}", AnonymousConstant.ANONYMOUS);

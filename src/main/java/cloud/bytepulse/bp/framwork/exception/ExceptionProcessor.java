@@ -89,10 +89,10 @@ public class ExceptionProcessor {
     public ApiResponse resolveException(DataAccessException ex) {
         log.error("数据库查询异常", ex);
         if (!debug) {
-            return ApiResponse.error();
+            return ApiResponse.error().put("e", ex.getMessage());
         }
         String message = Objects.requireNonNull(ex.getRootCause()).getMessage();
-        return ApiResponse.error(message);
+        return ApiResponse.error(message).put("e", ex.getMessage());
     }
 
     /**
@@ -103,9 +103,9 @@ public class ExceptionProcessor {
     public ApiResponse resolveException(SQLException ex) {
         log.error("数据库查询异常", ex);
         if (!debug) {
-            return ApiResponse.error();
+            return ApiResponse.error().put("e", ex.getMessage());
         }
-        return ApiResponse.error("数据库查询异常");
+        return ApiResponse.error("数据库查询异常").put("e", ex.getMessage());
     }
 
     /**
@@ -136,9 +136,9 @@ public class ExceptionProcessor {
     public ApiResponse resolveException(ErrorResponseException ex) {
         log.error("文件处理异常", ex);
         if (!debug) {
-            return ApiResponse.error();
+            return ApiResponse.error().put("e", ex.getMessage());
         }
-        return ApiResponse.error(ex.getMessage());
+        return ApiResponse.error(ex.getMessage()).put("e", ex.getMessage());
     }
 
     /**
@@ -150,8 +150,8 @@ public class ExceptionProcessor {
     public ApiResponse resolveException(Exception ex) {
         log.error("Exception异常捕获", ex);
         if (!debug) {
-            return ApiResponse.error();
+            return ApiResponse.error().put("e", ex.getMessage());
         }
-        return ApiResponse.error(ex.getMessage());
+        return ApiResponse.error(ex.getMessage()).put("e", ex.getMessage());
     }
 }

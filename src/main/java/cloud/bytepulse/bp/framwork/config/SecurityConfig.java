@@ -3,6 +3,7 @@ package cloud.bytepulse.bp.framwork.config;
 import cloud.bytepulse.bp.framwork.constant.AnonymousConstant;
 import cloud.bytepulse.bp.framwork.filtter.GlobalCorsFilter;
 import cloud.bytepulse.bp.framwork.filtter.JWTFilter;
+import cloud.bytepulse.bp.framwork.filtter.LoggingFilter;
 import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +30,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final LoggingFilter loggingFilter;
 
     private final GlobalCorsFilter globalCorsFilter;
 
@@ -61,6 +64,9 @@ public class SecurityConfig {
         http.addFilterBefore(globalCorsFilter, UsernamePasswordAuthenticationFilter.class);
         // 添加JWT过滤器
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        // 日志过滤器
+        http.addFilterBefore(loggingFilter, GlobalCorsFilter.class);
+
         return http.build();
     }
 

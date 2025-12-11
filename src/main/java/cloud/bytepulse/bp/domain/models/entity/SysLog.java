@@ -24,10 +24,10 @@ public class SysLog {
     private Integer id;
 
     /**
-     * 接口名称
+     * 日志id
      */
-    @TableField(value = "api_name")
-    private String apiName;
+    @TableField(value = "trace_id")
+    private String traceId;
 
     /**
      * 接口uri
@@ -60,12 +60,6 @@ public class SysLog {
     private String responseResult;
 
     /**
-     * 执行的方法
-     */
-    @TableField(value = "`method`")
-    private String method;
-
-    /**
      * 请求时间戳
      */
     @TableField(value = "request_time")
@@ -88,4 +82,10 @@ public class SysLog {
      */
     @TableField(value = "cost")
     private Long cost;
+
+    /**
+     * 请求耗时
+     */
+    @TableField(value = "exception")
+    private String exception;
 }

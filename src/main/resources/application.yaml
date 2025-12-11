@@ -73,6 +73,7 @@ redis:
 project:
   url: https://gitee.com/byte-pulse/bp
 
+# 接口是否返回内部错误信息
 exception:
   processer:
     debugInfo: true
