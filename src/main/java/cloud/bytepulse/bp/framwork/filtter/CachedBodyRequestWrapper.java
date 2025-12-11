@@ -5,38 +5,30 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
-/**
- *
- * @author jiejiebiezheyang
- * @since 2023-04-03 14:05
- */
 public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
 
     private final byte[] body;
 
     public CachedBodyRequestWrapper(HttpServletRequest request) throws IOException {
         super(request);
-        InputStream in = request.getInputStream();
-        this.body = in.readAllBytes();
+        body = request.getInputStream().readAllBytes();
     }
 
     @Override
     public ServletInputStream getInputStream() {
-        ByteArrayInputStream bis = new ByteArrayInputStream(body);
+        ByteArrayInputStream bais = new ByteArrayInputStream(body);
 
         return new ServletInputStream() {
             @Override
             public int read() {
-                return bis.read();
+                return bais.read();
             }
 
             @Override
             public boolean isFinished() {
-                return bis.available() == 0;
+                return bais.available() == 0;
             }
 
             @Override
@@ -45,12 +37,21 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
             }
 
             @Override
-            public void setReadListener(ReadListener listener) {
-            }
+            public void setReadListener(ReadListener listener) {}
         };
     }
 
-    public String getBodyString() {
-        return new String(body);
+    @Override
+    public BufferedReader getReader() throws IOException {
+        return new BufferedReader(
+                new InputStreamReader(
+                        new ByteArrayInputStream(body),
+                        this.getCharacterEncoding() != null ? this.getCharacterEncoding() : "UTF-8"
+                )
+        );
+    }
+
+    public String getBodyString() throws IOException {
+        return new String(body, this.getCharacterEncoding() != null ? this.getCharacterEncoding() : "UTF-8");
     }
 }

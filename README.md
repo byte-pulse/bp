@@ -1,79 +1,68 @@
-# BytePulse Framework
+# BytePulse BP Framework
 
-[![Java](https://img.shields.io/badge/Java-21-blue)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-green)](https://spring.io/projects/spring-boot)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+一个功能强大、高性能的SpringBoot通用开发框架，集成了企业级应用开发的最佳实践和常用组件。
 
-## 📖 项目简介
+## 🚀 项目特性
 
-BytePulse 是一个通用的基础启动框架，基于 Spring Boot 3.4.4 和 Java 21 构建。该框架集成了企业级应用开发所需的基础功能，提供了完整的认证授权、数据访问、缓存管理、接口文档等核心能力，旨在为微服务架构提供统一的基础设施支撑。
+- **SpringBoot 3.4.4**: 基于最新SpringBoot版本，支持Java 21
+- **安全认证**: 集成Spring Security + JWT，提供完整的认证授权体系
+- **数据访问**: 支持MyBatis-Plus + 多数据源 + Druid连接池
+- **缓存支持**: 集成Redis，提供分布式缓存能力
+- **接口文档**: 集成SpringDoc OpenAPI 3.0，自动生成API文档
+- **日志系统**: 完整的请求日志记录和TraceId追踪
+- **文件存储**: 支持MinIO对象存储
+- **工具集成**: 验证码、Excel处理、支付、监控等实用工具
+- **限流防护**: 基于AOP的接口限流功能
+- **全局异常**: 统一的异常处理和响应封装
 
-## ✨ 核心特性
+## 📋 技术栈
 
-### 🔐 安全认证
-- **JWT 认证**：基于 JSON Web Token 的无状态认证机制
-- **Spring Security**：完整的安全框架集成，支持权限控制
-- **验证码支持**：集成 Kaptcha 和 Hutool 验证码组件
+| 技术 | 版本 | 说明 |
+|------|------|------|
+| Spring Boot | 3.4.4 | 核心框架 |
+| Spring Security | - | 安全框架 |
+| MyBatis-Plus | 3.5.5 | ORM框架 |
+| Dynamic DataSource | 4.3.1 | 多数据源 |
+| Druid | 1.2.23 | 数据库连接池 |
+| Redis | - | 缓存中间件 |
+| MySQL | - | 关系型数据库 |
+| SpringDoc | 2.8.6 | API文档 |
+| JWT | 0.12.6 | 身份认证 |
+| MinIO | 8.5.17 | 对象存储 |
+| Hutool | 5.8.39 | 工具类库 |
 
-### 🗄️ 数据访问
-- **MyBatis Plus**：强大的 ORM 框架，支持代码生成和分页
-- **动态数据源**：支持多数据源动态切换
-- **Druid 连接池**：高性能数据库连接池，内置监控功能
-- **PageHelper**：物理分页插件
+## 🛠️ 环境要求
 
-### 💾 缓存管理
-- **Redis 集成**：完整的 Redis 缓存支持
-- **自定义序列化**：Redis 键前缀序列化支持
-- **连接池配置**：优化的 Redis 连接池设置
-
-### 📚 接口文档
-- **OpenAPI 3.0**：基于 SpringDoc 的 API 文档生成
-- **Swagger UI**：美观的交互式 API 文档界面
-- **多环境支持**：支持不同环境的接口配置
-
-### 🛠️ 工具集成
-- **MinIO 对象存储**：文件上传和管理
-- **Apache POI**：Excel 文件处理
-- **微信支付 API v3**：微信支付集成
-- **系统监控**：基于 OSHI 的系统信息监控
-- **HTTP 客户端**：UniRest HTTP 客户端集成
-
-### 🎯 框架特性
-- **AOP 切面编程**：日志记录、请求限流等横切关注点
-- **全局异常处理**：统一的异常处理机制
-- **跨域支持**：灵活的 CORS 配置
-- **日志管理**：基于 Log4j2 的日志框架
-- **参数验证**：Bean Validation 集成
-
-## 🚀 快速开始
-
-### 环境要求
-- Java 21+
+- JDK 21+
 - Maven 3.6+
 - MySQL 8.0+
 - Redis 6.0+
 
-### 安装配置
+## 🚀 快速开始
 
-1. **克隆项目**
+### 1. 克隆项目
 ```bash
 git clone https://gitee.com/byte-pulse/bp.git
 cd bp
 ```
 
-2. **配置数据库**
-```yaml
-# application-dev.yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/byte_pulse?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
-    username: root
-    password: your_password
+### 2. 数据库初始化
+执行项目根目录下的 `init.sql` 文件：
+```bash
+mysql -u root -p < init.sql
 ```
 
-3. **配置 Redis**
+### 3. 配置文件
+根据环境修改配置文件：
+
+**开发环境配置** (`application-dev.yaml`):
 ```yaml
 spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/your_database?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: your_username
+    password: your_password
+  
   data:
     redis:
       host: localhost
@@ -81,101 +70,161 @@ spring:
       password: your_redis_password
 ```
 
-4. **启动应用**
+### 4. 启动项目
 ```bash
-mvn clean package
-java -jar target/bp-1.0.jar
+mvn clean install
+mvn spring-boot:run
 ```
 
-5. **访问应用**
-- 应用地址：http://localhost:19420
-- API 文档：http://localhost:19420/swagger-ui.html
-- 健康检查：http://localhost:19420/actuator/health
+或者直接运行 `AdminApplication.java` 的main方法。
 
+### 5. 访问应用
 
-## 📖 API 使用示例
+- **应用地址**: http://localhost:19420
+- **API文档**: http://localhost:19420/swagger-ui.html
+- **健康检查**: http://localhost:19420/actuator/health
 
-### 认证接口
-```bash
-# 用户登录
-POST /api/auth/login
-Content-Type: application/json
+### 6. 默认账号
+```
+用户名: admin
+密码: admin123
+```
 
+## 🔧 核心功能
+
+### 1. 统一响应格式
+所有API接口都返回统一的JSON格式：
+```json
 {
-  "username": "admin",
-  "password": "password",
-  "captcha": "1234"
+  "code": 200,
+  "message": "操作成功",
+  "data": {},
+  "request_id": "trace-id",
+  "timestamp": "2024-01-01 12:00:00"
 }
 ```
 
-### 带认证的请求
-```bash
-# 携带 JWT Token
-GET /api/user/profile
-Authorization: Bearer <your_jwt_token>
+### 2. JWT认证
+- 自动生成和验证JWT Token
+- 支持Token刷新机制
+- 灵活的权限控制
+
+### 3. 接口限流
+使用 `@RequestLimit` 注解实现接口限流：
+```java
+@RequestLimit(value = 10, period = 60) // 60秒内最多请求10次
+public ResponseEntity<?> someMethod() {
+    // 业务逻辑
+}
 ```
 
-## 🎨 自定义注解
+### 4. 请求日志
+自动记录所有HTTP请求的详细信息，包括：
+- 请求参数
+- 响应结果
+- 执行时间
+- 用户信息
 
-### @Anonymous
-标记免认证接口：
+### 5. 异常处理
+全局异常处理机制，统一错误响应格式。
+
+## 🎯 使用示例
+
+### 1. 创建Controller
 ```java
-@Anonymous
+@RestController
+@RequestMapping("/api/demo")
+public class DemoController {
+    
+    @GetMapping("/hello")
+    public ApiResponse hello() {
+        return ApiResponse.success("Hello, BytePulse!");
+    }
+    
+    @GetMapping("/user/{id}")
+    public ApiResponse getUser(@PathVariable Long id) {
+        // 获取用户信息
+        return ApiResponse.success(userService.getById(id));
+    }
+}
+```
+
+### 2. 使用工具类
+```java
+@Service
+public class DemoService {
+    
+    @Autowired
+    private RedisUtils redisUtils;
+    
+    @Autowired
+    private JWTUtils jwtUtils;
+    
+    public void demoMethod() {
+        // Redis操作
+        redisUtils.set("key", "value", 3600);
+        
+        // JWT操作
+        String token = jwtUtils.generateToken(userId);
+    }
+}
+```
+
+### 3. 自定义注解使用
+
+**跳过认证**：
+```java
 @GetMapping("/public")
-public ApiResponse<String> publicEndpoint() {
-    return ApiResponse.success("Public content");
+@Anonymous
+public ApiResponse publicApi() {
+    return ApiResponse.success("公开接口");
 }
 ```
 
-### @RequestLimit
-接口请求限流：
+**跳过日志记录**：
 ```java
-@RequestLimit(count = 5, time = 60)
-@GetMapping("/limited")
-public ApiResponse<String> limitedEndpoint() {
-    return ApiResponse.success("Limited content");
+@PostMapping("/upload")
+@NoLogging
+public ApiResponse upload() {
+    return ApiResponse.success("文件上传");
 }
 ```
 
-## 🔧 工具类使用
+## 🔒 安全配置
 
-### JWT 工具类
-```java
-String token = JWTUtils.generateToken(userId, username);
-Claims claims = JWTUtils.parseToken(token);
-boolean isValid = JWTUtils.validateToken(token);
+项目已集成完整的安全配置：
+
+1. **认证机制**: 基于JWT的无状态认证
+2. **密码加密**: 使用BCrypt加密算法
+3. **CORS配置**: 支持跨域请求
+4. **接口保护**: 自动拦截未认证请求
+
+## 📊 监控与健康检查
+
+集成了Spring Boot Actuator，提供：
+
+- 应用健康状态检查
+- 系统信息监控
+- 性能指标统计
+
+访问地址：`http://localhost:19420/actuator`
+
+## 🧪 测试
+
+```bash
+# 运行单元测试
+mvn test
+
+# 运行集成测试
+mvn verify
 ```
 
-### Redis 工具类
-```java
-RedisUtils.set("key", "value", 3600);
-String value = RedisUtils.get("key");
-RedisUtils.delete("key");
-```
+## 📝 开发规范
 
-### MinIO 工具类
-```java
-String url = MinioUtils.uploadFile(file, "bucket-name");
-MinioUtils.downloadFile("bucket-name", "object-name");
-MinioUtils.deleteFile("bucket-name", "object-name");
-```
-
-## 📊 监控与管理
-
-### Actuator 端点
-- `/actuator/health` - 应用健康状态
-- `/actuator/info` - 应用信息
-- `/actuator/metrics` - 应用指标
-
-### Druid 监控
-- `/druid/index.html` - Druid 监控控制台
-
-## 🔄 环境配置
-
-支持多环境配置：
-- `application-dev.yaml` - 开发环境
-- `application-prod.yaml` - 生产环境
-- `application-druid.yaml` - 数据源配置
+1. **代码风格**: 遵循阿里巴巴Java开发手册
+2. **提交规范**: 使用约定式提交规范
+3. **分支策略**: Git Flow工作流
+4. **API设计**: RESTful API设计原则
 
 ## 🤝 贡献指南
 
@@ -187,19 +236,17 @@ MinioUtils.deleteFile("bucket-name", "object-name");
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+本项目基于 MIT 许可证开源 - 查看 [LICENSE](LICENSE) 文件了解详情
 
 ## 📞 联系方式
 
-- 项目主页：https://gitee.com/byte-pulse
-- 问题反馈：[Issues](https://gitee.com/byte-pulse/bp/issues)
+- 项目地址: https://gitee.com/byte-pulse/bp
+- 问题反馈: [Issues](https://gitee.com/byte-pulse/bp/issues)
 
-## 🙏 致谢
+## ⭐ Star History
 
-感谢以下开源项目的支持：
-- [Spring Boot](https://spring.io/projects/spring-boot)
-- [MyBatis Plus](https://baomidou.com/)
-- [Druid](https://github.com/alibaba/druid)
-- [SpringDoc OpenAPI](https://springdoc.org/)
-- [MinIO](https://min.io/)
-- 以及所有其他优秀的开源项目！
+如果这个项目对您有帮助，请给我们一个 Star！
+
+---
+
+**BytePulse Framework** - 让Java开发更简单、更高效！

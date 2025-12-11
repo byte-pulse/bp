@@ -5,39 +5,38 @@ import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 
-/**
- * 可重复读取响应体的包装器
- */
 public class CachedBodyResponseWrapper extends HttpServletResponseWrapper {
 
     private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     private ServletOutputStream outputStream;
     private PrintWriter writer;
+    private final HttpServletResponse originalResponse;
 
     public CachedBodyResponseWrapper(HttpServletResponse response) {
         super(response);
+        this.originalResponse = response;
     }
 
     @Override
     public ServletOutputStream getOutputStream() {
         if (outputStream == null) {
             outputStream = new ServletOutputStream() {
+
+                private final OutputStream bufferStream = buffer;
+
                 @Override
-                public void write(int b) {
-                    buffer.write(b);
+                public void write(int b) throws IOException {
+                    bufferStream.write(b);
                 }
+
+                @Override
+                public void setWriteListener(WriteListener listener) {}
 
                 @Override
                 public boolean isReady() {
                     return true;
-                }
-
-                @Override
-                public void setWriteListener(WriteListener listener) {
                 }
             };
         }
@@ -45,42 +44,33 @@ public class CachedBodyResponseWrapper extends HttpServletResponseWrapper {
     }
 
     @Override
-    public PrintWriter getWriter() {
+    public PrintWriter getWriter() throws IOException {
         if (writer == null) {
-            writer = new PrintWriter(buffer, true);
+            writer = new PrintWriter(
+                    new OutputStreamWriter(buffer, originalResponse.getCharacterEncoding()),
+                    true
+            );
         }
         return writer;
     }
 
-    /**
-     * 覆盖响应体内容
-     */
-    public void setBody(byte[] newBody) throws IOException {
-        buffer.reset();        // 清空原 buffer
-        buffer.write(newBody); // 写入新的字节数组
-    }
-
-
-    /**
-     * 获取响应体内容
-     */
     public byte[] getBody() throws IOException {
-        if (writer != null) {
-            writer.flush();
-        }
-        if (outputStream != null) {
-            outputStream.flush();
-        }
+        if (writer != null) writer.flush();
+        if (outputStream != null) outputStream.flush();
         return buffer.toByteArray();
     }
 
-    /**
-     * 写回响应给客户端
-     */
+    public void setBody(byte[] newBody) throws IOException {
+        buffer.reset();
+        buffer.write(newBody);
+    }
+
     public void copyToResponse() throws IOException {
-        HttpServletResponse response = (HttpServletResponse) getResponse();
-        byte[] bytes = getBody();
-        response.getOutputStream().write(bytes);
-        response.getOutputStream().flush();
+        byte[] content = getBody();
+
+        originalResponse.setContentLength(content.length);
+        ServletOutputStream out = originalResponse.getOutputStream();
+        out.write(content);
+        out.flush();
     }
 }

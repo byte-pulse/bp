@@ -12,6 +12,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -19,16 +20,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 
 import static cloud.bytepulse.bp.common.utils.AuthUtils.getUserId;
 import static cloud.bytepulse.bp.common.utils.ReqUtils.isPathMatching;
 
-/**
- *
- * @author jiejiebiezheyang
- * @since 2023-04-03 14:05
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -36,19 +33,51 @@ public class LoggingFilter extends OncePerRequestFilter {
 
     private final LoggingService loggingService;
 
-    /**
-     * 需要记录的不放心
-     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        // 需要放行的端口直接放行
         return !isPathMatching(LoggingConstant.NEED_LOGGING, requestURI);
     }
 
     @Override
     protected boolean shouldNotFilterErrorDispatch() {
         return false;
+    }
+
+    // 判断是否为 multipart 请求
+    private boolean isMultipart(HttpServletRequest request) {
+        return request.getContentType() != null
+                && request.getContentType().toLowerCase().startsWith("multipart/");
+    }
+
+    // 解析 multipart 请求内容, 文件字段记录为元信息 (不读文件内容)
+    private String buildMultipartJson(HttpServletRequest request)
+            throws IOException, ServletException {
+
+        ObjectNode root = JsonUtils.OBJECT_MAPPER.createObjectNode();
+
+        // 普通表单字段
+        request.getParameterMap().forEach((k, v) -> {
+            if (v != null && v.length == 1) {
+                root.put(k, v[0]);
+            } else {
+                root.putPOJO(k, v);
+            }
+        });
+
+        // 文件字段
+        Collection<Part> parts = request.getParts();
+        for (Part part : parts) {
+            if (part.getContentType() != null) {
+                ObjectNode fileNode = JsonUtils.OBJECT_MAPPER.createObjectNode();
+                fileNode.put("fileName", part.getSubmittedFileName());
+                fileNode.put("size", part.getSize());
+                fileNode.put("contentType", part.getContentType());
+                root.set(part.getName(), fileNode);
+            }
+        }
+
+        return JsonUtils.OBJECT_MAPPER.writeValueAsString(root);
     }
 
     @Override
@@ -63,7 +92,14 @@ public class LoggingFilter extends OncePerRequestFilter {
         CachedBodyRequestWrapper requestWrapper = new CachedBodyRequestWrapper(request);
         CachedBodyResponseWrapper responseWrapper = new CachedBodyResponseWrapper(response);
 
-        String requestBody = requestWrapper.getBodyString();
+        String requestBodyJson;
+
+        // 判断请求是否包含文件
+        if (isMultipart(request)) {
+            requestBodyJson = buildMultipartJson(request);
+        } else {
+            requestBodyJson = requestWrapper.getBodyString();
+        }
 
         String resolvedException = null;
 
@@ -73,28 +109,45 @@ public class LoggingFilter extends OncePerRequestFilter {
             resolvedException = e.getMessage();
             throw e;
         } finally {
+
             long cost = System.currentTimeMillis() - startTime;
-            String responseBody = new String(responseWrapper.getBody());
 
+            // 判断响应是否为文件
+            boolean isFileResponse =
+                    response.getContentType() != null &&
+                            (
+                                    response.getContentType().contains("application/octet-stream")
+                                            || response.getHeader("Content-Disposition") != null
+                            );
+
+            String rawResponseBody;
             String finalJson;
-            try {
-                // 尝试把原响应解析成 JSON 对象
-                JsonNode original = JsonUtils.OBJECT_MAPPER.readTree(responseBody);
-                ObjectNode objectNode = (ObjectNode) original;
-                objectNode.put("timestamp", System.currentTimeMillis());
-                objectNode.put("traceId", traceId);
-                JsonNode eNode = objectNode.get("e");
-                resolvedException = eNode != null ? eNode.asText() : null;
-                objectNode.remove("e");
-                finalJson = JsonUtils.OBJECT_MAPPER.writeValueAsString(objectNode);
 
-            } catch (Exception ex) {
-                // 如果不是 JSON (例如文件下载),那就原样返回
-                finalJson = responseBody;
+            if (isFileResponse) {
+                rawResponseBody = "文件";
+                finalJson = "文件";
+            } else {
+                rawResponseBody = new String(responseWrapper.getBody());
+
+                try {
+                    JsonNode original = JsonUtils.OBJECT_MAPPER.readTree(rawResponseBody);
+                    ObjectNode obj = (ObjectNode) original;
+                    obj.put("timestamp", System.currentTimeMillis());
+                    obj.put("traceId", traceId);
+
+                    JsonNode eNode = obj.get("e");
+                    resolvedException = eNode != null ? eNode.asText() : null;
+
+                    obj.remove("e");
+                    finalJson = JsonUtils.OBJECT_MAPPER.writeValueAsString(obj);
+
+                } catch (Exception ex) {
+                    finalJson = rawResponseBody;
+                }
             }
 
             log.info(
-                    """     
+                    """
                             \u001B[35m接口调用
                             \u001B[35m[TraceId= \u001B[0m{}\
                             \u001B[35m] \u001B[0m{} {}ms
@@ -104,28 +157,26 @@ public class LoggingFilter extends OncePerRequestFilter {
                     traceId,
                     request.getRequestURI(),
                     cost,
-                    requestBody,
+                    requestBodyJson,
                     finalJson,
                     resolvedException != null ? resolvedException : "无异常"
             );
-
-            String finalResolvedException = resolvedException;
 
             SysLog sysLog = new SysLog();
             sysLog.setTraceId(traceId);
             sysLog.setUri(request.getRequestURI());
             sysLog.setHttpMethod(request.getMethod());
             sysLog.setQueryParams(request.getQueryString());
-            sysLog.setBodyParams(requestBody);
-            sysLog.setResponseResult(responseBody);
+            sysLog.setBodyParams(requestBodyJson);
+            sysLog.setResponseResult(rawResponseBody);
             sysLog.setRequestTime(new Date(startTime));
             sysLog.setRequestIp(ReqUtils.getIP());
             sysLog.setUserId(getUserId());
             sysLog.setCost(cost);
-            sysLog.setException(finalResolvedException);
+            sysLog.setException(resolvedException);
+
             loggingService.save(sysLog);
 
-            // 写回响应给客户端
             responseWrapper.setBody(finalJson.getBytes());
             responseWrapper.copyToResponse();
 
