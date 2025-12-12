@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.common.utils;
 
-import cloud.bytepulse.bp.framwork.exception.BytePulseArgumentNotValidException;
+import cloud.bytepulse.bp.framework.exception.BytePulseArgumentNotValidException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

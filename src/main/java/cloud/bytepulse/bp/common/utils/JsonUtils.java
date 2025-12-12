@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.common.utils;
 
-import cloud.bytepulse.bp.framwork.exception.BytePulseException;
+import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

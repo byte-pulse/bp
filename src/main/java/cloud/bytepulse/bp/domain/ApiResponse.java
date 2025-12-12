@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.domain;
 
 
-import cloud.bytepulse.bp.framwork.enums.HttpStatusEnum;
+import cloud.bytepulse.bp.framework.enums.HttpStatusEnum;
 
 import java.io.Serial;
 import java.util.HashMap;

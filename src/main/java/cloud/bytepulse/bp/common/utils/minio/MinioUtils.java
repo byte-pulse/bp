@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.common.utils.minio;
 
 import cloud.bytepulse.bp.common.utils.minio.properties.IMinioProperties;
-import cloud.bytepulse.bp.framwork.exception.BytePulseException;
+import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import io.minio.*;
 import io.minio.errors.MinioException;
 import io.minio.http.Method;
