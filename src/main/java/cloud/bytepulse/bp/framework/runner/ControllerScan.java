@@ -6,7 +6,6 @@ import cloud.bytepulse.bp.framework.annotation.NoLogging;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
 import cloud.bytepulse.bp.framework.constant.LoggingConstant;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -37,7 +36,7 @@ public class ControllerScan implements BeanFactoryPostProcessor {
     private static final String[] BasePackages = {"cloud.bytepulse.**.controller"};
 
     @Override
-    public void postProcessBeanFactory(@NotNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
         try {
             log.debug("开始扫描匿名接口...");
             Set<Class<?>> controllerClasses = scanControllers();

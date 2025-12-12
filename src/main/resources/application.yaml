@@ -45,6 +45,12 @@ spring:
       max-file-size: 1024MB
       max-request-size: 4096MB
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
 # 接口文档设置
 springdoc:
   swagger-ui:

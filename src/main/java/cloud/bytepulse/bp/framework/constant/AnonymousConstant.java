@@ -20,7 +20,7 @@ public class AnonymousConstant {
         ANONYMOUS.add("/v3/api-docs");
         ANONYMOUS.add("/v3/api-docs/**");
         ANONYMOUS.add("/doc.html");
-        ANONYMOUS.add("/webjars/**");
+        ANONYMOUS.add("/META-INF/resources/webjars/**");
         ANONYMOUS.add("/druid/**");
         ANONYMOUS.add("/actuator/**");
         ANONYMOUS.add("/error");
