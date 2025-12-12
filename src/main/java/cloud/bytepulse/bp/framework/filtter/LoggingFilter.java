@@ -174,6 +174,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 
             try {
                 requestBodyJson = mapper.writeValueAsString(mapper.readTree(requestBodyJson));
+                requestBodyJson = requestBodyJson.equals("null") ? null : requestBodyJson;
             } catch (Exception ignored) {
 
             }

@@ -2,9 +2,10 @@ package cloud.bytepulse.bp.app.auth.service.service;
 
 
 import cloud.bytepulse.bp.app.auth.dto.auth.LoginDTO;
-import cloud.bytepulse.bp.domain.ApiResponse;
+import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author jiejiebiezheyang
@@ -16,15 +17,10 @@ public interface AuthService {
     /**
      * 获取验证码
      */
-    ApiResponse captcha() throws IOException;
+    Map<String, String> captcha() throws IOException;
 
     /**
      * 登录
      */
-    ApiResponse login(LoginDTO loginDTO);
-
-    /**
-     * 检查登陆状态
-     */
-    ApiResponse check();
+    LoginResultVO login(LoginDTO loginDTO);
 }

@@ -7,11 +7,11 @@ import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 import cloud.bytepulse.bp.common.utils.JWTUtils;
 import cloud.bytepulse.bp.common.utils.RedisUtils;
 import cloud.bytepulse.bp.common.utils.ReqUtils;
-import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
 import cloud.bytepulse.bp.domain.models.auth.domain.LoginUser;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
 import cloud.bytepulse.bp.domain.models.entity.SysUser;
+import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.GifCaptcha;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -50,8 +51,8 @@ public class AuthServiceImpl implements AuthService {
      * 获取验证码
      */
     @Override
-    public ApiResponse captcha() throws IOException {
-        HashMap<String, String> map = new HashMap<>();
+    public Map<String, String> captcha() throws IOException {
+        Map<String, String> map = new HashMap<>();
 
         GifCaptcha gifCaptcha = CaptchaUtil.createGifCaptcha(160, 60, 4);
         String imageBase64Data = gifCaptcha.getImageBase64Data();
@@ -61,19 +62,19 @@ public class AuthServiceImpl implements AuthService {
 
         // 结果存入redis
         redisUtils.setCacheObject("captcha:" + uid, gifCaptcha.getCode(), 30L, TimeUnit.SECONDS);
-        return ApiResponse.success(map);
+        return map;
     }
 
     /**
      * 登录
      */
     @Override
-    public ApiResponse login(LoginDTO loginDTO) {
+    public LoginResultVO login(LoginDTO loginDTO) {
         // 验证码
-        String uid = redisUtils.getCacheObject("captcha:" + loginDTO.getUid());
+        String captcha = redisUtils.getCacheObject("captcha:" + loginDTO.getUid());
         redisUtils.deleteObject("captcha:" + loginDTO.getUid());
-        if (uid == null || !uid.equalsIgnoreCase(loginDTO.getCaptcha())) {
-            return ApiResponse.badRequest("验证码错误");
+        if (captcha == null || !captcha.equalsIgnoreCase(loginDTO.getCaptcha())) {
+            throw new BytePulseException("验证码错误");
         }
         // 使用authenticate进行认证
         UsernamePasswordAuthenticationToken authentication =
@@ -81,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
         Authentication authenticate = authenticationManager.authenticate(authentication);
         // 认证没通过,给出提示
         if (authenticate == null) {
-            return ApiResponse.unauthorized("登陆失败");
+            throw new BytePulseException("登陆失败");
         }
         // 认证通过
         LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
@@ -114,14 +115,6 @@ public class AuthServiceImpl implements AuthService {
         loginResultVO.setToken(token);
         // 移除需要重新登录的标记
         NEED_RE_LOGIN.remove(Integer.valueOf(userId));
-        return ApiResponse.success(loginResultVO);
-    }
-
-    /**
-     * 登录状态测试
-     */
-    @Override
-    public ApiResponse check() {
-        return ApiResponse.success();
+        return loginResultVO;
     }
 }
