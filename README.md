@@ -13,8 +13,9 @@
 - **🗄️ 文件存储**: 支持MinIO对象存储，文件上传下载一体化
 - **🛠️ 工具集成**: 验证码、Excel处理、支付、监控等实用工具
 - **🛡️ 限流防护**: 基于AOP的接口限流功能
-- **⚠️ 异常处理**: 统一的异常处理和响应封装
+- **⚠️ 异常处理**: 统一的异常处理和响应封装，支持调试信息控制
 - **🔧 开发工具**: 内置测试接口，支持文件上传下载测试
+- **🎯 验证码系统**: 集成图形验证码和Hutool验证码，支持无验证码调试接口
 
 ## 📋 技术栈
 
@@ -32,6 +33,7 @@
 | MinIO | 8.5.17 | 对象存储 |
 | Apache Tika | 3.2.3 | 文件类型检测 |
 | Hutool | 5.8.39 | 工具类库 |
+| Kaptcha | 2.3.2 | 图形验证码 |
 
 ## 🛠️ 环境要求
 
@@ -56,7 +58,7 @@ mysql -u root -p < init.sql
 
 数据库包含以下表结构：
 - `sys_user`: 系统用户表（默认管理员账号：admin/admin123）
-- `sys_log`: 系统日志表（支持TraceId追踪和异常记录）
+- `sys_log`: 系统日志表（支持TraceId追踪和异常记录，唯一索引）
 
 ### 3. 配置文件
 根据环境修改配置文件：
@@ -106,9 +108,12 @@ src/main/java/cloud/bytepulse/bp/
 ├── app/                           # 应用层
 │   ├── auth/                      # 认证模块
 │   │   ├── controller/            # 认证控制器
+│   │   │   └── AuthController.java # 认证接口
 │   │   ├── service/               # 认证服务层
 │   │   ├── dto/                   # 数据传输对象
+│   │   │   └── auth/             # 认证相关DTO
 │   │   └── vo/                    # 视图对象
+│   │       └── auth/             # 认证相关VO
 │   ├── logging/                   # 日志模块
 │   │   └── service/               # 日志服务层
 │   └── testapi/                   # 测试API模块
@@ -131,16 +136,16 @@ src/main/java/cloud/bytepulse/bp/
     │   ├── MinioConfig.java       # MinIO配置
     │   └── OpenAPIConfig.java     # API文档配置
     ├── constant/                  # 常量定义
+    │   └── Regex.java             # 正则表达式常量
     ├── enums/                     # 枚举类
     ├── exception/                 # 异常处理
-    │   ├── ExceptionProcessor.java # 全局异常处理器
+    │   ├── ExceptionProcessor.java # 全局异常处理器（增强版）
     │   ├── BytePulseException.java # 自定义异常
     │   └── BytePulseArgumentNotValidException.java # 参数验证异常
-    ├── filter/                    # 过滤器
-    │   ├── JWTFilter.java         # JWT认证过滤器
-    │   ├── LoggingFilter.java     # 请求日志过滤器
-    │   └── GlobalCorsFilter.java  # CORS过滤器
-    └── interceptor/               # 拦截器
+    └── filter/                    # 过滤器
+        ├── JWTFilter.java         # JWT认证过滤器
+        ├── LoggingFilter.java     # 请求日志过滤器
+        └── GlobalCorsFilter.java  # CORS过滤器
 ```
 
 ## 🔧 核心功能
@@ -152,7 +157,7 @@ src/main/java/cloud/bytepulse/bp/
   "code": 200,
   "message": "操作成功",
   "data": {},
-  "request_id": "trace-id",
+  "traceId": "trace-id",
   "timestamp": "2024-01-01 12:00:00"
 }
 ```
@@ -162,12 +167,14 @@ src/main/java/cloud/bytepulse/bp/
 - 支持Token刷新机制
 - 灵活的权限控制
 - 无状态认证设计
+- 支持调试模式快速获取Token
 
 ### 3. 请求日志追踪
 - **TraceId追踪**: 每个请求分配唯一TraceId，便于链路追踪
 - **完整记录**: 请求参数、响应结果、执行时间、异常信息
 - **性能监控**: 自动计算接口响应耗时
 - **用户关联**: 记录请求用户信息
+- **唯一索引**: 防止重复日志记录
 
 ### 4. 接口限流
 使用 `@RequestLimit` 注解实现接口限流：
@@ -178,13 +185,24 @@ public ResponseEntity<?> someMethod() {
 }
 ```
 
-### 5. 全局异常处理
-- 统一异常响应格式
-- 参数验证异常处理
-- 业务异常分类处理
-- 调试信息可控展示
+### 5. 增强的异常处理
+- **统一异常响应格式**: 所有异常统一返回格式
+- **调试信息控制**: 通过配置控制是否返回详细错误信息
+- **参数验证异常**: 专门处理参数校验失败
+- **数据库异常**: 区分SQL异常和数据访问异常
+- **认证授权异常**: 细分不同类型的认证问题
+- **文件处理异常**: MinIO相关异常处理
+- **JSON异常**: 参数序列化异常处理
+- **资源不存在**: 404异常专门处理
 
-### 6. 文件处理
+### 6. 验证码系统
+- **图形验证码**: 基于Kaptcha生成
+- **Hutool验证码**: 额外的验证码支持
+- **无验证码调试**: 开发调试专用接口
+- **验证码存储**: Redis存储验证码
+- **自动清理**: 过期验证码自动清理
+
+### 7. 文件处理
 - **文件上传**: 支持多文件上传，自动文件类型检测
 - **文件下载**: 支持文件名编码，中文文件名正确显示
 - **MinIO集成**: 对象存储支持
@@ -192,7 +210,26 @@ public ResponseEntity<?> someMethod() {
 
 ## 🎯 使用示例
 
-### 1. 创建Controller
+### 1. 认证接口使用
+```java
+// 获取验证码
+GET /auth/captcha
+// 返回：{"code":200,"data":{"uid":"uuid","image":"base64_image"}}
+
+// 登录
+POST /auth/login
+{
+  "username": "admin",
+  "password": "admin123",
+  "captcha": "验证码",
+  "uid": "验证码uid"
+}
+
+// 检查登录状态
+GET /auth/check
+```
+
+### 2. 创建Controller
 ```java
 @RestController
 @RequestMapping("/api/demo")
@@ -215,7 +252,7 @@ public class DemoController {
 }
 ```
 
-### 2. 使用工具类
+### 3. 使用工具类
 ```java
 @Service
 public class DemoService {
@@ -238,10 +275,10 @@ public class DemoService {
 }
 ```
 
-### 3. 文件上传下载
+### 4. 文件上传下载
 ```java
-@PostMapping("/upload")
-@Operation(summary = "文件上传下载测试")
+@PostMapping("/fileUploadDownload")
+@Operation(summary = "测试文件上传下载")
 @Anonymous
 public ResponseEntity<byte[]> fileUploadDownload(
     @RequestParam String name, 
@@ -263,7 +300,7 @@ public ResponseEntity<byte[]> fileUploadDownload(
 }
 ```
 
-### 4. 自定义注解使用
+### 5. 自定义注解使用
 
 **跳过认证**：
 ```java
@@ -283,6 +320,15 @@ public ApiResponse sensitiveOperation() {
 }
 ```
 
+**隐藏API文档**：
+```java
+@GetMapping("/debug")
+@Operation(summary = "调试接口", hidden = true)
+public ApiResponse debug() {
+    return ApiResponse.success("调试信息");
+}
+```
+
 ## 🔒 安全配置
 
 项目已集成完整的安全配置：
@@ -292,6 +338,7 @@ public ApiResponse sensitiveOperation() {
 3. **CORS配置**: 支持跨域请求
 4. **接口保护**: 自动拦截未认证请求
 5. **路径安全**: 灵活的路径权限配置
+6. **验证码防护**: 防止暴力破解
 
 ## 📊 监控与健康检查
 
@@ -307,7 +354,12 @@ public ApiResponse sensitiveOperation() {
 框架内置测试接口，方便开发和调试：
 
 1. **文件上传下载测试**: `POST /test/fileUploadDownload`
-2. **无验证码登录测试**: `POST /test/loginWithoutCaptcha`
+   - 支持文件上传后立即下载测试
+   - 自动处理中文文件名编码
+
+2. **无验证码登录测试**: 
+   - `POST /auth/getToken` (调试接口，文档隐藏)
+   - 自动获取验证码并完成登录
 
 这些接口使用 `@Anonymous` 注解，可以无需认证直接访问。
 
@@ -342,11 +394,21 @@ management:
       exposure:
         include: "*"
 
-# 异常处理
+# 异常处理（重要）
 exception:
   processer:
-    debugInfo: false  # 生产环境建议关闭
+    debugInfo: false  # 生产环境必须关闭
 ```
+
+### 3. 异常处理配置
+```yaml
+exception:
+  processer:
+    debugInfo: false  # 控制是否返回详细错误信息
+```
+
+- **开发环境**: 设置为`true`，返回详细错误信息便于调试
+- **生产环境**: 设置为`false`，只返回通用错误信息，保护系统安全
 
 ## 📝 开发规范
 
@@ -355,6 +417,8 @@ exception:
 3. **分支策略**: Git Flow工作流
 4. **API设计**: RESTful API设计原则
 5. **注释规范**: 使用Swagger注解完善API文档
+6. **异常处理**: 使用统一的异常处理机制
+7. **安全原则**: 敏感接口必须认证，调试接口隐藏文档
 
 ## 🚀 部署指南
 
@@ -374,9 +438,11 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 
 ### 3. 生产环境注意事项
 - 修改默认账号密码
-- 关闭debug信息展示
+- 关闭debug信息展示（`exception.processer.debugInfo: false`）
 - 配置合适的JVM参数
-- 设置日志级别
+- 设置日志级别为INFO或ERROR
+- 启用HTTPS
+- 配置防火墙规则
 
 ## 🤝 贡献指南
 
@@ -400,10 +466,14 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 ### v1.0
 - ✨ 基于SpringBoot 3.5.8构建
 - 🔧 修正framework目录拼写错误
-- 📊 增强日志系统，支持TraceId追踪
-- 🛠️ 新增测试API模块
+- 📊 增强日志系统，支持TraceId追踪和唯一索引
+- 🛠️ 新增测试API模块，文件上传下载测试
 - ⬆️ 升级依赖版本：SpringDoc 2.8.14、Apache Tika 3.2.3
-- 🗄️ 优化数据库表结构，增加异常记录
+- 🗄️ 优化数据库表结构，增加异常记录和唯一索引
+- 🔐 完善认证系统，增加验证码和调试接口
+- ⚠️ 增强异常处理，支持调试信息控制
+- 🔒 新增Regex常量类，统一正则表达式管理
+- 📝 完善API文档注解，支持隐藏调试接口
 
 ---
 
