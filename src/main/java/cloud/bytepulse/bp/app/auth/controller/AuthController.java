@@ -3,12 +3,14 @@ package cloud.bytepulse.bp.app.auth.controller;
 import cloud.bytepulse.bp.app.auth.dto.auth.LoginDTO;
 import cloud.bytepulse.bp.app.auth.service.service.AuthService;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
+import cloud.bytepulse.bp.common.utils.RedisUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.framework.annotation.Anonymous;
 import cloud.bytepulse.bp.framework.annotation.NoLogging;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +31,8 @@ public class AuthController {
 
     private final AuthService authService;
 
+    private final RedisUtils redisUtils;
+
     @GetMapping("/captcha")
     @Operation(summary = "获取验证码")
     @Anonymous
@@ -42,6 +46,22 @@ public class AuthController {
     @Operation(summary = "登录")
     @Anonymous
     public ApiResponse login(@RequestBody @Validated LoginDTO loginDTO) {
+        LoginResultVO loginResultVO = authService.login(loginDTO);
+        return ApiResponse.success(loginResultVO);
+    }
+
+    @PostMapping("/getToken")
+    @Operation(summary = "无验证码直接登陆", hidden = true)
+    @Anonymous
+    public ApiResponse login(@RequestParam String username, @RequestParam String password) throws IOException {
+        Map<String, String> map = authService.captcha();
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setUsername(username);
+        loginDTO.setPassword(password);
+        String uid = map.get("uid");
+        loginDTO.setUid(uid);
+        String captcha = redisUtils.getCacheObject("captcha:" + loginDTO.getUid());
+        loginDTO.setCaptcha(captcha);
         LoginResultVO loginResultVO = authService.login(loginDTO);
         return ApiResponse.success(loginResultVO);
     }

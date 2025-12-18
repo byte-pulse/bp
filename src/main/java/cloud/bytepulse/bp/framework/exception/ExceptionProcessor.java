@@ -10,6 +10,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -115,10 +116,16 @@ public class ExceptionProcessor {
      * 授权异常
      */
     @ResponseBody
-    @ExceptionHandler(BadCredentialsException.class)
-    public ApiResponse resolveException(BadCredentialsException ex) {
+    @ExceptionHandler({BadCredentialsException.class, InternalAuthenticationServiceException.class})
+    public ApiResponse badCredentialsException(Exception ex) {
+        String msg = "";
         log.error("授权异常", ex);
-        return ApiResponse.error(ex.getMessage());
+        if (ex instanceof BadCredentialsException me) {
+            msg = me.getMessage();
+        } else if (ex instanceof InternalAuthenticationServiceException me) {
+            msg = me.getMessage();
+        }
+        return ApiResponse.error(msg);
     }
 
     /**

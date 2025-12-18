@@ -34,8 +34,3 @@ minio:
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: quickly-prod
-
-# 生产环境关闭 swagger
-springdoc:
-  api-docs:
-    enabled: false
