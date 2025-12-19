@@ -185,14 +185,7 @@ public class LoggingFilter extends OncePerRequestFilter {
             }
 
             // 控制台打印
-            log.info(
-                    """
-                            \u001B[35m接口调用
-                            \u001B[35m[TraceId = \u001B[0m{}\
-                            \u001B[35m] \u001B[0m{} {}ms
-                            \u001B[35mreq = \u001B[0m{}
-                            \u001B[35mresp = \u001B[0m{}
-                            \u001B[35mex = \u001B[0m{}""",
+            log.info("接口调用 [TraceId={}] {} {}ms req = {} resp = {} ex = {}",
                     traceId,
                     request.getRequestURI(),
                     cost,
