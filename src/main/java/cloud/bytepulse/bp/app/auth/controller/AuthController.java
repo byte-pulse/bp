@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.app.auth.controller;
 
-import cloud.bytepulse.bp.app.auth.dto.auth.LoginDTO;
+import cloud.bytepulse.bp.app.auth.dto.LoginDTO;
 import cloud.bytepulse.bp.app.auth.service.service.AuthService;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 import cloud.bytepulse.bp.common.utils.RedisUtils;
@@ -10,7 +10,6 @@ import cloud.bytepulse.bp.framework.annotation.NoLogging;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

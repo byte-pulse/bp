@@ -1,5 +1,8 @@
 package cloud.bytepulse.bp;
 
+import kong.unirest.core.HttpResponse;
+import kong.unirest.core.JsonNode;
+import kong.unirest.core.Unirest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,5 +22,11 @@ public class CommonTest {
     public void passwordEncoder() {
         String encoded = bCryptPasswordEncoder.encode("000000");
         System.out.println(encoded);
+    }
+
+    @Test
+    public void test() {
+        HttpResponse<JsonNode> json = Unirest.get("http://127.0.0.1:19420/get").asJson();
+        System.out.println(json.getBody());
     }
 }

@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.app.auth.service.service.impl;
 
 
-import cloud.bytepulse.bp.app.auth.dto.auth.LoginDTO;
+import cloud.bytepulse.bp.app.auth.dto.LoginDTO;
 import cloud.bytepulse.bp.app.auth.service.service.AuthService;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 import cloud.bytepulse.bp.common.utils.JWTUtils;

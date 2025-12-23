@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.app.auth.service.service;
 
 
-import cloud.bytepulse.bp.app.auth.dto.auth.LoginDTO;
+import cloud.bytepulse.bp.app.auth.dto.LoginDTO;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 
 import java.io.IOException;

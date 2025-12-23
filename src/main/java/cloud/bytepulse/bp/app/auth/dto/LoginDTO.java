@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.app.auth.dto.auth;
+package cloud.bytepulse.bp.app.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
