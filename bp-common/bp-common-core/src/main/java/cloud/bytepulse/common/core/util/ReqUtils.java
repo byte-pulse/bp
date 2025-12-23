@@ -104,4 +104,63 @@ public class ReqUtils {
         AntPathMatcher matcher = new AntPathMatcher();
         return matcher.match(path, apiPath);
     }
+
+    /**
+     * 获取设备信息
+     */
+    public static String getDeviceInfo(String userAgent) {
+        UAUtils.UAResult result = UAUtils.parse(userAgent);
+        return result.shortInfo();
+    }
+
+    /**
+     * 获取设备信息
+     */
+    public static String getDeviceInfo() {
+        return getDeviceInfo(getUserAgentInfo());
+    }
+
+    /**
+     * 获取userAgent信息
+     *
+     */
+    public static String getUserAgentInfo(HttpServletRequest request) {
+        return request.getHeader("User-Agent");
+    }
+
+    /**
+     * 获取userAgent信息
+     *
+     */
+    public static String getUserAgentInfo() {
+        return getUserAgentInfo(getRequest());
+    }
+
+    /**
+     * 获取ip地理信息
+     */
+    public static IpGeoInfo getIpFeoInfo() {
+        return getIpFeoInfo(getIP());
+    }
+
+    /**
+     * 获取ip地理信息
+     */
+    public static IpGeoInfo getIpFeoInfo(String ip) {
+        String url = "https://ip9.com.cn/get?ip=" + ip;
+        HttpResponse<String> ipGeoInfoHttpResponse = Unirest.get(url)
+                .asString();
+        if (ipGeoInfoHttpResponse.getStatus() == 200) {
+            String body = ipGeoInfoHttpResponse.getBody();
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                JsonNode jsonNode = mapper.readTree(body);
+                JsonNode data = jsonNode.get("data");
+                return mapper.treeToValue(data, IpGeoInfo.class);
+            } catch (JsonProcessingException e) {
+                return new IpGeoInfo();
+            }
+        }
+        return new IpGeoInfo();
+    }
 }
