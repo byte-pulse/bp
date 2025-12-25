@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import kong.unirest.core.HttpResponse;
-import kong.unirest.core.JsonNode;
 import kong.unirest.core.Unirest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,8 @@ public class CommonTest {
 
     @Test
     public void test() {
-        HttpResponse<JsonNode> json = Unirest.get("http://127.0.0.1:19420/get").asJson();
+        HttpResponse<JsonNode> json = Unirest.get("https://paper.hengcloud.top/v1/parse?link=4http://xhslink.com/o/3KiWE7rQMNY")
+                .asObject(JsonNode.class);
         System.out.println(json.getBody());
     }
 }

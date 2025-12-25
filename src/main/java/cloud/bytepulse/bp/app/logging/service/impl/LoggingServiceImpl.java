@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author jiejiebiezheyang
@@ -15,11 +17,12 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class LoggingServiceImpl implements LoggingService {
 
     private final SysLogMapper sysLogMapper;
 
-    @Async("dbExecutor")
+    @Async
     public void save(SysLog log) {
         sysLogMapper.insert(log);
     }
