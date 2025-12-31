@@ -82,4 +82,70 @@ public class CryptoUtils {
         KeyFactory kf = KeyFactory.getInstance("RSA");
         return kf.generatePublic(spec);
     }
+
+    private static PrivateKey getPrivateKeyFromBase64(String base64PrivateKey) throws Exception {
+        byte[] keyBytes = Base64.getDecoder().decode(base64PrivateKey);
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePrivate(spec);
+    }
+
+    // ========== AES ==========
+
+    /**
+     * 生成 AES 密钥（Base64 编码）
+     */
+    public static String generateAESKey(int keySize) throws Exception {
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(keySize);
+        SecretKey secretKey = keyGen.generateKey();
+        return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+    }
+
+    /**
+     * 从 SecretKey 获取 Base64 字符串
+     */
+    public static String getBase64AESKey(SecretKey secretKey) {
+        return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+    }
+
+    /**
+     * 从 Base64 获取 AES SecretKey 对象
+     */
+    public static SecretKey getAESKeyFromBase64(String base64Key) {
+        byte[] decodedKey = Base64.getDecoder().decode(base64Key);
+        return new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+    }
+
+    /**
+     * 随机生成安全的 16 字节 IV
+     */
+    public static IvParameterSpec generateRandomIV() {
+        byte[] iv = new byte[16];
+        new SecureRandom().nextBytes(iv);
+        return new IvParameterSpec(iv);
+    }
+
+    /**
+     * 使用 AES 密钥加密明文，传入 IV 参数
+     * 返回 Base64 编码密文
+     */
+    public static String encryptWithAES(String plainText, String base64AESKey, IvParameterSpec ivSpec) throws Exception {
+        SecretKeySpec keySpec = new SecretKeySpec(Base64.getDecoder().decode(base64AESKey), "AES");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+        byte[] encrypted = cipher.doFinal(plainText.getBytes(DEFAULT_CHARSET));
+        return Base64.getEncoder().encodeToString(encrypted);
+    }
+
+    /**
+     * 使用 AES 密钥解密密文，传入 IV 参数
+     */
+    public static String decryptWithAES(String cipherText, String base64AESKey, IvParameterSpec ivSpec) throws Exception {
+        SecretKeySpec keySpec = new SecretKeySpec(Base64.getDecoder().decode(base64AESKey), "AES");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(cipherText));
+        return new String(decrypted, DEFAULT_CHARSET);
+    }
 }
