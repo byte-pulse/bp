@@ -188,7 +188,7 @@ public class ExceptionProcessor {
      * 将异常进行统一处理,并将结果返回给前端
      */
     @ResponseBody
-    @ExceptionHandler()
+    @ExceptionHandler(Exception.class)
     public ApiResponse resolveException(Exception ex) {
         log.error("Exception异常捕获", ex);
         if (!debug) {
