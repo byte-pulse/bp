@@ -6,6 +6,7 @@ import cloud.bytepulse.bp.common.utils.RedisUtils;
 import cloud.bytepulse.bp.common.utils.ReqUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.domain.models.auth.domain.LoginUser;
+import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -42,7 +43,11 @@ public class JWTFilter extends OncePerRequestFilter {
         String token = request.getHeader("Authorization");
         String requestURI = request.getRequestURI();
 
-        // 需要放行的端口直接放行
+        // 匿名接口和不存在的接口直接放行
+        if (!ReqUtils.isPathMatching(AllHandlerConstant.ALL_HANDLER, requestURI)) {
+            printNotFound(request, response);
+            return;
+        }
         if (isPathMatching(AnonymousConstant.ANONYMOUS, requestURI)) {
             filterChain.doFilter(request, response);
             return;
@@ -54,23 +59,23 @@ public class JWTFilter extends OncePerRequestFilter {
             userId = JWTUtils.parseToken(token, "userId", false);
             fingerprint = JWTUtils.parseToken(token, "fingerprint", false);
         } catch (Exception e) {
-            response.getWriter().println(JsonUtils.toJsonStr(ApiResponse.unauthorized("未登录")));
+            printUnauthorized(response, "未登录");
             return;
         }
         // 从redis中获取用户信息
         LoginUser loginUser = redisUtils.getCacheObject("login:" + userId);
         if (loginUser == null || loginUser.getLoginUserInfo() == null) {
-            response.getWriter().println(JsonUtils.toJsonStr(ApiResponse.unauthorized("登录状态失效")));
+            printUnauthorized(response, "登录状态失效");
             return;
         }
         String sessionId = loginUser.getLoginUserInfo().getSessionId();
         if (fingerprint == null || !fingerprint.equals(sessionId)) {
-            response.getWriter().println(JsonUtils.toJsonStr(ApiResponse.unauthorized("登录过期")));
+            printUnauthorized(response, "登录过期");
             return;
         }
         if (NEED_RE_LOGIN.containsKey(Integer.valueOf(userId))) {
             NEED_RE_LOGIN.remove(Integer.valueOf(userId));
-            response.getWriter().println(JsonUtils.toJsonStr(ApiResponse.unauthorized("账户或角色有调整，请重新登录")));
+            printUnauthorized(response, "账户或角色有调整，请重新登录");
             return;
         }
         ReqUtils.getRequest().setAttribute("userId", userId);
@@ -80,5 +85,24 @@ public class JWTFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * 401 输出
+     */
+    private void printUnauthorized(HttpServletResponse response, String msg) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().println(JsonUtils.toJsonStr(ApiResponse.unauthorized(msg)));
+    }
+
+    /**
+     * 404 输出
+     *
+     */
+    private void printNotFound(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().println(JsonUtils.toJsonStr(
+                ApiResponse.notFound()
+                        .put("message", "资源不存在:" + request.getRequestURI())));
     }
 }

@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.framework.constant;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author jiejiebiezheyang
@@ -12,6 +12,6 @@ public class LoggingConstant {
     /**
      * 需要记录日志的接口
      */
-    public final static List<String> NEED_LOGGING = new ArrayList<>();
+    public final static Set<String> NEED_LOGGING = new HashSet<>();
 
 }

@@ -3,6 +3,7 @@ package cloud.bytepulse.bp.framework.runner;
 
 import cloud.bytepulse.bp.framework.annotation.Anonymous;
 import cloud.bytepulse.bp.framework.annotation.NoLogging;
+import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
 import cloud.bytepulse.bp.framework.constant.LoggingConstant;
 import lombok.extern.slf4j.Slf4j;
@@ -53,10 +54,14 @@ public class ControllerScan implements BeanFactoryPostProcessor {
                     boolean hasNoLogging = classHasNoLogging || method.isAnnotationPresent(NoLogging.class);
                     String methodPath = extractPathFromMethod(method);
                     String fullPath = normalizePath(controllerPrefix, methodPath);
+                    // 项目所有接口
+                    AllHandlerConstant.ALL_HANDLER.add(fullPath);
+
                     // 添加所有需要日志的接口
                     if (!hasNoLogging) {
                         LoggingConstant.NEED_LOGGING.add(fullPath);
                     }
+                    // 匿名放行接口
                     if (hasAnonymous) {
                         AnonymousConstant.ANONYMOUS.add(fullPath);
                         log.debug("添加匿名接口: {}", fullPath);
@@ -64,6 +69,7 @@ public class ControllerScan implements BeanFactoryPostProcessor {
                 }
             }
             log.debug("匿名接口扫描完成: {}", AnonymousConstant.ANONYMOUS);
+            AllHandlerConstant.ALL_HANDLER.addAll(AnonymousConstant.ANONYMOUS);
         } catch (Exception e) {
             throw new BeansException("匿名接口扫描失败: " + e.getMessage(), e) {
             };
@@ -96,6 +102,9 @@ public class ControllerScan implements BeanFactoryPostProcessor {
                 .replaceAll("\\s+", "")
                 .replaceAll("\\{[^}]+}", "*");
 
+        if (fullPath.equals("/")) {
+            return fullPath;
+        }
         if (fullPath.endsWith("/")) {
             fullPath = fullPath.substring(0, fullPath.length() - 1);
         }

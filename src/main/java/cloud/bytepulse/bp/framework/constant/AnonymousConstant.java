@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.framework.constant;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author jiejiebiezheyang
@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class AnonymousConstant {
 
-    public final static List<String> ANONYMOUS = new ArrayList<>();
+    public final static Set<String> ANONYMOUS = new HashSet<>();
 
     static {
         ANONYMOUS.add("/favicon.ico");

@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * nginx工具类
@@ -87,7 +87,7 @@ public class ReqUtils {
     /**
      * 路径是否匹配
      */
-    public static boolean isPathMatching(List<String> paths, String apiPath) {
+    public static boolean isPathMatching(Set<String> paths, String apiPath) {
         AntPathMatcher matcher = new AntPathMatcher();
         for (String path : paths) {
             if (matcher.match(path, apiPath)) {

@@ -57,7 +57,7 @@ public class ExceptionProcessor {
     @ResponseBody
     @ExceptionHandler(NoResourceFoundException.class)
     public ApiResponse noResourceFoundException(NoResourceFoundException exception) {
-        return ApiResponse.notFound().put("data", exception.getMessage());
+        return ApiResponse.notFound().put("message", "资源不存在: " + exception.getResourcePath());
     }
 
     /**
