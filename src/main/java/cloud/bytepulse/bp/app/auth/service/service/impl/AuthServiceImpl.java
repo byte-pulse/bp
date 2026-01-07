@@ -8,7 +8,7 @@ import cloud.bytepulse.bp.common.utils.JWTUtils;
 import cloud.bytepulse.bp.common.utils.RedisUtils;
 import cloud.bytepulse.bp.common.utils.ReqUtils;
 import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
-import cloud.bytepulse.bp.domain.models.auth.domain.LoginUser;
+import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
 import cloud.bytepulse.bp.domain.models.entity.SysUser;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.bytepulse.bp.domain.models.auth.domain.LoginUser.NEED_RE_LOGIN;
+import static cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser.NEED_RE_LOGIN;
 
 /**
  * @author jiejiebiezheyang

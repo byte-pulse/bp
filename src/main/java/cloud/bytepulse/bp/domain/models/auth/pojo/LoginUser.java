@@ -1,6 +1,5 @@
-package cloud.bytepulse.bp.domain.models.auth.domain;
+package cloud.bytepulse.bp.domain.models.auth.pojo;
 
-import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;

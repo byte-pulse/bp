@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.app.auth.service.service.impl;
 
 import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
-import cloud.bytepulse.bp.domain.models.auth.domain.LoginUser;
+import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
 import cloud.bytepulse.bp.domain.models.entity.SysUser;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;

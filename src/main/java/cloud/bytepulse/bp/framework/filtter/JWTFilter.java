@@ -5,7 +5,7 @@ import cloud.bytepulse.bp.common.utils.JsonUtils;
 import cloud.bytepulse.bp.common.utils.RedisUtils;
 import cloud.bytepulse.bp.common.utils.ReqUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
-import cloud.bytepulse.bp.domain.models.auth.domain.LoginUser;
+import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
 import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
 import jakarta.servlet.FilterChain;
@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.bytepulse.bp.common.utils.ReqUtils.isPathMatching;
-import static cloud.bytepulse.bp.domain.models.auth.domain.LoginUser.NEED_RE_LOGIN;
+import static cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser.NEED_RE_LOGIN;
 
 /**
  * token认证过滤器
