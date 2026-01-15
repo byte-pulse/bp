@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.framework.filtter;
 
 import cloud.bytepulse.bp.app.logging.service.LoggingService;
-import cloud.bytepulse.bp.common.utils.JsonUtils;
+import cloud.bytepulse.bp.common.utils.json.JsonUtils;
 import cloud.bytepulse.bp.common.utils.ReqUtils;
 import cloud.bytepulse.bp.common.utils.TraceIdUtil;
 import cloud.bytepulse.bp.domain.models.entity.SysLog;
