@@ -74,7 +74,7 @@ pagehelper:
   support-methods-arguments: true
 
 redis:
-  prefix: "admin:"
+  prefix: "bp:"
 
 project:
   url: https://gitee.com/byte-pulse/bp
