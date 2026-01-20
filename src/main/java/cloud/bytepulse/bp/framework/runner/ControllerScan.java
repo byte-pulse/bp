@@ -2,12 +2,15 @@ package cloud.bytepulse.bp.framework.runner;
 
 
 import cloud.bytepulse.bp.framework.annotation.Anonymous;
+import cloud.bytepulse.bp.framework.annotation.ExternalApi;
 import cloud.bytepulse.bp.framework.annotation.NoLogging;
 import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
+import cloud.bytepulse.bp.framework.constant.ExternalApiConstant;
 import cloud.bytepulse.bp.framework.constant.LoggingConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -46,12 +49,12 @@ public class ControllerScan implements BeanFactoryPostProcessor {
                 log.debug("扫描控制器类: {}", clazz.getName());
 
                 String controllerPrefix = extractPath(clazz.getAnnotation(RequestMapping.class));
-                boolean classHasAnonymous = clazz.isAnnotationPresent(Anonymous.class);
-                boolean classHasNoLogging = clazz.isAnnotationPresent(NoLogging.class);
 
                 for (Method method : clazz.getDeclaredMethods()) {
-                    boolean hasAnonymous = classHasAnonymous || method.isAnnotationPresent(Anonymous.class);
-                    boolean hasNoLogging = classHasNoLogging || method.isAnnotationPresent(NoLogging.class);
+                    boolean hasAnonymous = method.isAnnotationPresent(Anonymous.class);
+                    boolean hasNoLogging = method.isAnnotationPresent(NoLogging.class);
+                    boolean hasExternalApi = method.isAnnotationPresent(ExternalApi.class);
+
                     String methodPath = extractPathFromMethod(method);
                     String fullPath = normalizePath(controllerPrefix, methodPath);
                     // 项目所有接口
@@ -61,10 +64,22 @@ public class ControllerScan implements BeanFactoryPostProcessor {
                     if (!hasNoLogging) {
                         LoggingConstant.NEED_LOGGING.add(fullPath);
                     }
+                    if (hasExternalApi && hasAnonymous) {
+                        String fullMethodPath =
+                                method.getDeclaringClass().getName()
+                                        + "#"
+                                        + method.getName();
+                        throw new BeanCreationException(fullMethodPath + " 方法同时存在 @Anonymous 和 @ExternalApi 注解");
+                    }
                     // 匿名放行接口
                     if (hasAnonymous) {
                         AnonymousConstant.ANONYMOUS.add(fullPath);
                         log.debug("添加匿名接口: {}", fullPath);
+                    }
+                    // 添加所有外部接口
+                    if (hasExternalApi) {
+                        AnonymousConstant.ANONYMOUS.add(fullPath);
+                        ExternalApiConstant.EXTERNAL_API.add(fullPath);
                     }
                 }
             }

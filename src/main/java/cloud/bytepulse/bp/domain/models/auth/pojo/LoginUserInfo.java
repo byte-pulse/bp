@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.domain.models.auth.pojo;
 
-import cloud.bytepulse.bp.domain.models.entity.SysUser;
+import cloud.bytepulse.bp.domain.entity.SysUser;
 import lombok.Data;
 
 import java.util.Date;

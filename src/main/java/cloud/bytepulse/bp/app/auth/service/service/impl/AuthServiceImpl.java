@@ -10,7 +10,7 @@ import cloud.bytepulse.bp.common.utils.ReqUtils;
 import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
-import cloud.bytepulse.bp.domain.models.entity.SysUser;
+import cloud.bytepulse.bp.domain.entity.SysUser;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.GifCaptcha;

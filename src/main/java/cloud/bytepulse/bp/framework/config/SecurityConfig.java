@@ -1,6 +1,7 @@
 package cloud.bytepulse.bp.framework.config;
 
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
+import cloud.bytepulse.bp.framework.filtter.ExternalApiFilter;
 import cloud.bytepulse.bp.framework.filtter.GlobalCorsFilter;
 import cloud.bytepulse.bp.framework.filtter.JWTFilter;
 import cloud.bytepulse.bp.framework.filtter.LoggingFilter;
@@ -37,6 +38,8 @@ public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
 
+    private final ExternalApiFilter externalApiFilter;
+
     /**
      * 配置密码加密方式
      */
@@ -64,8 +67,10 @@ public class SecurityConfig {
         http.addFilterBefore(globalCorsFilter, UsernamePasswordAuthenticationFilter.class);
         // 添加JWT过滤器
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        // 外部接口过滤器
+        http.addFilterBefore(externalApiFilter, UsernamePasswordAuthenticationFilter.class);
         // 日志过滤器
-        http.addFilterBefore(loggingFilter, GlobalCorsFilter.class);
+        http.addFilterBefore(loggingFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

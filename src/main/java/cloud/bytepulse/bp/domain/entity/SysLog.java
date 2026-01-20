@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.domain.models.entity;
+package cloud.bytepulse.bp.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

@@ -1,10 +1,14 @@
 package cloud.bytepulse.bp;
 
+import cloud.bytepulse.bp.common.utils.CryptoUtils;
+import cloud.bytepulse.bp.common.utils.GenerateUtils;
 import cloud.bytepulse.bp.common.utils.json.JsonArr;
 import cloud.bytepulse.bp.common.utils.json.JsonObj;
 import cloud.bytepulse.bp.common.utils.json.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+
+import static cloud.bytepulse.bp.common.utils.CryptoUtils.*;
 
 /**
  * @author jiejiebiezheyang
@@ -109,5 +113,44 @@ public class StaticTest {
                 .set("address", new JsonObj().set("street", "123 Main St").set("city", "Shanghai").set("zip", "200000"));
         System.out.println(jsonObj.toString());
         System.out.println(jsonObj.toPrettyString());
+    }
+
+    @Test
+    public void generateAESKeyTest() throws Exception {
+        String s = generateAESKey(256);
+        System.out.println(s);
+    }
+
+    @Test
+    public void getIVTest() {
+        System.out.println(IVToBase64(generateRandomIV()));
+    }
+
+    /**
+     * 生成 appKey 和密钥测试
+     */
+    @Test
+    public void generateAppKeyAndSecretTest() throws Exception {
+        // 用户 appKey
+        String appKey = GenerateUtils.generate(12);
+        // 用户密钥
+        String appSecret = generateAESKey(256);
+        System.out.println("appkey: " + appKey);
+        System.out.println("appSecret: " + appSecret);
+
+        // SHA256 加密 appKey
+        String appKeyHash = CryptoUtils.getSHA256(appKey);
+        // 加密密钥存入数据库
+
+        String decryptWithAES = encryptWithAES(appSecret,
+                "rcII2vlKYg1Fw2NvmZZg4570UwLSkYRE+yOZRCU9aTk=",
+                base64ToIV("xVOqDSMzgI3ZFL68TJ21BA=="));
+        System.out.println("appKeyHash: " + appKeyHash);
+        System.out.println("appSecret: " + decryptWithAES);
+    }
+
+    @Test
+    public void test() throws Exception {
+        System.out.println(getSHA256("aaaa"));
     }
 }

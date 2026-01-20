@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.app.logging.service;
 
-import cloud.bytepulse.bp.domain.models.entity.SysLog;
+import cloud.bytepulse.bp.domain.entity.SysLog;
 import org.springframework.scheduling.annotation.Async;
 
 /**

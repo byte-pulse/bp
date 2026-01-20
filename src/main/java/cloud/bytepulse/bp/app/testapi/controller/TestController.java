@@ -1,17 +1,17 @@
 package cloud.bytepulse.bp.app.testapi.controller;
 
+import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.framework.annotation.Anonymous;
+import cloud.bytepulse.bp.framework.annotation.ExternalApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -45,5 +45,18 @@ public class TestController {
 
         // 返回文件内容
         return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/external")
+    @Operation(summary = "测试外部接口")
+    @ExternalApi
+    public ApiResponse testExternalApi(ExternalDTO externalDTO) {
+        return ApiResponse.success(externalDTO);
+    }
+
+    @Data
+    public static class ExternalDTO {
+        private String orderId;
+        private Double amount;
     }
 }

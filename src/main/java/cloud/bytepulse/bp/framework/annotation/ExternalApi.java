@@ -3,13 +3,13 @@ package cloud.bytepulse.bp.framework.annotation;
 import java.lang.annotation.*;
 
 /**
- * 无日志接口
+ * 第三方接口注解
  *
  * @author jiejiebiezheyang
- * @since 2025-12-11 17:28
+ * @since 2026-01-20 10:57
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface NoLogging {
+public @interface ExternalApi {
 }

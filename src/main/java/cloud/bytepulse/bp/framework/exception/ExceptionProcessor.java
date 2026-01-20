@@ -48,7 +48,11 @@ public class ExceptionProcessor {
     @ExceptionHandler(BytePulseException.class)
     public ApiResponse resolveException(BytePulseException ex) {
         log.error("自定义业务务异常", ex);
-        return ApiResponse.error(ex.getMessage());
+        ApiResponse error = ApiResponse.error(ex.getMessage());
+        if (ex.getErrorCode() > 0) {
+            error.put("code", ex.getErrorCode());
+        }
+        return error;
     }
 
     /**

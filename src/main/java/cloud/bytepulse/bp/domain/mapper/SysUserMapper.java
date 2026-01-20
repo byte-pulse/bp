@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.domain.mapper;
 
-import cloud.bytepulse.bp.domain.models.entity.SysUser;
+import cloud.bytepulse.bp.domain.entity.SysUser;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

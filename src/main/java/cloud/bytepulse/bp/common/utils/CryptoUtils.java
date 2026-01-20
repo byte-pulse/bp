@@ -2,6 +2,7 @@ package cloud.bytepulse.bp.common.utils;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -159,7 +160,7 @@ public class CryptoUtils {
     /**
      * 将 IvParameterSpec 转换为 Base64 编码的字符串
      */
-    public static String ivToBase64(IvParameterSpec ivSpec) {
+    public static String IVToBase64(IvParameterSpec ivSpec) {
         byte[] ivBytes = ivSpec.getIV();  // 获取 IvParameterSpec 中的字节数组
         return Base64.getEncoder().encodeToString(ivBytes);  // 编码为 Base64 字符串
     }
@@ -188,4 +189,28 @@ public class CryptoUtils {
         return hexString.toString();
     }
 
+    /**
+     *
+     * 获取 Hmac SHA256
+     *
+     */
+    public static String signHmacSHA256(String input, String key) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        mac.init(secretKeySpec);
+        byte[] hmacBytes = mac.doFinal(input.getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(hmacBytes);
+    }
+
+    /**
+     *
+     * 获取 Hmac SHA256 HEX
+     */
+    public static String signHmacSHA256Hex(String input, String key) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        mac.init(secretKeySpec);
+        byte[] hmacBytes = mac.doFinal(input.getBytes(StandardCharsets.UTF_8));
+        return java.util.HexFormat.of().formatHex(hmacBytes);
+    }
 }

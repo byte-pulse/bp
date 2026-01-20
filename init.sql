@@ -59,4 +59,29 @@ INSERT INTO `sys_user`
 VALUES (1, '管理员', 'admin', '$2a$10$tinSf4yBSjVWnI1qwxLt6uwEuWgqMyjDLmBRP3MZJ9/q/O7CsgSTC', '2025-12-11 17:34:48',
         '127.0.0.1', NULL, 1, NULL, NULL, NULL, NULL, '2025-12-09 16:19:11');
 
+-- ----------------------------
+-- Table structure for api_credentials
+-- ----------------------------
+DROP TABLE IF EXISTS `api_credentials`;
+CREATE TABLE `api_credentials`
+(
+    `id`             bigint      NOT NULL AUTO_INCREMENT,
+    `owner_id`       bigint      NOT NULL COMMENT '第三方用户或应用 ID',
+    `api_key_hash`   char(64)    NOT NULL COMMENT 'SHA-256(apiKey)',
+    `api_secret_enc` text        NOT NULL COMMENT '加密后的 apiSecret',
+    `status`         varchar(16) NOT NULL COMMENT 'ACTIVE DISABLED REVOKED',
+    `scope`          varchar(255) DEFAULT NULL COMMENT '权限范围',
+    `plan`           varchar(32)  DEFAULT NULL COMMENT '套餐类型',
+    `expires_at`     datetime     DEFAULT NULL COMMENT '过期时间',
+    `last_used_at`   datetime     DEFAULT NULL COMMENT '最后一次调用',
+    `created_at`     datetime    NOT NULL,
+    `updated_at`     datetime    NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_api_key_hash` (`api_key_hash`),
+    KEY `idx_owner_id` (`owner_id`)
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 2
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;

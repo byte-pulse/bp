@@ -7,6 +7,9 @@ package cloud.bytepulse.bp.framework.exception;
  * @since 2024-07-06 14:00
  */
 public class BytePulseException extends RuntimeException {
+
+    private int errorCode;
+
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by
@@ -17,5 +20,15 @@ public class BytePulseException extends RuntimeException {
      */
     public BytePulseException(String message) {
         super(message);
+        this.errorCode = -1;
+    }
+
+    public BytePulseException(int errorCode, String message) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+
+    public int getErrorCode() {
+        return errorCode;
     }
 }

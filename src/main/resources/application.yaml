@@ -83,3 +83,9 @@ project:
 exception:
   processer:
     debugInfo: false
+
+# 提供的第三方接口配置
+api:
+  external:
+    secretKey: rcII2vlKYg1Fw2NvmZZg4570UwLSkYRE+yOZRCU9aTk=
+    iv: xVOqDSMzgI3ZFL68TJ21BA==
