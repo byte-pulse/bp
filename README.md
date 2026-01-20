@@ -6,6 +6,7 @@
 
 - **🔥 最新技术栈**: 基于SpringBoot 3.5.8 + Java 21，享受最新技术红利
 - **🔐 安全认证**: 集成Spring Security + JWT，提供完整的认证授权体系
+- **🌐 第三方接口**: 支持API密钥认证，提供安全的第三方接口访问
 - **💾 数据访问**: 支持MyBatis-Plus + 多数据源 + Druid连接池
 - **⚡ 缓存支持**: 集成Redis，提供分布式缓存能力
 - **📚 接口文档**: 集成SpringDoc OpenAPI 3.0，自动生成API文档
@@ -19,21 +20,21 @@
 
 ## 📋 技术栈
 
-| 技术 | 版本 | 说明 |
-|------|------|------|
-| Spring Boot | 3.5.8 | 核心框架 |
-| Spring Security | - | 安全框架 |
-| MyBatis-Plus | 3.5.5 | ORM框架 |
-| Dynamic DataSource | 4.3.1 | 多数据源 |
-| Druid | 1.2.23 | 数据库连接池 |
-| Redis | - | 缓存中间件 |
-| MySQL | - | 关系型数据库 |
-| SpringDoc | 2.8.14 | API文档 |
-| JWT | 0.12.6 | 身份认证 |
-| MinIO | 8.5.17 | 对象存储 |
-| Apache Tika | 3.2.3 | 文件类型检测 |
-| Hutool | 5.8.39 | 工具类库 |
-| Kaptcha | 2.3.2 | 图形验证码 |
+| 技术               | 版本   | 说明         |
+| ------------------ | ------ | ------------ |
+| Spring Boot        | 3.5.8  | 核心框架     |
+| Spring Security    | -      | 安全框架     |
+| MyBatis-Plus       | 3.5.5  | ORM框架      |
+| Dynamic DataSource | 4.3.1  | 多数据源     |
+| Druid              | 1.2.23 | 数据库连接池 |
+| Redis              | -      | 缓存中间件   |
+| MySQL              | -      | 关系型数据库 |
+| SpringDoc          | 2.8.14 | API文档      |
+| JWT                | 0.12.6 | 身份认证     |
+| MinIO              | 8.5.17 | 对象存储     |
+| Apache Tika        | 3.2.3  | 文件类型检测 |
+| Hutool             | 5.8.39 | 工具类库     |
+| Kaptcha            | 2.3.2  | 图形验证码   |
 
 ## 🛠️ 环境要求
 
@@ -45,32 +46,39 @@
 ## 🚀 快速开始
 
 ### 1. 克隆项目
+
 ```bash
 git clone https://gitee.com/byte-pulse/bp.git
 cd bp
 ```
 
 ### 2. 数据库初始化
+
 执行项目根目录下的 `init.sql` 文件：
+
 ```bash
 mysql -u root -p < init.sql
 ```
 
 数据库包含以下表结构：
+
 - `sys_user`: 系统用户表（默认管理员账号：admin/admin123）
 - `sys_log`: 系统日志表（支持TraceId追踪和异常记录，唯一索引）
+- `api_credentials`: API凭证表（第三方接口认证，包含AppKey和AppSecret）
 
 ### 3. 配置文件
+
 根据环境修改配置文件：
 
 **开发环境配置** (`application-dev.yaml`):
+
 ```yaml
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/your_database?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: your_username
     password: your_password
-  
+
   data:
     redis:
       host: localhost
@@ -79,6 +87,7 @@ spring:
 ```
 
 ### 4. 启动项目
+
 ```bash
 # 方式一：Maven命令启动
 mvn clean install
@@ -95,6 +104,7 @@ mvn spring-boot:run
 - **健康检查**: http://localhost:19420/actuator/health
 
 ### 6. 默认账号
+
 ```
 用户名: admin
 密码: admin123
@@ -127,6 +137,7 @@ src/main/java/cloud/bytepulse/bp/
 └── framework/                     # 框架层
     ├── annotation/                # 自定义注解
     │   ├── Anonymous.java         # 跳过认证注解
+    │   ├── ExternalApi.java       # 第三方接口注解
     │   ├── NoLogging.java         # 跳过日志注解
     │   └── RequestLimit.java      # 限流注解
     ├── aspect/                    # 切面编程
@@ -144,6 +155,7 @@ src/main/java/cloud/bytepulse/bp/
     │   └── BytePulseArgumentNotValidException.java # 参数验证异常
     └── filter/                    # 过滤器
         ├── JWTFilter.java         # JWT认证过滤器
+        ├── ExternalApiFilter.java # 第三方接口认证过滤器
         ├── LoggingFilter.java     # 请求日志过滤器
         └── GlobalCorsFilter.java  # CORS过滤器
 ```
@@ -151,7 +163,9 @@ src/main/java/cloud/bytepulse/bp/
 ## 🔧 核心功能
 
 ### 1. 统一响应格式
+
 所有API接口都返回统一的JSON格式：
+
 ```json
 {
   "code": 200,
@@ -163,29 +177,76 @@ src/main/java/cloud/bytepulse/bp/
 ```
 
 ### 2. JWT认证体系
+
 - 自动生成和验证JWT Token
 - 支持Token刷新机制
 - 灵活的权限控制
 - 无状态认证设计
 - 支持调试模式快速获取Token
 
-### 3. 请求日志追踪
+### 3. 第三方接口认证
+
+- **API密钥认证**: 基于AppKey和AppSecret的安全认证
+- **签名验证**: HMAC-SHA256签名算法，确保请求完整性
+- **防重放攻击**: Nonce机制防止重复请求
+- **时间戳验证**: 5分钟有效期，防止过期请求
+- **密钥加密**: AES加密存储AppSecret，保护敏感信息
+- **权限管理**: 支持scope和plan级别的权限控制
+- **状态管理**: ACTIVE/DISABLED/REVOKED状态控制
+
+使用 `@ExternalApi` 注解标记第三方接口：
+
+```java
+@PostMapping("/external")
+@Operation(summary = "第三方接口")
+@ExternalApi
+public ApiResponse externalApi(ExternalDTO dto) {
+    return ApiResponse.success(dto);
+}
+```
+
+请求头要求：
+
+```
+X-App-Key: your_app_key
+X-Timestamp: timestamp
+X-Nonce: random_string
+X-Signature: hmac_sha256_signature
+```
+
+签名计算：
+
+````
+sign = HMAC-SHA256(
+    uri + "\n" +
+    appKey + "\n" +
+    timestamp + "\n" +
+    nonce + "\n" +
+    SHA256(body),
+    apiSecret
+)
+
+### 4. 请求日志追踪
+
 - **TraceId追踪**: 每个请求分配唯一TraceId，便于链路追踪
 - **完整记录**: 请求参数、响应结果、执行时间、异常信息
 - **性能监控**: 自动计算接口响应耗时
 - **用户关联**: 记录请求用户信息
 - **唯一索引**: 防止重复日志记录
 
-### 4. 接口限流
+### 5. 接口限流
+
 使用 `@RequestLimit` 注解实现接口限流：
+
 ```java
 @RequestLimit(value = 10, period = 60) // 60秒内最多请求10次
 public ResponseEntity<?> someMethod() {
     // 业务逻辑
 }
-```
+````
 
-### 5. 增强的异常处理
+### 6. 增强的异常处理
+
 - **统一异常响应格式**: 所有异常统一返回格式
 - **调试信息控制**: 通过配置控制是否返回详细错误信息
 - **参数验证异常**: 专门处理参数校验失败
@@ -195,14 +256,16 @@ public ResponseEntity<?> someMethod() {
 - **JSON异常**: 参数序列化异常处理
 - **资源不存在**: 404异常专门处理
 
-### 6. 验证码系统
+### 7. 验证码系统
+
 - **图形验证码**: 基于Kaptcha生成
 - **Hutool验证码**: 额外的验证码支持
 - **无验证码调试**: 开发调试专用接口
 - **验证码存储**: Redis存储验证码
 - **自动清理**: 过期验证码自动清理
 
-### 7. 文件处理
+### 8. 文件处理
+
 - **文件上传**: 支持多文件上传，自动文件类型检测
 - **文件下载**: 支持文件名编码，中文文件名正确显示
 - **MinIO集成**: 对象存储支持
@@ -211,6 +274,7 @@ public ResponseEntity<?> someMethod() {
 ## 🎯 使用示例
 
 ### 1. 认证接口使用
+
 ```java
 // 获取验证码
 GET /auth/captcha
@@ -230,19 +294,20 @@ GET /auth/check
 ```
 
 ### 2. 创建Controller
+
 ```java
 @RestController
 @RequestMapping("/api/demo")
 @Tag(name = "示例接口")
 public class DemoController {
-    
+
     @GetMapping("/hello")
     @Operation(summary = "问候接口")
     @Anonymous  // 跳过认证
     public ApiResponse hello() {
         return ApiResponse.success("Hello, BytePulse!");
     }
-    
+
     @GetMapping("/user/{id}")
     @Operation(summary = "获取用户信息")
     public ApiResponse getUser(@PathVariable Long id) {
@@ -253,21 +318,22 @@ public class DemoController {
 ```
 
 ### 3. 使用工具类
+
 ```java
 @Service
 public class DemoService {
-    
+
     @Autowired
     private RedisUtils redisUtils;
-    
+
     @Autowired
     private JWTUtils jwtUtils;
-    
+
     public void demoMethod() {
         // Redis操作
         redisUtils.set("key", "value", 3600);
         String value = redisUtils.getCacheObject("key");
-        
+
         // JWT操作
         String token = jwtUtils.generateToken(userId);
         boolean isValid = jwtUtils.validateToken(token);
@@ -276,14 +342,15 @@ public class DemoService {
 ```
 
 ### 4. 文件上传下载
+
 ```java
 @PostMapping("/fileUploadDownload")
 @Operation(summary = "测试文件上传下载")
 @Anonymous
 public ResponseEntity<byte[]> fileUploadDownload(
-    @RequestParam String name, 
+    @RequestParam String name,
     @RequestParam MultipartFile[] files) throws IOException {
-    
+
     // 获取文件内容
     byte[] fileBytes = files[0].getBytes();
     String filename = files[0].getOriginalFilename();
@@ -303,6 +370,7 @@ public ResponseEntity<byte[]> fileUploadDownload(
 ### 5. 自定义注解使用
 
 **跳过认证**：
+
 ```java
 @GetMapping("/public")
 @Anonymous
@@ -311,7 +379,19 @@ public ApiResponse publicApi() {
 }
 ```
 
+**第三方接口认证**：
+
+```java
+@PostMapping("/external")
+@Operation(summary = "第三方接口")
+@ExternalApi
+public ApiResponse externalApi(ExternalDTO dto) {
+    return ApiResponse.success(dto);
+}
+```
+
 **跳过日志记录**：
+
 ```java
 @PostMapping("/sensitive")
 @NoLogging
@@ -321,6 +401,7 @@ public ApiResponse sensitiveOperation() {
 ```
 
 **隐藏API文档**：
+
 ```java
 @GetMapping("/debug")
 @Operation(summary = "调试接口", hidden = true)
@@ -357,7 +438,7 @@ public ApiResponse debug() {
    - 支持文件上传后立即下载测试
    - 自动处理中文文件名编码
 
-2. **无验证码登录测试**: 
+2. **无验证码登录测试**:
    - `POST /auth/getToken` (调试接口，文档隐藏)
    - 自动获取验证码并完成登录
 
@@ -366,17 +447,19 @@ public ApiResponse debug() {
 ## 🔧 配置说明
 
 ### 1. 多环境配置
+
 - `application.yaml`: 主配置文件
 - `application-dev.yaml`: 开发环境配置
 - `application-prod.yaml`: 生产环境配置
 - `application-druid.yaml`: 数据库连接池配置
 
 ### 2. 核心配置项
+
 ```yaml
 # 应用配置
 server:
   port: 19420
-  
+
 # Redis配置
 spring:
   data:
@@ -387,24 +470,31 @@ spring:
           max-active: 8
           max-idle: 8
 
+# 第三方接口配置
+api:
+  external:
+    secretKey: your_secret_key_for_aes_encryption
+    iv: your_initialization_vector_for_aes
+
 # 管理端点
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: '*'
 
 # 异常处理（重要）
 exception:
   processer:
-    debugInfo: false  # 生产环境必须关闭
+    debugInfo: false # 生产环境必须关闭
 ```
 
 ### 3. 异常处理配置
+
 ```yaml
 exception:
   processer:
-    debugInfo: false  # 控制是否返回详细错误信息
+    debugInfo: false # 控制是否返回详细错误信息
 ```
 
 - **开发环境**: 设置为`true`，返回详细错误信息便于调试
@@ -423,12 +513,14 @@ exception:
 ## 🚀 部署指南
 
 ### 1. 本地部署
+
 ```bash
 mvn clean package
 java -jar target/bp-1.0.jar
 ```
 
 ### 2. Docker部署
+
 ```dockerfile
 FROM openjdk:21-jre-slim
 COPY target/bp-1.0.jar app.jar
@@ -437,6 +529,7 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 ```
 
 ### 3. 生产环境注意事项
+
 - 修改默认账号密码
 - 关闭debug信息展示（`exception.processer.debugInfo: false`）
 - 配置合适的JVM参数
@@ -464,6 +557,7 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 ## ⭐ 更新日志
 
 ### v1.0
+
 - ✨ 基于SpringBoot 3.5.8构建
 - 🔧 修正framework目录拼写错误
 - 📊 增强日志系统，支持TraceId追踪和唯一索引
@@ -474,6 +568,14 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 - ⚠️ 增强异常处理，支持调试信息控制
 - 🔒 新增Regex常量类，统一正则表达式管理
 - 📝 完善API文档注解，支持隐藏调试接口
+- 🌐 新增第三方接口认证系统，支持API密钥认证
+  - 新增@ExternalApi注解标记第三方接口
+  - 新增ExternalApiFilter过滤器实现签名验证
+  - 新增api_credentials表存储API凭证
+  - 支持HMAC-SHA256签名算法
+  - 实现Nonce防重放攻击机制
+  - 支持时间戳验证（5分钟有效期）
+  - AES加密存储AppSecret保护敏感信息
 
 ---
 
