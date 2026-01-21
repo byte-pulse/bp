@@ -1,8 +1,8 @@
 package cloud.bytepulse.bp.app.logging.service.impl;
 
 import cloud.bytepulse.bp.app.logging.service.LoggingService;
-import cloud.bytepulse.bp.domain.mapper.SysLogMapper;
 import cloud.bytepulse.bp.domain.entity.SysLog;
+import cloud.bytepulse.bp.domain.mapper.SysLogMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

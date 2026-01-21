@@ -6,7 +6,6 @@ import cloud.bytepulse.bp.common.utils.ReqUtils;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
 import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
-import cloud.bytepulse.bp.framework.constant.ExternalApiConstant;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

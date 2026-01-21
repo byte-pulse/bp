@@ -1,9 +1,9 @@
 package cloud.bytepulse.bp.app.auth.service.service.impl;
 
+import cloud.bytepulse.bp.domain.entity.SysUser;
 import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
-import cloud.bytepulse.bp.domain.entity.SysUser;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

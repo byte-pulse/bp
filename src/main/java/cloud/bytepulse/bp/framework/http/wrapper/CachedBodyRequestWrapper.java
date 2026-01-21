@@ -33,14 +33,13 @@ public class CachedBodyRequestWrapper extends HttpServletRequestWrapper {
      * 缓存的 request body 字节数组
      * 一旦构造完成, 后续所有读取都来自这里
      * -- GETTER --
-     *  直接获取缓存的 body
-     *  <p>
-     *  这个方法非常适合:
-     *  - Filter 中验签
-     *  - 打日志(注意脱敏)
+     * 直接获取缓存的 body
+     * <p>
+     * 这个方法非常适合:
+     * - Filter 中验签
+     * - 打日志(注意脱敏)
      *
      * @return body 的字节数组
-
      */
     private final byte[] cachedBody;
 
