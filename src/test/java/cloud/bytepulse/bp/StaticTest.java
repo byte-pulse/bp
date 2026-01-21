@@ -2,6 +2,7 @@ package cloud.bytepulse.bp;
 
 import cloud.bytepulse.bp.common.utils.CryptoUtils;
 import cloud.bytepulse.bp.common.utils.GenerateUtils;
+import cloud.bytepulse.bp.common.utils.UAParserUtil;
 import cloud.bytepulse.bp.common.utils.json.JsonArr;
 import cloud.bytepulse.bp.common.utils.json.JsonObj;
 import cloud.bytepulse.bp.common.utils.json.JsonUtils;
@@ -9,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 
 import static cloud.bytepulse.bp.common.utils.CryptoUtils.*;
+import static cloud.bytepulse.bp.common.utils.UAParserUtil.parse;
 
 /**
  * @author jiejiebiezheyang
@@ -150,7 +152,12 @@ public class StaticTest {
     }
 
     @Test
-    public void test() throws Exception {
-        System.out.println(getSHA256("aaaa"));
+    public void UAUtilsTest() throws Exception {
+        String ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 " +
+                "Safari/537.36 Edg/139.0.0.0";
+
+        UAParserUtil.UAResult result = parse(ua);
+        System.out.println(result);
     }
 }

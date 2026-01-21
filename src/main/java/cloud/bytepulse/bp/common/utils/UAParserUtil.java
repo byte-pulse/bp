@@ -153,16 +153,4 @@ public class UAParserUtil {
         if (ua.contains("blink")) return Engine.BLINK;
         return Engine.UNKNOWN;
     }
-
-    /**
-     * 测试
-     */
-    public static void main(String[] args) {
-        String ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 " +
-                "Safari/537.36 Edg/139.0.0.0";
-
-        UAResult result = parse(ua);
-        System.out.println(result);
-    }
 }
