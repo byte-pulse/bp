@@ -3,8 +3,6 @@ package cloud.bytepulse.bp.framework.filtter;
 import cloud.bytepulse.bp.common.utils.JWTUtils;
 import cloud.bytepulse.bp.common.utils.RedisUtils;
 import cloud.bytepulse.bp.common.utils.ReqUtils;
-import cloud.bytepulse.bp.common.utils.json.JsonUtils;
-import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
 import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
@@ -47,16 +45,12 @@ public class JWTFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
 
         // 匿名接口和不存在的接口直接放行
+        // 提供给第三方的接口也放行
         if (!ReqUtils.isPathMatching(AllHandlerConstant.ALL_HANDLER, requestURI)) {
             Utils.printNotFound(request, response);
             return;
         }
         if (isPathMatching(AnonymousConstant.ANONYMOUS, requestURI)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        // 提供给第三方的接口也放行
-        if (isPathMatching(ExternalApiConstant.EXTERNAL_API, requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }
