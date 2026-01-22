@@ -2,10 +2,7 @@ package cloud.bytepulse.bp.common.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.BoundSetOperations;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -24,8 +21,10 @@ public class RedisUtils {
 
     public final RedisTemplate redisTemplate;
 
+    public final StringRedisTemplate stringRedisTemplate;
+
     /**
-     * 缓存基本的对象，Integer、String、实体类等
+     * 缓存基本的对象，Integer、实体类等
      *
      * @param key   缓存的键值
      * @param value 缓存的值
@@ -35,7 +34,7 @@ public class RedisUtils {
     }
 
     /**
-     * 缓存基本的对象，Integer、String、实体类等
+     * 缓存基本的对象，Integer、实体类等
      *
      * @param key      缓存的键值
      * @param value    缓存的值
@@ -45,6 +44,29 @@ public class RedisUtils {
     public <T> void setCacheObject(final String key, final T value, final Long timeout, final TimeUnit timeUnit) {
         log.info("{}", redisTemplate);
         redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
+    }
+
+    /**
+     * 缓存基本的 String
+     *
+     * @param key   缓存的键值
+     * @param value 缓存的值
+     */
+    public void setCacheString(final String key, final String value) {
+        stringRedisTemplate.opsForValue().set(key, value);
+    }
+
+    /**
+     * 缓存基本的 String
+     *
+     * @param key      缓存的键值
+     * @param value    缓存的值
+     * @param timeout  时间
+     * @param timeUnit 时间颗粒度
+     */
+    public void setCacheString(final String key, final String value, final Long timeout, final TimeUnit timeUnit) {
+        log.info("{}", redisTemplate);
+        stringRedisTemplate.opsForValue().set(key, value, timeout, timeUnit);
     }
 
     /**
@@ -111,6 +133,18 @@ public class RedisUtils {
         ValueOperations<String, T> operation = redisTemplate.opsForValue();
         return operation.get(key);
     }
+
+    /**
+     * 获得缓存的基本对象。
+     *
+     * @param key 缓存键值
+     * @return 缓存键值对应的数据
+     */
+    public String getCacheString(final String key) {
+        ValueOperations<String, String> operation = stringRedisTemplate.opsForValue();
+        return operation.get(key);
+    }
+
 
     /**
      * 删除单个对象
