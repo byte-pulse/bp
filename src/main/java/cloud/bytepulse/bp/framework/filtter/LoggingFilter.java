@@ -9,8 +9,6 @@ import cloud.bytepulse.bp.framework.constant.LoggingConstant;
 import cloud.bytepulse.bp.framework.http.wrapper.LoggingCachedBodyRequestWrapper;
 import cloud.bytepulse.bp.framework.http.wrapper.LoggingCachedBodyResponseWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.FilterChain;
@@ -150,17 +148,21 @@ public class LoggingFilter extends OncePerRequestFilter {
                 finalJson = JsonUtils.OBJECT_MAPPER.writeValueAsString(fileNode);
             } else {
                 try {
-                    JsonNode original = JsonUtils.OBJECT_MAPPER.readTree(rawResponseBody);
-                    ObjectNode obj = (ObjectNode) original;
-                    obj.put("timestamp", System.currentTimeMillis());
-                    obj.put("traceId", traceId);
+                    if (responseWrapper.getStatus() > 300 && responseWrapper.getStatus() < 400) {
+                        finalJson = responseWrapper.getStatus() + " " + responseWrapper.getHeader("Location");
+                    } else {
+                        JsonNode original = JsonUtils.OBJECT_MAPPER.readTree(rawResponseBody);
+                        ObjectNode obj = (ObjectNode) original;
+                        obj.put("timestamp", System.currentTimeMillis());
+                        obj.put("traceId", traceId);
 
-                    JsonNode eNode = obj.get("e");
-                    resolvedException = eNode != null ? eNode.asText() : null;
-                    obj.remove("e");
+                        JsonNode eNode = obj.get("e");
+                        resolvedException = eNode != null ? eNode.asText() : null;
+                        obj.remove("e");
 
-                    rawResponseBody = JsonUtils.OBJECT_MAPPER.writeValueAsString(obj);
-                    finalJson = rawResponseBody;
+                        finalJson = rawResponseBody = JsonUtils.OBJECT_MAPPER.writeValueAsString(obj);
+                    }
+
 
                 } catch (Exception ex) {
                     isFileResponse = true;
@@ -172,22 +174,7 @@ public class LoggingFilter extends OncePerRequestFilter {
                 }
             }
 
-            ObjectMapper mapper = new ObjectMapper();
-            // 去掉漂亮格式化
-            mapper.disable(SerializationFeature.INDENT_OUTPUT);
-
-            try {
-                requestBodyJson = mapper.writeValueAsString(mapper.readTree(requestBodyJson));
-                requestBodyJson = requestBodyJson.equals("null") ? null : requestBodyJson;
-            } catch (Exception ignored) {
-
-            }
-
-            try {
-                finalJson = mapper.writeValueAsString(mapper.readTree(finalJson));
-            } catch (Exception ignored) {
-
-            }
+            requestBodyJson = requestBodyJson.equals("null") ? null : requestBodyJson;
 
             // 控制台打印
             log.info("接口调用 [TraceId={}] {} {}ms req = {} resp = {} ex = {}",

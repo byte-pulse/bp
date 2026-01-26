@@ -43,7 +43,6 @@ public class ExternalApiFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        System.out.println("ExternalApiFilter");
         response.setCharacterEncoding("utf-8");
         String requestURI = request.getRequestURI();
         // 不是第三方接口，直接放行

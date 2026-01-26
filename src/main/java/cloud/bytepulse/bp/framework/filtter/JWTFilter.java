@@ -36,8 +36,6 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        System.out.println("JWTFilter");
-
         response.setCharacterEncoding("utf-8");
         // 获取token
         String token = request.getHeader("Authorization");
