@@ -22,25 +22,29 @@ public class OpenAPIConfig {
 
     @Value("${spring.application.name}")
     private String applicationName;
-    @Value("${project.url}")
+    @Value("${swagger.info.project.url}")
     private String projectUrl;
+    @Value("${swagger.info.project.name}")
+    private String name;
+    @Value("${swagger.info.project.desc}")
+    private String desc;
+    @Value("${swagger.info.project.email}")
+    private String email;
+    @Value("${swagger.info.project.version}")
+    private String version = "1.0.0";
 
 
     @Bean
     public OpenAPI openAPI() {
-        String name = "";
-        if (applicationName != null) {
-            name = applicationName;
-        }
         return new OpenAPI().info(
                         new Info()
                                 .title(name + " API 文档")
-                                .description(name)
+                                .description(desc)
                                 .contact(new Contact()
-                                        .name("Byte Pulse")
-                                        .email("1964234252@qq.com")
+                                        .name(name)
+                                        .email(email)
                                         .url(projectUrl))
-                                .version("1.0.0")
+                                .version(version)
                 ).components(components())
                 .addSecurityItem(new SecurityRequirement().addList("Authorization"));
     }

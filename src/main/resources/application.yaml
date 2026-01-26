@@ -76,8 +76,14 @@ pagehelper:
 redis:
   prefix: "bp:"
 
-project:
-  url: https://gitee.com/byte-pulse/bp
+swagger:
+  info:
+    project:
+      url: https://gitee.com/byte-pulse/bp
+      name: Byte Pulse
+      desc: Byte Pulse
+      email: 1964234252@qq.com
+      version: 1.0.0
 
 # 提供的第三方接口配置
 api:
