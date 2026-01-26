@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils;
+package cloud.bytepulse.bp.common.util;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;

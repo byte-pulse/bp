@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils;
+package cloud.bytepulse.bp.common.util;
 
 import java.util.UUID;
 
@@ -7,7 +7,7 @@ import java.util.UUID;
  * @author jiejiebiezheyang
  * @since 2023-04-03 14:05
  */
-public class TraceIdUtil {
+public class TraceIdUtils {
 
     private static final ThreadLocal<String> TRACE_ID = new ThreadLocal<>();
 

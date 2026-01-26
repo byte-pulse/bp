@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils;
+package cloud.bytepulse.bp.common.util;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

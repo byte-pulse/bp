@@ -1,8 +1,8 @@
 package cloud.bytepulse.bp.framework.filtter;
 
-import cloud.bytepulse.bp.common.utils.JWTUtils;
-import cloud.bytepulse.bp.common.utils.RedisUtils;
-import cloud.bytepulse.bp.common.utils.ReqUtils;
+import cloud.bytepulse.bp.common.util.JWTUtils;
+import cloud.bytepulse.bp.common.util.RedisUtils;
+import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
 import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
@@ -19,7 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.bytepulse.bp.common.utils.ReqUtils.isPathMatching;
+import static cloud.bytepulse.bp.common.util.ReqUtils.isPathMatching;
 import static cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser.NEED_RE_LOGIN;
 
 /**

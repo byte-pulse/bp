@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.framework.filtter;
 
-import cloud.bytepulse.bp.common.utils.json.JsonUtils;
+import cloud.bytepulse.bp.common.util.json.JsonUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

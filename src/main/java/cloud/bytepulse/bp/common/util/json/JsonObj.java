@@ -1,28 +1,30 @@
-package cloud.bytepulse.bp.common.utils.json;
+package cloud.bytepulse.bp.common.util.json;
 
 import cloud.bytepulse.bp.framework.exception.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * @author jiejiebiezheyang
- * @since 2026-01-15 19:55
+ * @since 2026-01-15 19:56
  */
-public class JsonArr extends ArrayList<JsonNode> {
+public class JsonObj extends HashMap<String, JsonNode> {
 
     /**
-     * 添加元素
-     * 允许链式调用
+     * 添加元素, 允许链式调用
      */
-    public JsonArr append(Object o) {
-        super.add(JsonUtils.OBJECT_MAPPER.valueToTree(o));
+    public JsonObj set(String key, Object value) {
+        super.put(key, JsonUtils.OBJECT_MAPPER.valueToTree(value));
         return this;
     }
 
-    public JsonObj getJsonObj(int index) {
-        JsonNode jsonNode = super.get(index);
+    public JsonObj getJsonObj(String key) {
+        JsonNode jsonNode = super.get(key);
+        if (jsonNode == null) {
+            throw new JsonParseException("Key '" + key + "' 不存在");
+        }
         if (!jsonNode.isObject()) {
             throw new JsonParseException("非 object 类型");
         }
@@ -33,8 +35,11 @@ public class JsonArr extends ArrayList<JsonNode> {
         }
     }
 
-    public JsonArr getJsonArr(int index) {
-        JsonNode jsonNode = super.get(index);
+    public JsonArr getJsonArr(String key) {
+        JsonNode jsonNode = super.get(key);
+        if (jsonNode == null) {
+            throw new JsonParseException("Key '" + key + "' 不存在");
+        }
         if (!jsonNode.isArray()) {
             throw new JsonParseException("非 array 类型");
         }
@@ -45,8 +50,12 @@ public class JsonArr extends ArrayList<JsonNode> {
         }
     }
 
-    public int getInt(int index, int... defaultValue) {
-        JsonNode jsonNode = super.get(index);
+    public int getInt(String key, int... defaultValue) {
+        JsonNode jsonNode = super.get(key);
+        if (jsonNode == null) {
+            if (defaultValue.length > 0) return defaultValue[0];
+            throw new JsonParseException("Key '" + key + "' 不存在");
+        }
         if (!jsonNode.isInt()) {
             if (defaultValue.length > 0) {
                 return defaultValue[0];
@@ -57,8 +66,12 @@ public class JsonArr extends ArrayList<JsonNode> {
         return jsonNode.asInt();
     }
 
-    public long getLong(int index, long... defaultValue) {
-        JsonNode jsonNode = super.get(index);
+    public long getLong(String key, long... defaultValue) {
+        JsonNode jsonNode = super.get(key);
+        if (jsonNode == null) {
+            if (defaultValue.length > 0) return defaultValue[0];
+            throw new JsonParseException("Key '" + key + "' 不存在");
+        }
         if (!jsonNode.isNumber()) {
             if (defaultValue.length > 0) {
                 return defaultValue[0];
@@ -69,8 +82,12 @@ public class JsonArr extends ArrayList<JsonNode> {
         return jsonNode.asLong();
     }
 
-    public double getDouble(int index, double... defaultValue) {
-        JsonNode jsonNode = super.get(index);
+    public double getDouble(String key, double... defaultValue) {
+        JsonNode jsonNode = super.get(key);
+        if (jsonNode == null) {
+            if (defaultValue.length > 0) return defaultValue[0];
+            throw new JsonParseException("Key '" + key + "' 不存在");
+        }
         if (!jsonNode.isNumber()) {
             if (defaultValue.length > 0) {
                 return defaultValue[0];
@@ -81,8 +98,12 @@ public class JsonArr extends ArrayList<JsonNode> {
         return jsonNode.asDouble();
     }
 
-    public BigDecimal getBigDecimal(int index, BigDecimal... defaultValue) {
-        JsonNode jsonNode = super.get(index);
+    public BigDecimal getBigDecimal(String key, BigDecimal... defaultValue) {
+        JsonNode jsonNode = super.get(key);
+        if (jsonNode == null) {
+            if (defaultValue.length > 0) return defaultValue[0];
+            throw new JsonParseException("Key '" + key + "' 不存在");
+        }
         if (!jsonNode.isNumber()) {
             if (defaultValue.length > 0) {
                 return defaultValue[0];
@@ -93,8 +114,12 @@ public class JsonArr extends ArrayList<JsonNode> {
         return jsonNode.decimalValue();
     }
 
-    public boolean getBoolean(int index, boolean... defaultValue) {
-        JsonNode jsonNode = super.get(index);
+    public boolean getBoolean(String key, boolean... defaultValue) {
+        JsonNode jsonNode = super.get(key);
+        if (jsonNode == null) {
+            if (defaultValue.length > 0) return defaultValue[0];
+            throw new JsonParseException("Key '" + key + "' 不存在");
+        }
         if (!jsonNode.isBoolean()) {
             if (defaultValue.length > 0) {
                 return defaultValue[0];
@@ -105,8 +130,12 @@ public class JsonArr extends ArrayList<JsonNode> {
         return jsonNode.asBoolean();
     }
 
-    public String getString(int index, String... defaultValue) {
-        JsonNode jsonNode = super.get(index);
+    public String getString(String key, String... defaultValue) {
+        JsonNode jsonNode = super.get(key);
+        if (jsonNode == null) {
+            if (defaultValue.length > 0) return defaultValue[0];
+            throw new JsonParseException("Key '" + key + "' 不存在");
+        }
         if (!jsonNode.isTextual()) {
             if (defaultValue.length > 0) {
                 return defaultValue[0];

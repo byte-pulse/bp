@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils;
+package cloud.bytepulse.bp.common.util;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

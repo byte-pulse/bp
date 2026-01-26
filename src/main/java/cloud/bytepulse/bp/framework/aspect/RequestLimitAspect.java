@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.framework.aspect;
 
-import cloud.bytepulse.bp.common.utils.RedisUtils;
-import cloud.bytepulse.bp.common.utils.ReqUtils;
+import cloud.bytepulse.bp.common.util.RedisUtils;
+import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.framework.annotation.RequestLimit;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.bytepulse.bp.common.utils.ReqUtils.getIP;
+import static cloud.bytepulse.bp.common.util.ReqUtils.getIP;
 
 /**
  * 接口请求限制

@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils;
+package cloud.bytepulse.bp.common.util;
 
 
 import org.w3c.dom.Document;

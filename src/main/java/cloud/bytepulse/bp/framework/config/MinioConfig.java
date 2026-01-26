@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.framework.config;
 
-import cloud.bytepulse.bp.common.utils.minio.properties.IMinioProperties;
+import cloud.bytepulse.bp.common.util.minio.properties.IMinioProperties;
 import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

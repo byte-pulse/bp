@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils;
+package cloud.bytepulse.bp.common.util;
 
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import io.jsonwebtoken.Claims;

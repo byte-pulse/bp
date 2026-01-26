@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils.minio.properties;
+package cloud.bytepulse.bp.common.util.minio.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

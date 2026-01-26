@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils;
+package cloud.bytepulse.bp.common.util;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -101,7 +101,7 @@ public class ReqUtils {
      * 获取设备信息
      */
     public static String getDeviceInfo(String userAgent) {
-        UAParserUtil.UAResult result = UAParserUtil.parse(userAgent);
+        UAParserUtils.UAResult result = UAParserUtils.parse(userAgent);
         return result.shortInfo();
     }
 

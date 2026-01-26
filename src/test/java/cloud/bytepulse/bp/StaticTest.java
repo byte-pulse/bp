@@ -1,16 +1,16 @@
 package cloud.bytepulse.bp;
 
-import cloud.bytepulse.bp.common.utils.CryptoUtils;
-import cloud.bytepulse.bp.common.utils.GenerateUtils;
-import cloud.bytepulse.bp.common.utils.UAParserUtil;
-import cloud.bytepulse.bp.common.utils.json.JsonArr;
-import cloud.bytepulse.bp.common.utils.json.JsonObj;
-import cloud.bytepulse.bp.common.utils.json.JsonUtils;
+import cloud.bytepulse.bp.common.util.CryptoUtils;
+import cloud.bytepulse.bp.common.util.GenerateUtils;
+import cloud.bytepulse.bp.common.util.UAParserUtils;
+import cloud.bytepulse.bp.common.util.json.JsonArr;
+import cloud.bytepulse.bp.common.util.json.JsonObj;
+import cloud.bytepulse.bp.common.util.json.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 
-import static cloud.bytepulse.bp.common.utils.CryptoUtils.*;
-import static cloud.bytepulse.bp.common.utils.UAParserUtil.parse;
+import static cloud.bytepulse.bp.common.util.CryptoUtils.*;
+import static cloud.bytepulse.bp.common.util.UAParserUtils.parse;
 
 /**
  * @author jiejiebiezheyang
@@ -157,7 +157,7 @@ public class StaticTest {
                 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 " +
                 "Safari/537.36 Edg/139.0.0.0";
 
-        UAParserUtil.UAResult result = parse(ua);
+        UAParserUtils.UAResult result = parse(ua);
         System.out.println(result);
     }
 }

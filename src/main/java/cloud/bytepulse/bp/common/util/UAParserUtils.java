@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils;
+package cloud.bytepulse.bp.common.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * @author jiejiebiezheyang
  * @since 2023-05-20 21:31
  */
-public class UAParserUtil {
+public class UAParserUtils {
 
     @Data
     @AllArgsConstructor

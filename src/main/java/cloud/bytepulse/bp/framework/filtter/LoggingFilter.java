@@ -1,9 +1,9 @@
 package cloud.bytepulse.bp.framework.filtter;
 
 import cloud.bytepulse.bp.app.logging.service.LoggingService;
-import cloud.bytepulse.bp.common.utils.ReqUtils;
-import cloud.bytepulse.bp.common.utils.TraceIdUtil;
-import cloud.bytepulse.bp.common.utils.json.JsonUtils;
+import cloud.bytepulse.bp.common.util.ReqUtils;
+import cloud.bytepulse.bp.common.util.TraceIdUtils;
+import cloud.bytepulse.bp.common.util.json.JsonUtils;
 import cloud.bytepulse.bp.domain.entity.SysLog;
 import cloud.bytepulse.bp.framework.constant.LoggingConstant;
 import cloud.bytepulse.bp.framework.http.wrapper.LoggingCachedBodyRequestWrapper;
@@ -29,8 +29,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import static cloud.bytepulse.bp.common.utils.AuthUtils.getUserId;
-import static cloud.bytepulse.bp.common.utils.ReqUtils.isPathMatching;
+import static cloud.bytepulse.bp.common.util.AuthUtils.getUserId;
+import static cloud.bytepulse.bp.common.util.ReqUtils.isPathMatching;
 
 /**
  * 请求日志过滤器
@@ -109,7 +109,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 
 
         long startTime = System.currentTimeMillis();
-        String traceId = TraceIdUtil.init();
+        String traceId = TraceIdUtils.init();
 
         LoggingCachedBodyRequestWrapper requestWrapper = new LoggingCachedBodyRequestWrapper(request);
         LoggingCachedBodyResponseWrapper responseWrapper = new LoggingCachedBodyResponseWrapper(response);
@@ -222,7 +222,7 @@ public class LoggingFilter extends OncePerRequestFilter {
                 responseWrapper.getOutputStream().write(rawResponseBody.getBytes());
             }
             responseWrapper.copyBodyToResponse();
-            TraceIdUtil.clear();
+            TraceIdUtils.clear();
         }
     }
 }

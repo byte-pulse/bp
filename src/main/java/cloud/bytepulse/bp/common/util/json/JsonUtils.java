@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.common.utils.json;
+package cloud.bytepulse.bp.common.util.json;
 
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import cloud.bytepulse.bp.framework.exception.JsonParseException;

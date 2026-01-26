@@ -1,6 +1,6 @@
-package cloud.bytepulse.bp.common.utils.minio;
+package cloud.bytepulse.bp.common.util.minio;
 
-import cloud.bytepulse.bp.common.utils.minio.properties.IMinioProperties;
+import cloud.bytepulse.bp.common.util.minio.properties.IMinioProperties;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import io.minio.*;
 import io.minio.errors.MinioException;
