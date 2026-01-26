@@ -34,3 +34,8 @@ minio:
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: bytepulse
+
+# 接口是否返回内部错误信息
+exception:
+  processer:
+    debugInfo: false

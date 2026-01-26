@@ -16,7 +16,7 @@ server:
 
 spring:
   profiles:
-    active: druid,dev
+    active: data,dev
   application:
     name: byte-pulse
   # 序列化设置
@@ -78,11 +78,6 @@ redis:
 
 project:
   url: https://gitee.com/byte-pulse/bp
-
-# 接口是否返回内部错误信息
-exception:
-  processer:
-    debugInfo: false
 
 # 提供的第三方接口配置
 api:
