@@ -8,7 +8,7 @@ import base64
 
 def sha256_base64(data: str) -> str:
     """
-    计算 sha256 hex
+    计算 sha256 base64
     """
     hash_bytes = hashlib.sha256(data.encode("utf-8")).digest()
     return base64.b64encode(hash_bytes).decode("utf-8")
