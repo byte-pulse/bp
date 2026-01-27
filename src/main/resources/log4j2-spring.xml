@@ -64,12 +64,9 @@
             </Root>
             <Logger name="cloud.bytepulse" level="debug" additivity="false">
                 <AppenderRef ref="asyncConsole"/>
-                <AppenderRef ref="asyncRollingFile" level="error"/>
-                <AppenderRef ref="asyncRollingFileInfo" level="info"/>
             </Logger>
             <Logger name="org.springframework" level="info" additivity="false">
                 <AppenderRef ref="asyncConsole"/>
-                <AppenderRef ref="asyncRollingFile" level="error"/>
             </Logger>
         </SpringProfile>
 
@@ -79,6 +76,11 @@
                 <AppenderRef ref="console"/>
                 <AppenderRef ref="asyncRollingFile"/>
             </Root>
+            <Logger name="cloud.bytepulse" level="info" additivity="false">
+                <AppenderRef ref="asyncConsole"/>
+                <AppenderRef ref="asyncRollingFile" level="error"/>
+                <AppenderRef ref="asyncRollingFileInfo" level="info"/>
+            </Logger>
         </SpringProfile>
     </Loggers>
 </Configuration>
