@@ -51,7 +51,7 @@ public class FileMetaUtils {
      * @param isUnique      是否唯一
      */
     @Transactional
-    public void uploadFile(String bizType, String bizId,
+    public void     uploadFile(String bizType, String bizId,
                            MultipartFile multipartFile,
                            boolean isPublic, boolean isUnique)
             throws Exception {

@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * @author jiejiebiezheyang
@@ -24,23 +23,16 @@ public class FileController {
 
     private final FileService fileService;
 
-    @GetMapping("/access/{fileId}")
-    @Operation(summary = "文件访问")
-    @Anonymous
-    public ResponseEntity<Void> access(@PathVariable Long fileId) throws NoResourceFoundException {
-        return fileService.access(fileId);
-    }
-
     @GetMapping("/private/{fileId}")
     @Operation(summary = "文件访问, 需要权限")
     public ResponseEntity<Void> privateAccess(@PathVariable Long fileId) throws Exception {
         return fileService.privateAccess(fileId);
     }
 
-    @GetMapping("/public/{fileId}")
+    @GetMapping("/access/{fileId}")
     @Operation(summary = "文件访问, 公开")
     @Anonymous
-    public ResponseEntity<Void> publicAccess(@PathVariable Long fileId) throws Exception {
-        return fileService.publicAccess(fileId);
+    public ResponseEntity<Void> access(@PathVariable Long fileId) throws Exception {
+        return fileService.access(fileId);
     }
 }
