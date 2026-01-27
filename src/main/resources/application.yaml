@@ -85,7 +85,7 @@ swagger:
       email: 1964234252@qq.com
       version: 1.0.0
 
-# 提供的第三方接口配置
+# 提供的第三方接口配置本地加密密钥(用于加密用户的密钥)
 api:
   external:
     secretKey: rcII2vlKYg1Fw2NvmZZg4570UwLSkYRE+yOZRCU9aTk=
