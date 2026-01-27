@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author jiejiebiezheyang
@@ -42,6 +43,28 @@ public class FileMetaUtils {
     }
 
     /**
+     * 删除文件
+     *
+     * @param fileId 文件id
+     */
+    public int deleteById(Long fileId) {
+        FileMetadata fileMetadata = new FileMetadata();
+        fileMetadata.setId(fileId);
+        fileMetadata.setStatus(0); // 逻辑删除
+        fileMetadata.setDeleteTime(new Date());
+        return fileMetadataMapper.updateById(fileMetadata);
+    }
+
+    /**
+     * 删除文件 批量
+     *
+     * @param ids 文件id
+     */
+    public int deleteByIds(List<Long> ids) {
+        return fileMetadataMapper.deleteBatchByIds(ids);
+    }
+
+    /**
      * 上传文件到 minio 并保存信息
      *
      * @param bizType       业务类型
@@ -51,7 +74,7 @@ public class FileMetaUtils {
      * @param isUnique      是否唯一
      */
     @Transactional
-    public void     uploadFile(String bizType, String bizId,
+    public void uploadFile(String bizType, String bizId,
                            MultipartFile multipartFile,
                            boolean isPublic, boolean isUnique)
             throws Exception {
