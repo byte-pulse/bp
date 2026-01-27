@@ -82,7 +82,7 @@ public class FileMetaUtils {
         if (originalFilename != null && dotIndex != -1 && dotIndex < originalFilename.length() - 1) {
             ext = originalFilename.substring(dotIndex + 1);
         }
-        String objectName = buildPath(bizType, Long.parseLong(bizId), fileId, ext);
+        String objectName = buildPath(bizType, bizId, fileId, ext);
         // 获取 content_type
         String contentType = multipartFile.getContentType();
         // 文件大小
@@ -131,7 +131,7 @@ public class FileMetaUtils {
      */
     public static String buildPath(
             String bizType,
-            Long bizId,
+            String bizId,
             Long fileId,
             String ext
     ) {

@@ -44,7 +44,7 @@ public class FileServiceImpl implements FileService {
         }
         // 判断文件是否需要权限
         boolean needAccess = fileMetadata.getAccessLevel() != 0;
-        String redirectUrl = "/file" + (needAccess ? "/private/" : "public/") + fileId;
+        String redirectUrl = "/file" + (needAccess ? "/private/" : "/public/") + fileId;
         return ResponseEntity.status(HttpStatus.FOUND) // 302
                 .location(URI.create(redirectUrl)).build();
     }

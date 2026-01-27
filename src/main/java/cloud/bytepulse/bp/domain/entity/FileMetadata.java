@@ -61,7 +61,6 @@ public class FileMetadata {
     /**
      * 文件状态
      */
-    @TableLogic(value = "1", delval = "0")
     private Integer status;
 
     /**

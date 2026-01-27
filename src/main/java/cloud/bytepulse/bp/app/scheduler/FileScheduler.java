@@ -71,7 +71,8 @@ public class FileScheduler {
             log.warn("删除失败: {} - {}", error.objectName(), error.message());
         }
 
+        // 删除数据库记录
+        List<Long> ids = fileMetadataList.stream().map(FileMetadata::getId).toList();
+        fileMetadataMapper.deleteBatchIds(ids);
     }
-
-
 }

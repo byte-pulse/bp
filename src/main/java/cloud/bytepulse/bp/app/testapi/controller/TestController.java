@@ -1,5 +1,6 @@
 package cloud.bytepulse.bp.app.testapi.controller;
 
+import cloud.bytepulse.bp.common.util.FileMetaUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.framework.annotation.Anonymous;
 import cloud.bytepulse.bp.framework.annotation.ExternalApi;
@@ -29,6 +30,8 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/test")
 @RequiredArgsConstructor
 public class TestController {
+
+    private final FileMetaUtils fileMetaUtils;
 
     @PostMapping("/fileUploadDownload")
     @Operation(summary = "测试文件上传下载")
@@ -61,5 +64,18 @@ public class TestController {
     public static class ExternalDTO {
         private String orderId;
         private Double amount;
+    }
+
+
+    @PostMapping("/fileUpload")
+    @Operation(summary = "测试文件上传")
+    @Anonymous
+    public ApiResponse fileUpload(@RequestParam Integer accessLevel, @RequestParam MultipartFile[] file) throws Exception {
+        boolean isPublic = accessLevel == 0;
+        String bizType = (isPublic ? "publictest" : "privatetest");
+        for (MultipartFile f : file) {
+            fileMetaUtils.uploadFile(bizType, "test", f, isPublic, false);
+        }
+        return ApiResponse.success();
     }
 }
