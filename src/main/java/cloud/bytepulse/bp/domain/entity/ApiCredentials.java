@@ -8,7 +8,10 @@ import lombok.Data;
 import java.util.Date;
 
 /**
+ * 接口凭据
  *
+ * @author jiejiebiezheyang
+ * @since 2025-08-15 12:00
  */
 @Data
 @TableName(value = "api_credentials")

@@ -11,11 +11,13 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -59,13 +61,5 @@ public class TestController {
     public static class ExternalDTO {
         private String orderId;
         private Double amount;
-    }
-
-    @GetMapping("/fileDownload")
-    @Operation(summary = "测试接口")
-    @Anonymous
-    public ResponseEntity<Void> fileDownload() {
-        return ResponseEntity.status(HttpStatus.FOUND) // 302
-                .location(URI.create("https://www.baidu.com")).build();
     }
 }

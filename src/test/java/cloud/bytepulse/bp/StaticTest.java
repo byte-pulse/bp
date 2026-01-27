@@ -2,6 +2,7 @@ package cloud.bytepulse.bp;
 
 import cloud.bytepulse.bp.common.util.CryptoUtils;
 import cloud.bytepulse.bp.common.util.GenerateUtils;
+import cloud.bytepulse.bp.common.util.SnowflakeIdUtils;
 import cloud.bytepulse.bp.common.util.UAParserUtils;
 import cloud.bytepulse.bp.common.util.json.JsonArr;
 import cloud.bytepulse.bp.common.util.json.JsonObj;
@@ -160,4 +161,11 @@ public class StaticTest {
         UAParserUtils.UAResult result = parse(ua);
         System.out.println(result);
     }
+
+    @Test
+    public void snowflakeIdGeneratorTest() {
+        long l = SnowflakeIdUtils.generate.nextId();
+        System.out.println(l);
+    }
+
 }

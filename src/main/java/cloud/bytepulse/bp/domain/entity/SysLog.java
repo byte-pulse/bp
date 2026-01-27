@@ -20,7 +20,7 @@ public class SysLog {
     /**
      * 日志id
      */
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(type = IdType.AUTO)
     private Integer id;
 
     /**

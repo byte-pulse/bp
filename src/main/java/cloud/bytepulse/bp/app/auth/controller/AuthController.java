@@ -22,7 +22,7 @@ import java.util.Map;
  * @author jiejiebiezheyang
  * @since 2024-03-03 11:00
  */
-@Tag(name = "管理-登录认证")
+@Tag(name = "登录认证")
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor

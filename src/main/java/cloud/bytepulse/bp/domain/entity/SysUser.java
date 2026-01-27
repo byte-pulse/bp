@@ -9,6 +9,7 @@ import lombok.Data;
 import java.util.Date;
 
 /**
+ * 系统用户
  *
  * @author jiejiebiezheyang
  * @since 2025-08-15 12:00
@@ -19,7 +20,7 @@ public class SysUser {
     /**
      * 管理员id
      */
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId( type = IdType.AUTO)
     private Integer id;
 
     /**
