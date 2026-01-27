@@ -44,6 +44,10 @@ spring:
     multipart:
       max-file-size: 1024MB
       max-request-size: 4096MB
+  threads:
+    virtual:
+      # 启用虚拟线程
+      enabled: true
 
 management:
   endpoints:
