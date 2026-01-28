@@ -2,9 +2,7 @@ package cloud.bytepulse.bp.domain;
 
 
 import cloud.bytepulse.bp.framework.enums.HttpStatusEnum;
-
-import java.io.Serial;
-import java.util.HashMap;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * 操作消息提醒
@@ -12,36 +10,42 @@ import java.util.HashMap;
  * @author jiejiebiezheyang
  * @since 2024-02-02 19:00
  */
-public class ApiResponse extends HashMap<String, Object> {
+public class ApiResponse<T> {
 
     /**
      * 状态码
      */
-    public static final String CODE_TAG = "code";
+    public Integer code;
 
     /**
-     * 返回内容
+     * 返回信息
      */
-    public static final String MSG_TAG = "message";
+    public String message;
 
     /**
      * 数据对象
      */
-    public static final String DATA_TAG = "data";
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public T data;
 
     /**
-     * 请求ID
+     * 内部错误信息
+     *
      */
-    public static final String REQUEST_ID = "request_id";
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String e;
+
+    /**
+     * 追踪ID
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String traceId;
 
     /**
      * 时间戳
-     *
      */
-    public static final String TIMESTAMP = "timestamp";
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public Long timestamp;
 
     /**
      * 初始化一个新创建的 AjaxResult 对象，使其表示一个空消息。
@@ -56,8 +60,8 @@ public class ApiResponse extends HashMap<String, Object> {
      * @param msg  返回内容
      */
     public ApiResponse(int code, String msg) {
-        super.put(CODE_TAG, code);
-        super.put(MSG_TAG, msg);
+        this.code = code;
+        this.message = msg;
     }
 
     /**
@@ -67,96 +71,86 @@ public class ApiResponse extends HashMap<String, Object> {
      * @param msg  返回内容
      * @param data 数据对象
      */
-    public ApiResponse(int code, String msg, Object data) {
-        this(code, msg);
-        if (data != null) {
-            super.put(DATA_TAG, data);
-        }
+    public ApiResponse(int code, String msg, T data) {
+        this.code = code;
+        this.message = msg;
+        this.data = data;
     }
 
     /**
-     * 方便链式调用
-     */
-    @Override
-    public ApiResponse put(String key, Object value) {
-        super.put(key, value);
-        return this;
-    }
-
-    /*
      * 自定义消息成功
-     * */
-    public static ApiResponse success(String message) {
-        return new ApiResponse(HttpStatusEnum.OK.code, message);
+     */
+    public static ApiResponse<Void> success(String message) {
+        return new ApiResponse<>(HttpStatusEnum.OK.code, message);
     }
 
     /**
      * 无数据成功
      */
-    public static ApiResponse success() {
+    public static ApiResponse<Void> success() {
         return success(HttpStatusEnum.OK.message);
     }
 
     /**
      * 有数据成功
      */
-    public static ApiResponse success(Object data) {
-        return success().put(DATA_TAG, data);
+    public static <T> ApiResponse<T> success(T data) {
+        return new ApiResponse<>(HttpStatusEnum.OK.code, HttpStatusEnum.OK.message, data);
     }
 
     /**
      * 参数校验失败、JSON 格式错误 , 业务逻辑错误
      */
-    public static ApiResponse badRequest(String message, Object data) {
-        return new ApiResponse(HttpStatusEnum.BAD_REQUEST.code, message, data);
+    public static <T> ApiResponse<T> badRequest(String message, T data) {
+        return new ApiResponse<>(HttpStatusEnum.BAD_REQUEST.code, message, data);
     }
 
     /**
      * 参数校验失败、JSON 格式错误 , 业务逻辑错误
      */
-    public static ApiResponse badRequest(String message) {
+    public static ApiResponse<Void> badRequest(String message) {
         return badRequest(message, null);
     }
 
     /**
      * 服务器内部错误
      */
-    public static ApiResponse error(String message) {
-        return new ApiResponse(HttpStatusEnum.INTERNAL_SERVER_ERROR.code, message);
+    public static ApiResponse<Void> error(String message) {
+        return new ApiResponse<>(HttpStatusEnum.INTERNAL_SERVER_ERROR.code, message);
     }
 
     /**
      * 服务器内部错误
      */
-    public static ApiResponse error() {
+    public static ApiResponse<Void> error() {
         return error(HttpStatusEnum.INTERNAL_SERVER_ERROR.message);
     }
 
     /**
      * 未登录
      */
-    public static ApiResponse unauthorized(String message) {
-        return new ApiResponse(HttpStatusEnum.UNAUTHORIZED.code, message);
+    public static ApiResponse<Void> unauthorized(String message) {
+        return new ApiResponse<>(HttpStatusEnum.UNAUTHORIZED.code, message);
     }
 
     /*
      * 未登录
      * */
-    public static ApiResponse unauthorized() {
+    public static ApiResponse<Void> unauthorized() {
         return unauthorized(HttpStatusEnum.UNAUTHORIZED.message);
     }
 
     /**
      * 无权限
      */
-    public static ApiResponse forbidden() {
-        return new ApiResponse(HttpStatusEnum.FORBIDDEN.code, HttpStatusEnum.FORBIDDEN.message);
+    public static ApiResponse<Void> forbidden() {
+        return new ApiResponse<>(HttpStatusEnum.FORBIDDEN.code, HttpStatusEnum.FORBIDDEN.message);
     }
 
     /**
      * 404
      */
-    public static ApiResponse notFound() {
-        return new ApiResponse(HttpStatusEnum.NOT_FOUND.code, HttpStatusEnum.NOT_FOUND.message);
+    public static ApiResponse<Void> notFound() {
+        return new ApiResponse<>(HttpStatusEnum.NOT_FOUND.code, HttpStatusEnum.NOT_FOUND.message);
     }
 }

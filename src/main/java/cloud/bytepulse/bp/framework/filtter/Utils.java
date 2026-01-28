@@ -27,8 +27,8 @@ public class Utils {
      */
     public static void printNotFound(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().println(JsonUtils.toJsonStr(
-                ApiResponse.notFound()
-                        .put("message", "资源不存在:" + request.getRequestURI())));
+        ApiResponse<Void> notFound = ApiResponse.notFound();
+        notFound.message = "资源不存在:" + request.getRequestURI();
+        response.getWriter().println(JsonUtils.toJsonStr(notFound));
     }
 }

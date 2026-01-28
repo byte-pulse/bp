@@ -36,7 +36,7 @@ public class AuthController {
     @Operation(summary = "获取验证码")
     @Anonymous
     @NoLogging
-    public ApiResponse captcha() throws IOException {
+    public ApiResponse<Map<String, String>> captcha() throws IOException {
         Map<String, String> map = authService.captcha();
         return ApiResponse.success(map);
     }
@@ -44,7 +44,7 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "登录")
     @Anonymous
-    public ApiResponse login(@RequestBody @Validated LoginDTO loginDTO) {
+    public ApiResponse<LoginResultVO> login(@RequestBody @Validated LoginDTO loginDTO) {
         LoginResultVO loginResultVO = authService.login(loginDTO);
         return ApiResponse.success(loginResultVO);
     }
@@ -52,7 +52,7 @@ public class AuthController {
     @PostMapping("/getToken")
     @Operation(summary = "无验证码直接登陆", hidden = true)
     @Anonymous
-    public ApiResponse login(@RequestParam String username, @RequestParam String password) throws IOException {
+    public ApiResponse<LoginResultVO> login(@RequestParam String username, @RequestParam String password) throws IOException {
         Map<String, String> map = authService.captcha();
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setUsername(username);
@@ -68,7 +68,7 @@ public class AuthController {
     @GetMapping("/check")
     @Operation(summary = "检查登陆状态")
     @NoLogging
-    public ApiResponse check() {
+    public ApiResponse<Void> check() {
         return ApiResponse.success();
     }
 }

@@ -7,6 +7,7 @@ import cloud.bytepulse.bp.framework.annotation.ExternalApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 /**
  * @author jiejiebiezheyang
@@ -56,12 +58,29 @@ public class TestController {
     @PostMapping(value = "/external")
     @Operation(summary = "测试外部接口")
     @ExternalApi
-    public ApiResponse testExternalApi(ExternalDTO externalDTO) {
+    public ApiResponse<ExternalDTO> testExternalApi(OrderDTO orderDTO) {
+        ExternalDTO externalDTO = new ExternalDTO();
+        externalDTO.setDate(new Date());
+        externalDTO.setOrder(orderDTO);
+        externalDTO.setName("test");
         return ApiResponse.success(externalDTO);
     }
 
     @Data
-    public static class ExternalDTO {
+    public static class AAAA {
+        private String name;
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    public static class ExternalDTO extends AAAA {
+        private Date date;
+        private OrderDTO order;
+
+    }
+
+    @Data
+    public static class OrderDTO {
         private String orderId;
         private Double amount;
     }
@@ -70,7 +89,7 @@ public class TestController {
     @PostMapping("/fileUpload")
     @Operation(summary = "测试文件上传")
     @Anonymous
-    public ApiResponse fileUpload(@RequestParam Integer accessLevel, @RequestParam MultipartFile[] file) throws Exception {
+    public ApiResponse<Void> fileUpload(@RequestParam Integer accessLevel, @RequestParam MultipartFile[] file) throws Exception {
         boolean isPublic = accessLevel == 0;
         String bizType = (isPublic ? "publictest" : "privatetest");
         for (MultipartFile f : file) {

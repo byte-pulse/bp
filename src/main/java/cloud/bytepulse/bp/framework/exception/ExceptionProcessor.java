@@ -24,7 +24,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -46,11 +45,11 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(BytePulseException.class)
-    public ApiResponse resolveException(BytePulseException ex) {
+    public ApiResponse<Void> resolveException(BytePulseException ex) {
         log.error("自定义业务务异常", ex);
-        ApiResponse error = ApiResponse.error(ex.getMessage());
+        ApiResponse<Void> error = ApiResponse.error(ex.getMessage());
         if (ex.getErrorCode() > 0) {
-            error.put("code", ex.getErrorCode());
+            error.code = ex.getErrorCode();
         }
         return error;
     }
@@ -60,8 +59,10 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(NoResourceFoundException.class)
-    public ApiResponse noResourceFoundException(NoResourceFoundException exception) {
-        return ApiResponse.notFound().put("message", "资源不存在: " + exception.getResourcePath());
+    public ApiResponse<Void> noResourceFoundException(NoResourceFoundException exception) {
+        ApiResponse<Void> notFound = ApiResponse.notFound();
+        notFound.message = "资源不存在: " + exception.getResourcePath();
+        return notFound;
     }
 
     /**
@@ -69,7 +70,7 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ApiResponse resolveException(MethodArgumentNotValidException ex) {
+    public ApiResponse<Void> resolveException(MethodArgumentNotValidException ex) {
         log.error("数据校验异常", ex);
         List<ObjectError> allErrors = ex.getBindingResult().getAllErrors();
         Set<String> msg = new HashSet<>();
@@ -84,7 +85,7 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(BytePulseArgumentNotValidException.class)
-    public ApiResponse resolveException(BytePulseArgumentNotValidException ex) {
+    public ApiResponse<Void> resolveException(BytePulseArgumentNotValidException ex) {
         log.error("数据校验异常", ex);
         return ApiResponse.badRequest(ex.getMessage());
     }
@@ -94,13 +95,13 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(DataAccessException.class)
-    public ApiResponse resolveException(DataAccessException ex) {
+    public ApiResponse<Void> resolveException(DataAccessException ex) {
         log.error("数据库查询异常", ex);
-        if (!debug) {
-            return ApiResponse.error().put("e", ex.getMessage());
+        ApiResponse<Void> error = ApiResponse.error();
+        if (debug) {
+            error.e = ex.getMessage();
         }
-        String message = Objects.requireNonNull(ex.getRootCause()).getMessage();
-        return ApiResponse.error(message).put("e", ex.getMessage());
+        return error;
     }
 
     /**
@@ -108,12 +109,13 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(SQLException.class)
-    public ApiResponse resolveException(SQLException ex) {
+    public ApiResponse<Void> resolveException(SQLException ex) {
         log.error("数据库查询异常", ex);
-        if (!debug) {
-            return ApiResponse.error().put("e", ex.getMessage());
+        ApiResponse<Void> error = ApiResponse.error();
+        if (debug) {
+            error.e = ex.getMessage();
         }
-        return ApiResponse.error("数据库查询异常").put("e", ex.getMessage());
+        return error;
     }
 
     /**
@@ -121,7 +123,7 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler({BadCredentialsException.class, InternalAuthenticationServiceException.class})
-    public ApiResponse badCredentialsException(Exception ex) {
+    public ApiResponse<Void> badCredentialsException(Exception ex) {
         String msg = "";
         log.error("授权异常", ex);
         if (ex instanceof BadCredentialsException me) {
@@ -137,7 +139,7 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class, AuthorizationServiceException.class})
-    public ApiResponse resolveException(AccessDeniedException ex) {
+    public ApiResponse<Void> resolveException(AccessDeniedException ex) {
         log.error("权限异常", ex);
         return ApiResponse.forbidden();
     }
@@ -147,12 +149,13 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(ErrorResponseException.class)
-    public ApiResponse resolveException(ErrorResponseException ex) {
+    public ApiResponse<Void> resolveException(ErrorResponseException ex) {
         log.error("文件处理异常", ex);
-        if (!debug) {
-            return ApiResponse.error().put("e", ex.getMessage());
+        ApiResponse<Void> error = ApiResponse.error();
+        if (debug) {
+            error.e = ex.getMessage();
         }
-        return ApiResponse.error(ex.getMessage()).put("e", ex.getMessage());
+        return error;
     }
 
     /**
@@ -160,12 +163,13 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ApiResponse resolveException(HttpMessageNotReadableException ex) {
+    public ApiResponse<Void> resolveException(HttpMessageNotReadableException ex) {
         log.error("JSON参数异常", ex);
-        if (!debug) {
-            return ApiResponse.error("JSON参数异常").put("e", ex.getMessage());
+        ApiResponse<Void> error = ApiResponse.error("JSON参数异常");
+        if (debug) {
+            error.e = ex.getMessage();
         }
-        return ApiResponse.error(ex.getMessage()).put("e", ex.getMessage());
+        return error;
     }
 
     /**
@@ -173,7 +177,7 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(value = {MissingServletRequestParameterException.class, MissingServletRequestPartException.class})
-    public ApiResponse resolveMissingParameterException(Exception ex) {
+    public ApiResponse<Void> resolveMissingParameterException(Exception ex) {
         String missingParameterName = "";
         if (ex instanceof MissingServletRequestParameterException me) {
             missingParameterName = me.getParameterName();
@@ -181,10 +185,11 @@ public class ExceptionProcessor {
             missingParameterName = me.getRequestPartName();
         }
         log.error("缺少必要参数: {}", missingParameterName, ex);
-        if (!debug) {
-            return ApiResponse.error("缺少必要参数: " + missingParameterName).put("e", ex.getMessage());
+        ApiResponse<Void> error = ApiResponse.error("缺少必要参数: " + missingParameterName);
+        if (debug) {
+            error.e = ex.getMessage();
         }
-        return ApiResponse.error(ex.getMessage()).put("e", ex.getMessage());
+        return error;
     }
 
     /**
@@ -193,11 +198,12 @@ public class ExceptionProcessor {
      */
     @ResponseBody
     @ExceptionHandler(Exception.class)
-    public ApiResponse resolveException(Exception ex) {
+    public ApiResponse<Void> resolveException(Exception ex) {
         log.error("Exception异常捕获", ex);
-        if (!debug) {
-            return ApiResponse.error().put("e", ex.getMessage());
+        ApiResponse<Void> error = ApiResponse.error();
+        if (debug) {
+            error.e = ex.getMessage();
         }
-        return ApiResponse.error(ex.getMessage()).put("e", ex.getMessage());
+        return error;
     }
 }
