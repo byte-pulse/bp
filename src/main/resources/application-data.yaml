@@ -34,7 +34,7 @@ spring:
         # 控制台管理用户名和密码
         login-username: bytepulse
         login-password: bytepulse
-      aop-patterns: cn.bytepulse.*.controller.*
+      aop-patterns: cloud.bytepulse.*.controller.*
       webStatFilter:
         enabled: true
         exclusions: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
