@@ -129,7 +129,7 @@ public class ExceptionProcessor {
         } else if (ex instanceof InternalAuthenticationServiceException me) {
             msg = me.getMessage();
         }
-        return ApiResponse.error(msg);
+        return ApiResponse.unauthorized(msg);
     }
 
     /**
