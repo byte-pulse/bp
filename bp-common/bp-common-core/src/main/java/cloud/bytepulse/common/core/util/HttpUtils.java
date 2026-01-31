@@ -46,4 +46,42 @@ public class HttpUtils {
                             return Stream.of(encode(key, value.toString()));
                         }
                     }
+
+                })
+                .collect(Collectors.joining("&"));
+    }
+
+    private static String encode(String key, String value) {
+        return URLEncoder.encode(key, StandardCharsets.UTF_8) + "=" +
+                URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private static String join(Iterable<?> iterable) {
+        return StreamSupport.stream(iterable.spliterator(), false)
+                .map(Object::toString)
+                .collect(Collectors.joining(","));
+    }
+
+    /**
+     * 拼接 host 和 query
+     *
+     * @param host      基础地址，如 "<a href="https://api.example.com/search">https://api.example.com/search</a>"
+     * @param params    参数 Map
+     * @param repeatKey 是否使用重复 key 模式
+     * @return 完整 URL
+     */
+    public static String buildUrl(String host, Map<String, Object> params, boolean repeatKey) {
+        String query = toQueryString(params, repeatKey);
+        if (query.isEmpty()) {
+            return host;
+        }
+
+        // 去掉 host 末尾多余的斜杠（只在没有路径的情况下）
+        if (host.endsWith("/")) {
+            host = host.substring(0, host.length() - 1);
+        }
+
+        // 如果 host 已经包含 '?', 则追加 '&'，否则追加 '?'
+        return host + (host.contains("?") ? "&" : "?") + query;
+    }
 }
