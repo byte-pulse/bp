@@ -50,7 +50,7 @@ public class RequestLimitAspect {
         // 1. 获取用户标识, 登录用 userId, 未登录兜底 IP
         String userKey;
         Long userId = AuthUtils.getUserId(); // 你自己项目里的获取方式
-        if (userId != null) {
+        if (userId > 0L) {
             userKey = String.valueOf(userId);
         } else {
             userKey = "ip:" + ReqUtils.getIP();

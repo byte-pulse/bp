@@ -21,7 +21,7 @@ public class SysLog {
      * 日志id
      */
     @TableId(type = IdType.AUTO)
-    private Integer id;
+    private Long id;
 
     /**
      * 日志id

@@ -70,7 +70,7 @@ CREATE TABLE `file_metadata`
 DROP TABLE IF EXISTS `sys_log`;
 CREATE TABLE `sys_log`
 (
-    `id`              int                                                           NOT NULL AUTO_INCREMENT COMMENT '日志id',
+    `id`              bigint                                                           NOT NULL AUTO_INCREMENT COMMENT '日志id',
     `trace_id`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '追踪id',
     `uri`             varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '接口uri',
     `http_method`     varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL COMMENT 'http请求方式',
@@ -79,7 +79,7 @@ CREATE TABLE `sys_log`
     `response_result` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci     NULL COMMENT '响应结果',
     `request_time`    datetime                                                      NOT NULL COMMENT '请求时间戳',
     `request_ip`      varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NULL DEFAULT NULL COMMENT '请求ip',
-    `user_id`         int                                                           NULL DEFAULT NULL COMMENT '用户id',
+    `user_id`         bigint                                                           NULL DEFAULT NULL COMMENT '用户id',
     `cost`            bigint                                                        NULL DEFAULT NULL COMMENT '请求耗时',
     `exception`       text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci         NULL COMMENT '异常信息',
     PRIMARY KEY (`id`) USING BTREE,
@@ -100,7 +100,7 @@ CREATE TABLE `sys_log`
 DROP TABLE IF EXISTS `sys_user`;
 CREATE TABLE `sys_user`
 (
-    `id`            int                                                           NOT NULL AUTO_INCREMENT COMMENT '管理员id',
+    `id`            bigint                                                           NOT NULL AUTO_INCREMENT COMMENT '管理员id',
     `nickname`      varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL COMMENT '昵称',
     `username`      varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL COMMENT '用户名',
     `password`      varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码(加密)',
