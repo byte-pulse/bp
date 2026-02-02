@@ -20,8 +20,8 @@ public class SysUser {
     /**
      * 管理员id
      */
-    @TableId( type = IdType.AUTO)
-    private Integer id;
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
     /**
      * 昵称

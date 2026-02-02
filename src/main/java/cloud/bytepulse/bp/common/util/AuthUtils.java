@@ -32,7 +32,7 @@ public class AuthUtils {
         if ("anonymousUser".equals(authentication.getPrincipal())) {
             LoginUser loginUser = new LoginUser();
             LoginUserInfo loginUserInfo = new LoginUserInfo();
-            loginUserInfo.setUserId(0);
+            loginUserInfo.setUserId(0L);
             loginUserInfo.setUsername("anonymousUser");
             loginUserInfo.setNickname("anonymousUser");
             loginUser.setLoginUserInfo(loginUserInfo);
@@ -55,10 +55,10 @@ public class AuthUtils {
     /**
      * 获取当前用户id
      */
-    public static Integer getUserId() {
+    public static Long getUserId() {
         LoginUserInfo user = getUser();
         if (user == null) {
-            return 0;
+            return 0L;
         }
         return user.getUserId();
     }

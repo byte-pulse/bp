@@ -17,7 +17,7 @@ public class LoginUserInfo {
     /**
      * 用户id
      */
-    private Integer userId;
+    private Long userId;
 
     /**
      * 昵称

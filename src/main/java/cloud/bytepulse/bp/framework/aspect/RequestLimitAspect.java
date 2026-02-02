@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.framework.aspect;
 
-import cloud.bytepulse.bp.common.util.RedisUtils;
+import cloud.bytepulse.bp.common.util.AuthUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.framework.annotation.RequestLimit;
@@ -11,13 +11,14 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.jspecify.annotations.NonNull;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.TimeUnit;
-
-import static cloud.bytepulse.bp.common.util.ReqUtils.getIP;
+import java.util.Collections;
 
 /**
  * 接口请求限制
@@ -31,8 +32,7 @@ import static cloud.bytepulse.bp.common.util.ReqUtils.getIP;
 @RequiredArgsConstructor
 public class RequestLimitAspect {
 
-    private final RedisUtils redisUtils;
-
+    public final RedisTemplate<String, Object> redisTemplate;
 
     @Pointcut("@annotation(cloud.bytepulse.bp.framework.annotation.RequestLimit)")
     public void requestLimitPointCut() {
@@ -40,24 +40,67 @@ public class RequestLimitAspect {
 
     @Around("requestLimitPointCut()")
     public Object doAround(ProceedingJoinPoint point) throws Throwable {
-        // 获得request对象
+
         HttpServletRequest request = ReqUtils.getRequest();
-        // 获取目标方法 和 注解
+
         MethodSignature signature = (MethodSignature) point.getSignature();
         Method method = signature.getMethod();
         RequestLimit requestLimit = method.getAnnotation(RequestLimit.class);
 
-        String redisKey = "wx:requestLimit:" + request.getRequestURI() + ":" + getIP();
-        Integer ipCnt = redisUtils.getCacheObject(redisKey);
-        int uCount = ipCnt == null ? 0 : ipCnt;
-        if (uCount >= requestLimit.count()) { // 超过次数，不执行目标方法
-            return ApiResponse.error("请求过于频繁，请稍后再试");
+        // 1. 获取用户标识, 登录用 userId, 未登录兜底 IP
+        String userKey;
+        Long userId = AuthUtils.getUserId(); // 你自己项目里的获取方式
+        if (userId != null) {
+            userKey = String.valueOf(userId);
         } else {
-            //请求时，设置有效时间, 记录加一
-            redisUtils.setCacheObject(redisKey, uCount + 1, requestLimit.time(), TimeUnit.MILLISECONDS);
+            userKey = "ip:" + ReqUtils.getIP();
         }
-        // result的值就是被拦截方法的返回值
+
+        // 2. 构建 Redis Key
+        String redisKey = String.format(
+                "rl:user:%s:%s:%s",
+                userKey,
+                request.getMethod(),
+                request.getRequestURI()
+        );
+
+        // 3. Lua 脚本(原子限流, 毫秒级)
+        DefaultRedisScript<Long> redisScript = getLongDefaultRedisScript();
+
+        Long pass = redisTemplate.execute(
+                redisScript,
+                Collections.singletonList(redisKey),
+                requestLimit.count(),
+                requestLimit.time()
+        );
+
+        // 5. 判断是否放行
+        if (pass == null || pass == 0) {
+            return ApiResponse.error("请求过于频繁, 请稍后重试");
+        }
+
         return point.proceed();
+    }
+
+    private static @NonNull DefaultRedisScript<Long> getLongDefaultRedisScript() {
+        String lua =
+                "local key = KEYS[1] " +
+                        "local limit = tonumber(ARGV[1]) " +
+                        "local expire = tonumber(ARGV[2]) " +
+                        "local count = redis.call('INCR', key) " +
+                        "if count == 1 then " +
+                        "  redis.call('PEXPIRE', key, expire) " +
+                        "end " +
+                        "if count > limit then " +
+                        "  return 0 " +
+                        "end " +
+                        "return 1";
+
+        // 4. 执行 Lua
+        DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+        redisScript.setScriptText(lua);
+        redisScript.setResultType(Long.class);
+        return redisScript;
     }
 
 }

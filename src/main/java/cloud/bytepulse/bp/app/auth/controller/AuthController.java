@@ -7,6 +7,7 @@ import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.framework.annotation.Anonymous;
 import cloud.bytepulse.bp.framework.annotation.NoLogging;
+import cloud.bytepulse.bp.framework.annotation.RequestLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class AuthController {
     @Operation(summary = "获取验证码")
     @Anonymous
     @NoLogging
+    @RequestLimit(count = 10, time = 8000)
     public ApiResponse<Map<String, String>> captcha() throws IOException {
         Map<String, String> map = authService.captcha();
         return ApiResponse.success(map);
