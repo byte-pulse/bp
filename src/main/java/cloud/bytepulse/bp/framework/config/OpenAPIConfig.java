@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,6 +19,11 @@ import org.springframework.context.annotation.Configuration;
  * @since 2024-03-01 10:00
  */
 @Configuration
+@ConditionalOnProperty(
+        name = "springdoc.api-docs.enabled",
+        havingValue = "true",
+        matchIfMissing = true
+)
 public class OpenAPIConfig {
 
     @Value("${spring.application.name}")

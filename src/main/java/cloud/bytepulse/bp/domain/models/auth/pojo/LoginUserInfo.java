@@ -45,9 +45,9 @@ public class LoginUserInfo {
     private Date lastUpdate;
 
     /**
-     * 登录会话id
+     * 登录会话 指纹
      */
-    private String sessionId;
+    private String fingerprint;
 
     public LoginUserInfo() {
     }

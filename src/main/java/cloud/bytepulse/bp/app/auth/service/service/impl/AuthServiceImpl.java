@@ -16,6 +16,7 @@ import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.GifCaptcha;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -46,6 +47,9 @@ public class AuthServiceImpl implements AuthService {
     private final RedisUtils redisUtils;
 
     private final SysUserMapper sysUserMapper;
+
+    @Value("${login.expiration}")
+    private Long expiration;
 
     /**
      * 获取验证码
@@ -103,14 +107,14 @@ public class AuthServiceImpl implements AuthService {
 
         // 生成UUID作为token指纹
         String fingerprint = UUID.randomUUID().toString();
-        loginUserInfo.setSessionId(fingerprint);
+        loginUserInfo.setFingerprint(fingerprint);
         // 使用 userId 和 角色 生成token,返回token
         String userId = String.valueOf(loginUser.getLoginUserInfo().getUserId());
         JWTUtils.Payload payload = new JWTUtils.Payload();
         payload.with("userId", userId).with("fingerprint", fingerprint);
         String token = JWTUtils.createToken(payload, 60 * 60 * 24 * 7);
         // 把用户信息存入redis
-        redisUtils.setCacheObject("login:" + userId, loginUser, 3600L * 60L, TimeUnit.SECONDS);
+        redisUtils.setCacheObject("login:" + userId, loginUser, expiration, TimeUnit.MINUTES);
         // 返回token给前端
         loginResultVO.setToken(token);
         // 移除需要重新登录的标记

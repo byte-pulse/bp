@@ -62,6 +62,7 @@ springdoc:
     tags-sorter: alpha # 按字母排序标签
     operations-sorter: alpha # 按字母排序操作
     defaultModelsExpandDepth: -1 # 折叠模型
+    persist-authorization: true
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -79,6 +80,10 @@ pagehelper:
 
 redis:
   prefix: "bp:"
+
+login:
+  # 登陆无操作多久, 登陆失效 (单位: 分钟)
+  expiration: 30
 
 swagger:
   info:

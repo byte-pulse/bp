@@ -39,3 +39,8 @@ minio:
 exception:
   processer:
     debugInfo: false
+
+# 关闭 swagger
+springdoc:
+  api-docs:
+    enabled: false

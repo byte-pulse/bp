@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,9 @@ import static cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser.NEED_RE_LOGIN
 public class JWTFilter extends OncePerRequestFilter {
 
     private final RedisUtils redisUtils;
+
+    @Value("${login.expiration}")
+    private Long expiration;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -67,9 +71,12 @@ public class JWTFilter extends OncePerRequestFilter {
             Utils.printUnauthorized(response, "登录状态失效");
             return;
         }
-        String sessionId = loginUser.getLoginUserInfo().getSessionId();
-        if (fingerprint == null || !fingerprint.equals(sessionId)) {
+        String redisFingerprint = loginUser.getLoginUserInfo().getFingerprint();
+        if (fingerprint == null) {
             Utils.printUnauthorized(response, "登录过期");
+            return;
+        } else if (!fingerprint.equals(redisFingerprint)) {
+            Utils.printUnauthorized(response, "账号在别处登陆");
             return;
         }
         if (NEED_RE_LOGIN.containsKey(Integer.valueOf(userId))) {
@@ -79,7 +86,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
         ReqUtils.getRequest().setAttribute("userId", userId);
         // 把用户信息重新入redis
-        redisUtils.setCacheObject("login:" + userId, loginUser, 3600L * 60L, TimeUnit.SECONDS);
+        redisUtils.setCacheObject("login:" + userId, loginUser, expiration, TimeUnit.MINUTES);
         // 将用户信息存入SecurityContext
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
