@@ -50,4 +50,65 @@ public class JWTUtils {
                 .claims(payload) // 内容
                 .compact(); // 生成
     }
+
+    /**
+     * 创建token<br>
+     * 根据用户id创建token
+     */
+    public static String createToken(Payload payload) {
+        Date now = new Date();
+        return Jwts.builder()
+                .issuedAt(now)// 签发时间
+                .notBefore(now)// 生效时间
+                .signWith(SECRET_KEY) // 签名
+                .claims(payload) // 内容
+                .compact(); // 生成
+    }
+
+    /**
+     * 解析token<br>
+     * 根据传入的key的获取值
+     */
+    public static String parseToken(String token, String key, boolean verifyTime) throws RuntimeException {
+        Claims claims = null;
+        try {
+            claims = Jwts.parser()
+                    .verifyWith(SECRET_KEY) // 解密
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+        } catch (Exception e) {
+            throw new BytePulseException(AuthErrorCode.TOKEN_INVALID);
+        }
+        if (verifyTime) { // 是否验证过期时间
+            // 获取当前时间
+            long nowTime = new Date().getTime();
+            // 获取过期时间
+            Date expiration = claims.getExpiration();
+            long l = expiration.getTime() - nowTime;
+            if (l <= 0) {
+                throw new BytePulseException(AuthErrorCode.TOKEN_EXPIRED);
+            }
+        }
+        return claims.get(key, String.class);
+    }
+
+    /**
+     * 解析token<br>
+     * 根据传入的key的获取值
+     */
+    public static String parseToken(String token, String key) {
+        return parseToken(token, key, true);
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    public static class Payload extends HashMap<String, String> {
+        // 链式添加方法
+        public Payload with(String key, String value) {
+            this.put(key, value);
+            return this;
+        }
+    }
 }
