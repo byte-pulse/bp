@@ -1,0 +1,43 @@
+package cloud.bytepulse.security;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * 登录工具类
+ *
+ * @author jiejiebiezheyang
+ * @since 2025-04-29 13:00
+ */
+public class Auths {
+
+    /**
+     * 需要重新登录的账号
+     */
+    public static final Set<Long> NEED_RE_LOGIN = ConcurrentHashMap.newKeySet();
+
+    /**
+     * 获取当前登录用户
+     */
+    public static LoginUser getLoginUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return null;
+        }
+        // 未登录状态下
+        if ("anonymousUser".equals(authentication.getPrincipal())) {
+            LoginUser loginUser = new LoginUser();
+            LoginUserInfo loginUserInfo = new LoginUserInfo();
+            loginUserInfo.setUserId(0L);
+            loginUserInfo.setUsername("anonymousUser");
+            loginUserInfo.setNickname("anonymousUser");
+            loginUser.setLoginUserInfo(loginUserInfo);
+            return loginUser;
+        }
+        return (LoginUser) authentication.getPrincipal();
+    }
+}
