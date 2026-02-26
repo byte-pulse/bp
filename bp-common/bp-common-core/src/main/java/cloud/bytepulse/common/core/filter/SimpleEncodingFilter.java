@@ -38,4 +38,36 @@ public class SimpleEncodingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
+        // 设置编码为 UTF-8
+        String requestContentType = request.getContentType();
+        if (isTextContent(requestContentType)) {
+            // 只对文本类型设置请求编码
+            if (!StringUtils.hasText(request.getCharacterEncoding())) {
+                request.setCharacterEncoding(StandardCharsets.UTF_8);
+            }
+        }
+        filterChain.doFilter(request, response);
+        String responseContentType = response.getContentType();
+        if (isTextContent(responseContentType)) {
+            // 只对文本类型设置响应编码
+            if (!StringUtils.hasText(response.getCharacterEncoding())) {
+                response.setCharacterEncoding(StandardCharsets.UTF_8);
+            }
+        }
+    }
+
+    /**
+     * 判断是否是文本内容
+     */
+    private boolean isTextContent(String contentType) {
+        if (contentType == null) {
+            return false;
+        }
+
+        // 获取主类型（去除参数）
+        String mimeType = contentType.split(";")[0].trim().toLowerCase();
+
+        // 检查是否在文本类型列表中
+        return TEXT_CONTENT_TYPES.contains(mimeType);
+    }
 }
