@@ -3,7 +3,7 @@ package cloud.bytepulse.bp.framework.aspect;
 import cloud.bytepulse.bp.common.util.AuthUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
-import cloud.bytepulse.bp.framework.annotation.RequestLimit;
+import cloud.bytepulse.bp.common.annotation.RequestLimit;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -34,7 +34,7 @@ public class RequestLimitAspect {
 
     public final RedisTemplate<String, Object> redisTemplate;
 
-    @Pointcut("@annotation(cloud.bytepulse.bp.framework.annotation.RequestLimit)")
+    @Pointcut("@annotation(cloud.bytepulse.bp.common.annotation.RequestLimit)")
     public void requestLimitPointCut() {
     }
 

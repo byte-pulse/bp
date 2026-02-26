@@ -2,8 +2,8 @@ package cloud.bytepulse.bp.app.testapi.controller;
 
 import cloud.bytepulse.bp.common.util.FileMetaUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
-import cloud.bytepulse.bp.framework.annotation.Anonymous;
-import cloud.bytepulse.bp.framework.annotation.ExternalApi;
+import cloud.bytepulse.bp.common.annotation.Anonymous;
+import cloud.bytepulse.bp.common.annotation.ExternalApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;

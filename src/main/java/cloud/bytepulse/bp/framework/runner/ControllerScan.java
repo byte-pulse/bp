@@ -1,9 +1,9 @@
 package cloud.bytepulse.bp.framework.runner;
 
 
-import cloud.bytepulse.bp.framework.annotation.Anonymous;
-import cloud.bytepulse.bp.framework.annotation.ExternalApi;
-import cloud.bytepulse.bp.framework.annotation.NoLogging;
+import cloud.bytepulse.bp.common.annotation.Anonymous;
+import cloud.bytepulse.bp.common.annotation.ExternalApi;
+import cloud.bytepulse.bp.common.annotation.NoLogging;
 import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
 import cloud.bytepulse.bp.framework.constant.ExternalApiConstant;

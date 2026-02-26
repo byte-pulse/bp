@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.app.file.controller;
 
 import cloud.bytepulse.bp.app.file.service.FileService;
-import cloud.bytepulse.bp.framework.annotation.Anonymous;
+import cloud.bytepulse.bp.common.annotation.Anonymous;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

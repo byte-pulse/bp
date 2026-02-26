@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.annotation;
+package cloud.bytepulse.bp.common.annotation;
 
 import java.lang.annotation.*;
 
