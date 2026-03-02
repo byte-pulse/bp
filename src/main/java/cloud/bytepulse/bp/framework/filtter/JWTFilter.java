@@ -86,7 +86,11 @@ public class JWTFilter extends OncePerRequestFilter {
         }
         ReqUtils.getRequest().setAttribute("userId", userId);
         // 把用户信息重新入redis
-        redisUtils.setCacheObject("login:" + userId, loginUser, expiration, TimeUnit.MINUTES);
+        if (expiration == 0) {
+            redisUtils.setCacheObject("login:" + userId, loginUser);
+        } else {
+            redisUtils.setCacheObject("login:" + userId, loginUser, expiration, TimeUnit.MINUTES);
+        }
         // 将用户信息存入SecurityContext
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);

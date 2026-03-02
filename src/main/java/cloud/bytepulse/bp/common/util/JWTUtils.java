@@ -51,6 +51,20 @@ public class JWTUtils {
     }
 
     /**
+     * 创建token<br>
+     * 根据用户id创建token
+     */
+    public static String createToken(Payload payload) {
+        Date now = new Date();
+        return Jwts.builder()
+                .issuedAt(now)// 签发时间
+                .notBefore(now)// 生效时间
+                .signWith(SECRET_KEY) // 签名
+                .claims(payload) // 内容
+                .compact(); // 生成
+    }
+
+    /**
      * 解析token<br>
      * 根据传入的key的获取值
      */

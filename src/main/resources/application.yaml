@@ -82,7 +82,7 @@ redis:
   prefix: "bp:"
 
 login:
-  # 登陆无操作多久, 登陆失效 (单位: 分钟)
+  # 登陆无操作多久, 登陆失效 (单位: 分钟) 0 表示不过期
   expiration: 30
 
 swagger:

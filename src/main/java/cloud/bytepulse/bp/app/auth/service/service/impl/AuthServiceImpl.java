@@ -112,9 +112,13 @@ public class AuthServiceImpl implements AuthService {
         String userId = String.valueOf(loginUser.getLoginUserInfo().getUserId());
         JWTUtils.Payload payload = new JWTUtils.Payload();
         payload.with("userId", userId).with("fingerprint", fingerprint);
-        String token = JWTUtils.createToken(payload, 60 * 60 * 24 * 7);
+        String token = JWTUtils.createToken(payload);
         // 把用户信息存入redis
-        redisUtils.setCacheObject("login:" + userId, loginUser, expiration, TimeUnit.MINUTES);
+        if (expiration == 0) {
+            redisUtils.setCacheObject("login:" + userId, loginUser);
+        } else {
+            redisUtils.setCacheObject("login:" + userId, loginUser, expiration, TimeUnit.MINUTES);
+        }
         // 返回token给前端
         loginResultVO.setToken(token);
         // 移除需要重新登录的标记
