@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.app.auth.service.service;
+package cloud.bytepulse.bp.app.auth.service;
 
 
 import cloud.bytepulse.bp.app.auth.dto.LoginDTO;

@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.app.auth.controller;
 
 import cloud.bytepulse.bp.app.auth.dto.LoginDTO;
-import cloud.bytepulse.bp.app.auth.service.service.AuthService;
+import cloud.bytepulse.bp.app.auth.service.AuthService;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;

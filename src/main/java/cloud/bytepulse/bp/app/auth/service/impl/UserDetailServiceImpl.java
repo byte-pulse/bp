@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.app.auth.service.service.impl;
+package cloud.bytepulse.bp.app.auth.service.impl;
 
 import cloud.bytepulse.bp.domain.entity.SysUser;
 import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
