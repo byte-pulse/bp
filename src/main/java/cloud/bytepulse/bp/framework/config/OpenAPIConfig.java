@@ -94,7 +94,7 @@ public class OpenAPIConfig {
         for (Map.Entry<String, List<String>> entry : paths.entrySet()) {
             groups.add(new ApiGroup(entry.getKey(), entry.getValue()));
         }
-        groups.add(new ApiGroup("A全部接口A", "/**"));
+        groups.add(new ApiGroup("(全部接口)", "/**"));
         return groups;
     }
 
