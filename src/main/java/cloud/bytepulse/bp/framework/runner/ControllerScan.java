@@ -4,10 +4,12 @@ package cloud.bytepulse.bp.framework.runner;
 import cloud.bytepulse.bp.common.annotation.Anonymous;
 import cloud.bytepulse.bp.common.annotation.ExternalApi;
 import cloud.bytepulse.bp.common.annotation.NoLogging;
+import cloud.bytepulse.bp.framework.config.OpenAPIConfig;
 import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
 import cloud.bytepulse.bp.framework.constant.ExternalApiConstant;
 import cloud.bytepulse.bp.framework.constant.LoggingConstant;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
@@ -17,6 +19,7 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.annotation.Annotation;
@@ -49,6 +52,16 @@ public class ControllerScan implements BeanFactoryPostProcessor {
                 log.debug("扫描控制器类: {}", clazz.getName());
 
                 String controllerPrefix = extractPath(clazz.getAnnotation(RequestMapping.class));
+
+                // 添加 swagger 分组, 根据 @Tag description 的值作为分组名称
+                if (clazz.isAnnotationPresent(Tag.class)) {
+                    Tag tag = clazz.getAnnotation(Tag.class);
+                    String desc = tag.description();
+                    if (StringUtils.hasText(desc)) {
+                        OpenAPIConfig.ApiGroup apiGroup = new OpenAPIConfig.ApiGroup(desc, controllerPrefix + "/**");
+                        OpenAPIConfig.API_GROUPS.add(apiGroup);
+                    }
+                }
 
                 for (Method method : clazz.getDeclaredMethods()) {
                     boolean hasAnonymous = method.isAnnotationPresent(Anonymous.class);
