@@ -16,7 +16,7 @@ server:
 
 spring:
   profiles:
-    active: data,dev
+    active: @spring.profiles.active@
   application:
     name: byte-pulse
   # 序列化设置
