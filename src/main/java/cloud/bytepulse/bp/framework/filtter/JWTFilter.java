@@ -79,8 +79,8 @@ public class JWTFilter extends OncePerRequestFilter {
             Utils.printUnauthorized(response, "账号在别处登陆");
             return;
         }
-        if (NEED_RE_LOGIN.containsKey(Integer.valueOf(userId))) {
-            NEED_RE_LOGIN.remove(Integer.valueOf(userId));
+        if (NEED_RE_LOGIN.contains(Long.valueOf(userId))) {
+            NEED_RE_LOGIN.remove(Long.valueOf(userId));
             Utils.printUnauthorized(response, "账户或角色有调整，请重新登录");
             return;
         }

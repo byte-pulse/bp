@@ -122,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
         // 返回token给前端
         loginResultVO.setToken(token);
         // 移除需要重新登录的标记
-        NEED_RE_LOGIN.remove(Integer.valueOf(userId));
+        NEED_RE_LOGIN.remove(loginUser.getLoginUserInfo().getUserId());
         return loginResultVO;
     }
 }

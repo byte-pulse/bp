@@ -8,8 +8,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -20,11 +20,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class LoginUser implements UserDetails {
 
-    public static final Hashtable<Integer, Integer> NEED_RE_LOGIN;
-
-    static {
-        NEED_RE_LOGIN = new Hashtable<>();
-    }
+    public static final Set<Long> NEED_RE_LOGIN = ConcurrentHashMap.newKeySet();
 
     /**
      * 用户信息
