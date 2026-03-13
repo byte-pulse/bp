@@ -163,4 +163,110 @@ public class ReqUtils {
         }
         return new IpGeoInfo();
     }
+
+
+    /**
+     * IP地理位置信息
+     */
+    @Data
+    public static class IpGeoInfo {
+        /**
+         * IP地址
+         */
+        private String ip;
+
+        /**
+         * 国家名称
+         */
+        private String country;
+
+        /**
+         * 国家代码
+         */
+        @JsonProperty("country_code")
+        private String countryCode;
+
+        /**
+         * 省份/州
+         */
+        private String prov;
+
+        /**
+         * 城市名称
+         */
+        private String city;
+
+        /**
+         * 城市代码
+         */
+        @JsonProperty("city_code")
+        private String cityCode;
+
+        /**
+         * 城市简称
+         */
+        @JsonProperty("city_short_code")
+        private String cityShortCode;
+
+        /**
+         * 区/县
+         */
+        private String area;
+
+        /**
+         * 邮政编码
+         */
+        @JsonProperty("post_code")
+        private String postCode;
+
+        /**
+         * 区号
+         */
+        @JsonProperty("area_code")
+        private String areaCode;
+
+        /**
+         * 网络服务提供商
+         */
+        private String isp;
+
+        /**
+         * 经度
+         */
+        private String lng;
+
+        /**
+         * 纬度
+         */
+        private String lat;
+
+        /**
+         * IP长整型表示
+         */
+        @JsonProperty("long_ip")
+        private Long longIp;
+
+        /**
+         * 大区(如华东、华北等)
+         */
+        @JsonProperty("big_area")
+        private String bigArea;
+
+        /**
+         * 获取简短的地理位置信息
+         */
+        public String getShortInfo() {
+            switch (this.isp) {
+                case "内网地址":
+                    return "内网";
+                case "回环地址":
+                    return "本机";
+                default:
+                    String prov = this.prov == null ? "未知" : this.prov;
+                    String city = this.city == null ? "未知" : this.city;
+                    String area = this.area == null ? "未知" : this.area;
+                    return prov + " " + city + " " + area;
+            }
+        }
+    }
 }
