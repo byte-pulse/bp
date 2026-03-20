@@ -61,4 +61,77 @@ public class FilterConfig {
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE); // 最高优先级
         return registration;
     }
+
+
+    /**
+     * 输出当前过滤器链
+     */
+    @Bean
+    public CommandLineRunner printFilterOrder(List<FilterRegistrationBean<?>> filters) {
+        return args -> {
+            List<FilterRegistrationBean<?>> sortedFilters = filters.stream()
+                    .filter(f -> f.getFilter() != null)
+                    .sorted(Comparator.comparingInt(FilterRegistrationBean::getOrder))
+                    .toList();
+
+            int orderWidth = Math.max(
+                    "Order".length(),
+                    sortedFilters.stream()
+                            .map(FilterRegistrationBean::getOrder)
+                            .map(String::valueOf)
+                            .mapToInt(String::length)
+                            .max()
+                            .orElse(0)
+            );
+
+            int nameWidth = Math.max(
+                    "Name".length(),
+                    sortedFilters.stream()
+                            .map(FilterRegistrationBean::getFilterName)
+                            .mapToInt(name -> name == null ? 0 : name.length())
+                            .max()
+                            .orElse(0)
+            );
+
+            int classWidth = Math.max(
+                    "Class".length(),
+                    sortedFilters.stream()
+                            .map(f -> f.getFilter().getClass().getName())
+                            .mapToInt(String::length)
+                            .max()
+                            .orElse(0)
+            );
+
+            String format = "| %-" + orderWidth + "s | %-" + nameWidth + "s | %-" + classWidth + "s |%n";
+
+            String separator =
+                    "+" + "-".repeat(orderWidth + 2)
+                            + "+" + "-".repeat(nameWidth + 2)
+                            + "+" + "-".repeat(classWidth + 2)
+                            + "+";
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.append(separator).append('\n');
+            sb.append(String.format(format, "Order", "Name", "Class"));
+            sb.append(separator).append('\n');
+
+            for (FilterRegistrationBean<?> filter : sortedFilters) {
+                String filterName = filter.getFilterName() == null
+                        ? ""
+                        : filter.getFilterName();
+
+                sb.append(String.format(
+                        format,
+                        filter.getOrder(),
+                        filterName,
+                        filter.getFilter().getClass().getName()
+                ));
+            }
+
+            sb.append(separator);
+
+            log.debug("Servlet Filter Chain:\n{}", sb);
+        };
+    }
 }
