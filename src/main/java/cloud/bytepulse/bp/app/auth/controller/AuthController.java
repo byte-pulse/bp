@@ -3,11 +3,11 @@ package cloud.bytepulse.bp.app.auth.controller;
 import cloud.bytepulse.bp.app.auth.dto.LoginDTO;
 import cloud.bytepulse.bp.app.auth.service.AuthService;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
-import cloud.bytepulse.bp.common.util.RedisUtils;
-import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.common.annotation.Anonymous;
 import cloud.bytepulse.bp.common.annotation.NoLogging;
 import cloud.bytepulse.bp.common.annotation.RequestLimit;
+import cloud.bytepulse.bp.common.util.RedisUtils;
+import cloud.bytepulse.bp.domain.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ public class AuthController {
     }
 
     @PostMapping("/getToken")
-    @Operation(summary = "无验证码直接登陆", hidden = true)
+    @Operation(summary = "无验证码直接登陆")
     @Anonymous
     public ApiResponse<LoginResultVO> login(@RequestParam String username, @RequestParam String password) throws IOException {
         Map<String, String> map = authService.captcha();

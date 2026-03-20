@@ -160,9 +160,9 @@ public class FileMetaUtils {
     ) {
         LocalDate now = LocalDate.now();
 
-        String datePath = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String datePath = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        String bizSegment = (bizId == null) ? "_tmp" : bizId.toString();
+        String bizSegment = (bizId == null) ? "_tmp" : bizId;
         String suffix = (ext == null || ext.isBlank()) ? "" : "." + ext.toLowerCase();
 
         return String.format(
