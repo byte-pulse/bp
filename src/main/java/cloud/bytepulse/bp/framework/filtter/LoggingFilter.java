@@ -100,9 +100,6 @@ public class LoggingFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-
-        System.out.println("LoggingFilter");
-
         response.setCharacterEncoding("utf-8");
 
 
