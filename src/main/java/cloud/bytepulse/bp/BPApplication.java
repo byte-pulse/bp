@@ -15,12 +15,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @OpenAPIDefinition(servers = {@Server(url = "/", description = "Default Server URL")})
 @SpringBootApplication
 @MapperScan("cloud.bytepulse.**.mapper")
-public class AdminApplication {
+public class BPApplication {
     public static void main(String[] args) throws Exception {
         long startTime = System.currentTimeMillis();
         System.setProperty("pagehelper.banner", "false");
         System.setProperty("log4j.skipJansi", "false");
-        SpringApplication.run(AdminApplication.class, args);
+        SpringApplication.run(BPApplication.class, args);
         long endTime = System.currentTimeMillis();
         log.info("\u001B[36m应用启动成功, 耗时: {} \u001B[0m", endTime - startTime);
     }
