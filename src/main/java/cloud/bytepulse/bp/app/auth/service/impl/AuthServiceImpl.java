@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.app.auth.service.impl;
 
 
-import cloud.bytepulse.bp.app.auth.dto.LoginDTO;
+import cloud.bytepulse.bp.app.auth.authentication.token.WechatAuthenticationToken;
 import cloud.bytepulse.bp.app.auth.service.AuthService;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 import cloud.bytepulse.bp.common.util.JWTUtils;
@@ -69,20 +69,22 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
-     * 登录
+     * 校验验证码
      */
     @Override
-    public LoginResultVO login(LoginDTO loginDTO) {
+    public void checkCaptcha(String uid, String captcha) {
         // 验证码
-        String captcha = redisUtils.getCacheObject("captcha:" + loginDTO.getUid());
-        redisUtils.deleteObject("captcha:" + loginDTO.getUid());
-        if (captcha == null || !captcha.equalsIgnoreCase(loginDTO.getCaptcha())) {
+        String cacheCaptcha = redisUtils.getCacheObject("captcha:" + uid);
+        redisUtils.deleteObject("captcha:" + uid);
+        if (cacheCaptcha == null || !cacheCaptcha.equalsIgnoreCase(captcha)) {
             throw new BytePulseException("验证码错误");
         }
-        // 使用authenticate进行认证
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword());
-        Authentication authenticate = authenticationManager.authenticate(authentication);
+    }
+
+    /**
+     * 登录返回 token
+     */
+    public LoginResultVO createAuthToken(Authentication authenticate) {
         // 认证没通过,给出提示
         if (authenticate == null) {
             throw new BytePulseException("登陆失败");
@@ -123,5 +125,26 @@ public class AuthServiceImpl implements AuthService {
         // 移除需要重新登录的标记
         NEED_RE_LOGIN.remove(loginUser.getLoginUserInfo().getUserId());
         return loginResultVO;
+    }
+
+    @Override
+    public LoginResultVO login(String username, String password) {
+        // 使用authenticate进行认证
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(username, password);
+        Authentication authenticate = authenticationManager.authenticate(authentication);
+        return createAuthToken(authenticate);
+    }
+
+    /**
+     * 微信登录
+     */
+    @Override
+    public LoginResultVO weChatLogin(String openId) {
+        // 使用authenticate进行认证
+        Authentication authentication =
+                new WechatAuthenticationToken(openId);
+        Authentication authenticate = authenticationManager.authenticate(authentication);
+        return createAuthToken(authenticate);
     }
 }

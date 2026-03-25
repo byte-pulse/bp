@@ -1,7 +1,6 @@
 package cloud.bytepulse.bp.app.auth.service;
 
 
-import cloud.bytepulse.bp.app.auth.dto.LoginDTO;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 
 import java.util.Map;
@@ -18,7 +17,17 @@ public interface AuthService {
     Map<String, String> captcha();
 
     /**
-     * 登录
+     * 校验验证码
      */
-    LoginResultVO login(LoginDTO loginDTO);
+    void checkCaptcha(String uid, String captcha);
+
+    /**
+     * 用户名密码登录
+     */
+    LoginResultVO login(String username, String password);
+
+    /**
+     * 微信登录
+     */
+    LoginResultVO weChatLogin(String openId);
 }

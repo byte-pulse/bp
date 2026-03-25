@@ -11,6 +11,7 @@ import cloud.bytepulse.bp.domain.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,23 +47,29 @@ public class AuthController {
     @Operation(summary = "登录")
     @Anonymous
     public ApiResponse<LoginResultVO> login(@RequestBody @Validated LoginDTO loginDTO) {
-        LoginResultVO loginResultVO = authService.login(loginDTO);
+        // 先校验验证码
+        authService.checkCaptcha(loginDTO.getUid(), loginDTO.getCaptcha());
+        LoginResultVO loginResultVO = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
         return ApiResponse.success(loginResultVO);
     }
 
+    /**
+     * 此接口仅用于开发环境测试，生产环境不应该使用
+     */
+    @Profile({"dev", "test"})
     @PostMapping("/getToken")
     @Operation(summary = "无验证码直接登陆")
     @Anonymous
     public ApiResponse<LoginResultVO> login(@RequestParam String username, @RequestParam String password) {
-        Map<String, String> map = authService.captcha();
-        LoginDTO loginDTO = new LoginDTO();
-        loginDTO.setUsername(username);
-        loginDTO.setPassword(password);
-        String uid = map.get("uid");
-        loginDTO.setUid(uid);
-        String captcha = redisUtils.getCacheObject("captcha:" + loginDTO.getUid());
-        loginDTO.setCaptcha(captcha);
-        LoginResultVO loginResultVO = authService.login(loginDTO);
+        LoginResultVO loginResultVO = authService.login(username, password);
+        return ApiResponse.success(loginResultVO);
+    }
+
+    @PostMapping("/weChatLogin")
+    @Operation(summary = "微信登录")
+    @Anonymous
+    public ApiResponse<LoginResultVO> weChatLogin(@RequestParam String code) {
+        LoginResultVO loginResultVO = authService.weChatLogin(code);
         return ApiResponse.success(loginResultVO);
     }
 

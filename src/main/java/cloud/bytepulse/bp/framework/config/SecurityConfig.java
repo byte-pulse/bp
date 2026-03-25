@@ -1,5 +1,6 @@
 package cloud.bytepulse.bp.framework.config;
 
+import cloud.bytepulse.bp.app.auth.authentication.provider.WechatAuthenticationProvider;
 import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
 import cloud.bytepulse.bp.framework.filtter.ExternalApiFilter;
 import cloud.bytepulse.bp.framework.filtter.GlobalCorsFilter;
@@ -10,15 +11,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.Arrays;
 
 /**
  * Security配置类
@@ -39,6 +44,17 @@ public class SecurityConfig {
     private final JWTFilter jwtFilter;
 
     private final ExternalApiFilter externalApiFilter;
+
+    /**
+     * 用户名密码认证 Provider
+     */
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider(
+            UserDetailsService userDetailServiceImpl) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailServiceImpl);
+        provider.setPasswordEncoder(bCryptPasswordEncoder());
+        return provider;
+    }
 
     /**
      * 配置密码加密方式
@@ -79,7 +95,12 @@ public class SecurityConfig {
      * 认证管理器
      */
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(
+            DaoAuthenticationProvider daoAuthenticationProvider,
+            WechatAuthenticationProvider wechatAuthenticationProvider) {
+        return new ProviderManager(Arrays.asList(
+                daoAuthenticationProvider, // 用户名密码认证
+                wechatAuthenticationProvider // 微信认证
+        ));
     }
 }
