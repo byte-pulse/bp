@@ -12,9 +12,14 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequestLimit {
-    // 默认一分钟
+    /**
+     * 时间窗口，单位毫秒
+     * 默认1分钟
+     */
     long time() default 60000;
 
-    // 请求次数
+    /**
+     * 请求次数
+     */
     int count() default 5;
 }
