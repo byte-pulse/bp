@@ -1,13 +1,17 @@
 package cloud.bytepulse.bp.framework.config;
 
+import cloud.bytepulse.bp.common.annotation.Pageable;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.IntegerSchema;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
 import org.springframework.beans.factory.annotation.Value;
@@ -100,11 +104,12 @@ public class OpenAPIConfig {
 
     // 批量注册分组
     @Bean
-    public List<GroupedOpenApi> groupedOpenApis(List<ApiGroup> groups) {
+    public List<GroupedOpenApi> groupedOpenApis(List<ApiGroup> groups, OperationCustomizer IPageableCustomizer) {
         return groups.stream()
                 .map(group -> GroupedOpenApi.builder()
                         .group(group.getName())
                         .pathsToMatch(group.getPaths().toArray(new String[0]))
+                        .addOperationCustomizer(IPageableCustomizer)
                         .build())
                 .collect(Collectors.toList());
     }
@@ -120,5 +125,26 @@ public class OpenAPIConfig {
             this.name = name;
             this.paths = Arrays.asList(paths);
         }
+    }
+
+    /**
+     * 分页参数
+     */
+    @Bean
+    public OperationCustomizer IPageableCustomizer() {
+        return (operation, handlerMethod) -> {
+            if (handlerMethod.hasMethodAnnotation(Pageable.class)) {
+                operation.addParametersItem(new Parameter()
+                        .in("query")
+                        .name("pageNum")
+                        .schema(new IntegerSchema()._default(1)));
+
+                operation.addParametersItem(new Parameter()
+                        .in("query")
+                        .name("pageSize")
+                        .schema(new IntegerSchema()._default(10)));
+            }
+            return operation;
+        };
     }
 }
