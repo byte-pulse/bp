@@ -4,7 +4,6 @@ import cloud.bytepulse.bp.common.util.minio.properties.IMinioProperties;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import io.minio.*;
 import io.minio.errors.MinioException;
-import io.minio.http.Method;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +99,7 @@ public class MinioUtils {
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(iMinioProperties.getBucketName())
                     .object(objectName)
-                    .stream(inputStream, file.length(), -1)
+                    .stream(inputStream, file.length(), -1L)
                     .contentType(contentType)
                     .build());
             log.info("MinioUtils 文件上传成功: {}", objectName);
@@ -270,7 +269,7 @@ public class MinioUtils {
                 GetPresignedObjectUrlArgs.builder()
                         .bucket(iMinioProperties.getBucketName())
                         .object(objectName)
-                        .method(Method.GET)  // 生成 GET 方式的 URL
+                        .method(Http.Method.GET)  // 生成 GET 方式的 URL
                         .expiry(expiry, TimeUnit.MINUTES) // 设置 URL 过期时间
                         .build()
         );

@@ -134,7 +134,7 @@ public class FileMetaUtils {
                     PutObjectArgs.builder()
                             .bucket(iMinioProperties.getBucketName())
                             .object(objectName)
-                            .stream(is, size, -1) // 第三个参数是 partSize, -1 表示 SDK 自动处理
+                            .stream(is, size, -1L) // 第三个参数是 partSize, -1 表示 SDK 自动处理
                             .contentType(contentType)
                             .build()
             );

@@ -8,12 +8,13 @@ import io.minio.MinioClient;
 import io.minio.RemoveObjectsArgs;
 import io.minio.Result;
 import io.minio.errors.*;
-import io.minio.messages.DeleteError;
-import io.minio.messages.DeleteObject;
+import io.minio.messages.DeleteRequest;
+import io.minio.messages.DeleteResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -41,9 +42,9 @@ public class FileScheduler {
 
     /**
      * 清空 已删除超过 30 天 的文件
-     *
+     * 每天凌晨2点执行
      */
-    // 每天凌晨2点执行
+    @Transactional
     @Scheduled(cron = "0 0 2 * * ?")
     public void clearDeletedFile() throws ServerException, InsufficientDataException,
             ErrorResponseException, IOException, NoSuchAlgorithmException,
@@ -54,11 +55,11 @@ public class FileScheduler {
                 .lt(FileMetadata::getDeleteTime, LocalDate.now().minusDays(30)));
 
         // minio 对象名
-        List<DeleteObject> objectNames = fileMetadataList.stream().map(f -> new DeleteObject(f.getObjectName()))
+        List<DeleteRequest.Object> objectNames = fileMetadataList.stream().map(f -> new DeleteRequest.Object(f.getObjectName()))
                 .toList();
 
         // minio 删除文件
-        Iterable<Result<DeleteError>> results = minioClient
+        Iterable<Result<DeleteResult.Error>> results = minioClient
                 .removeObjects(
                         RemoveObjectsArgs.builder()
                                 .bucket(iMinioProperties.getBucketName())
@@ -66,9 +67,13 @@ public class FileScheduler {
                                 .build()
                 );
 
-        for (Result<DeleteError> result : results) {
-            DeleteError error = result.get();
-            log.warn("删除失败: {} - {}", error.objectName(), error.message());
+        for (Result<DeleteResult.Error> result : results) {
+            try {
+                DeleteResult.Error error = result.get();
+                log.warn("删除失败: {} - {}", error.objectName(), error.message());
+            } catch (MinioException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         // 删除数据库记录

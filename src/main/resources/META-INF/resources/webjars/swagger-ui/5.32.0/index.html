@@ -22,6 +22,36 @@
 <script src="./swagger-ui-standalone-preset.js" charset="UTF-8"></script>
 <script src="./swagger-initializer.js" charset="UTF-8"></script>
 <script>
+    function recoverDark() {
+        const status = localStorage.getItem('dark')
+        if (status === '1') {
+            // html 标签 class 添加 dark 类
+            document.documentElement.classList.add('dark-mode')
+        }
+
+        let timer = setTimeout(() => {
+            // 监听 切换 按钮 点击
+            const btn = document.querySelector('.dark-mode-toggle button')
+            btn.addEventListener('click', () => {
+                let t = setTimeout(() => {
+                    // 检查点击后, 是否有 dark 类
+                    if (document.documentElement.classList.contains('dark-mode')) {
+                        localStorage.setItem('dark', '1')
+                    } else {
+                        localStorage.removeItem('dark')
+                    }
+
+                    clearTimeout(t)
+                }, 300)
+            })
+            clearTimeout(timer)
+        }, 3000);
+
+    }
+
+    // 恢复暗色
+    recoverDark()
+
     function initTheme() {
         const themeSwitcher = document.createElement('div');
         themeSwitcher.style.marginTop = '10px';
@@ -62,9 +92,6 @@
             const infoDivs = document.getElementsByClassName('info');
             if (infoDivs.length > 0) {
                 clearInterval(timer);
-                console.log(infoDivs.length)
-                console.log(infoDivs[0])
-                console.log(themeSwitcher)
                 infoDivs[0].appendChild(themeSwitcher);
             }
         }, 200);
