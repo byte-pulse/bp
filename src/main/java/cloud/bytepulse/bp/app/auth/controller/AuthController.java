@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -38,7 +37,7 @@ public class AuthController {
     @Anonymous
     @NoLogging
     @RequestLimit(count = 10, time = 8000)
-    public ApiResponse<Map<String, String>> captcha() throws IOException {
+    public ApiResponse<Map<String, String>> captcha() {
         Map<String, String> map = authService.captcha();
         return ApiResponse.success(map);
     }
@@ -54,7 +53,7 @@ public class AuthController {
     @PostMapping("/getToken")
     @Operation(summary = "无验证码直接登陆")
     @Anonymous
-    public ApiResponse<LoginResultVO> login(@RequestParam String username, @RequestParam String password) throws IOException {
+    public ApiResponse<LoginResultVO> login(@RequestParam String username, @RequestParam String password) {
         Map<String, String> map = authService.captcha();
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setUsername(username);

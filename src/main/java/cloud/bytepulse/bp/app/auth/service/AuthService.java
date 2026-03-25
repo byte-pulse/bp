@@ -4,7 +4,6 @@ package cloud.bytepulse.bp.app.auth.service;
 import cloud.bytepulse.bp.app.auth.dto.LoginDTO;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -13,11 +12,10 @@ import java.util.Map;
  */
 public interface AuthService {
 
-
     /**
      * 获取验证码
      */
-    Map<String, String> captcha() throws IOException;
+    Map<String, String> captcha();
 
     /**
      * 登录

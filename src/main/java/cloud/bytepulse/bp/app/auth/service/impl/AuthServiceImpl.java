@@ -23,7 +23,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
      * 获取验证码
      */
     @Override
-    public Map<String, String> captcha() throws IOException {
+    public Map<String, String> captcha() {
         Map<String, String> map = new HashMap<>();
 
         GifCaptcha gifCaptcha = CaptchaUtil.createGifCaptcha(160, 60, 4);
