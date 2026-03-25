@@ -140,7 +140,9 @@ public class AuthServiceImpl implements AuthService {
      * 微信登录
      */
     @Override
-    public LoginResultVO weChatLogin(String openId) {
+    public LoginResultVO weChatLogin(String code) {
+        // TODO 通过 code 调用微信接口获取 openid
+        String openId = code;
         // 使用authenticate进行认证
         Authentication authentication =
                 new WechatAuthenticationToken(openId);

@@ -29,5 +29,5 @@ public interface AuthService {
     /**
      * 微信登录
      */
-    LoginResultVO weChatLogin(String openId);
+    LoginResultVO weChatLogin(String code);
 }
