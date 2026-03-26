@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.filtter;
+package cloud.bytepulse.bp.framework.filter;
 
 import cloud.bytepulse.bp.common.util.json.JsonUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;

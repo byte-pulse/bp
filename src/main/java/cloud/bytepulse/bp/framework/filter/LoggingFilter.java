@@ -1,11 +1,11 @@
-package cloud.bytepulse.bp.framework.filtter;
+package cloud.bytepulse.bp.framework.filter;
 
 import cloud.bytepulse.bp.app.logging.service.LoggingService;
+import cloud.bytepulse.bp.common.constant.ControllerApiConstant;
 import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.common.util.TraceIdUtils;
 import cloud.bytepulse.bp.common.util.json.JsonUtils;
 import cloud.bytepulse.bp.domain.entity.SysLog;
-import cloud.bytepulse.bp.common.constant.LoggingConstant;
 import cloud.bytepulse.bp.framework.http.wrapper.LoggingCachedBodyRequestWrapper;
 import cloud.bytepulse.bp.framework.http.wrapper.LoggingCachedBodyResponseWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,7 +46,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        return !isPathMatching(LoggingConstant.NEED_LOGGING, requestURI);
+        return !isPathMatching(ControllerApiConstant.NEED_LOGGING_API, requestURI);
     }
 
     // 判断是否为 multipart 请求

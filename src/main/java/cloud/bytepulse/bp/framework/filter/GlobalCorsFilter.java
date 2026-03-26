@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.filtter;
+package cloud.bytepulse.bp.framework.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

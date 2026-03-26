@@ -1,11 +1,11 @@
 package cloud.bytepulse.bp.framework.config;
 
 import cloud.bytepulse.bp.app.auth.authentication.provider.WechatAuthenticationProvider;
-import cloud.bytepulse.bp.common.constant.AnonymousConstant;
-import cloud.bytepulse.bp.framework.filtter.ExternalApiFilter;
-import cloud.bytepulse.bp.framework.filtter.GlobalCorsFilter;
-import cloud.bytepulse.bp.framework.filtter.JWTFilter;
-import cloud.bytepulse.bp.framework.filtter.LoggingFilter;
+import cloud.bytepulse.bp.common.constant.ControllerApiConstant;
+import cloud.bytepulse.bp.framework.filter.ExternalApiFilter;
+import cloud.bytepulse.bp.framework.filter.GlobalCorsFilter;
+import cloud.bytepulse.bp.framework.filter.JWTFilter;
+import cloud.bytepulse.bp.framework.filter.LoggingFilter;
 import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -73,10 +73,10 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable); // 关闭 csrf
         http.cors(AbstractHttpConfigurer::disable); // 关闭 cors
         // 设置不通过Session获取SecurityContext
-        String[] anonymous = AnonymousConstant.ANONYMOUS.toArray(new String[]{});
+        String[] anonymous = ControllerApiConstant.ANONYMOUS_API.toArray(new String[]{});
         http.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(httpRequest -> httpRequest
-                .requestMatchers(anonymous).permitAll() // 允许actuator
+                .requestMatchers(anonymous).permitAll() // 允许匿名访问
                 .anyRequest().authenticated());
 
         // 全局CORS过滤器

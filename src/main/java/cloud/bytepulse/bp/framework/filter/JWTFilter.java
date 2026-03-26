@@ -1,7 +1,6 @@
-package cloud.bytepulse.bp.framework.filtter;
+package cloud.bytepulse.bp.framework.filter;
 
-import cloud.bytepulse.bp.common.constant.AllHandlerConstant;
-import cloud.bytepulse.bp.common.constant.AnonymousConstant;
+import cloud.bytepulse.bp.common.constant.ControllerApiConstant;
 import cloud.bytepulse.bp.common.util.JWTUtils;
 import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
@@ -12,7 +11,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -36,9 +34,6 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private final RedisUtils redisUtils;
 
-    @Value("${login.expiration}")
-    private Long expiration;
-
     private final AppProperties appProperties;
 
     @Override
@@ -50,11 +45,12 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 匿名接口和不存在的接口直接放行
         // 提供给第三方的接口也放行
-        if (!ReqUtils.isPathMatching(AllHandlerConstant.ALL_HANDLER, requestURI)) {
+        if (!ReqUtils.isPathMatching(ControllerApiConstant.ALL_API, requestURI)) {
             Utils.printNotFound(request, response);
             return;
         }
-        if (isPathMatching(AnonymousConstant.ANONYMOUS, requestURI)) {
+        if (isPathMatching(ControllerApiConstant.ANONYMOUS_API, requestURI)
+                || isPathMatching(ControllerApiConstant.EXTERNAL_API, requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -4,10 +4,7 @@ package cloud.bytepulse.bp.framework.runner;
 import cloud.bytepulse.bp.common.annotation.Anonymous;
 import cloud.bytepulse.bp.common.annotation.ExternalApi;
 import cloud.bytepulse.bp.common.annotation.NoLogging;
-import cloud.bytepulse.bp.common.constant.AllHandlerConstant;
-import cloud.bytepulse.bp.common.constant.AnonymousConstant;
-import cloud.bytepulse.bp.common.constant.ExternalApiConstant;
-import cloud.bytepulse.bp.common.constant.LoggingConstant;
+import cloud.bytepulse.bp.common.constant.ControllerApiConstant;
 import cloud.bytepulse.bp.framework.config.OpenAPIConfig;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +13,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
@@ -25,10 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 匿名接口扫描
@@ -40,17 +35,19 @@ import java.util.Set;
 @Component
 public class ControllerScan implements BeanFactoryPostProcessor {
 
-
-    private static final String[] BasePackages = {"cloud.bytepulse.**.controller"};
-
     /**
      * 扫描注解, 处理接口信息
      */
     @Override
     public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        List<String> basePackages = new ArrayList<>();
+        if (AutoConfigurationPackages.has(beanFactory)) {
+            List<String> packages = AutoConfigurationPackages.get(beanFactory);
+            basePackages.addAll(packages);
+        }
         try {
-            log.debug("开始扫描匿名接口...");
-            Set<Class<?>> controllerClasses = scanControllers();
+            log.debug("开始扫描控制器接口, 扫描包: {}", basePackages);
+            Set<Class<?>> controllerClasses = scanControllers(basePackages);
 
             for (Class<?> clazz : controllerClasses) {
                 log.debug("扫描控制器类: {}", clazz.getName());
@@ -75,12 +72,13 @@ public class ControllerScan implements BeanFactoryPostProcessor {
                     String methodPath = extractPathFromMethod(method);
                     String fullPath = normalizePath(controllerPrefix, methodPath);
                     // 项目所有接口
-                    AllHandlerConstant.ALL_HANDLER.add(fullPath);
+                    ControllerApiConstant.ALL_API.add(fullPath);
 
                     // 添加所有需要日志的接口
                     if (!hasNoLogging) {
-                        LoggingConstant.NEED_LOGGING.add(fullPath);
+                        ControllerApiConstant.NEED_LOGGING_API.add(fullPath);
                     }
+                    // 同时存在 @Anonymous 和 @ExternalApi 则抛出异常
                     if (hasExternalApi && hasAnonymous) {
                         String fullMethodPath =
                                 method.getDeclaringClass().getName()
@@ -90,18 +88,19 @@ public class ControllerScan implements BeanFactoryPostProcessor {
                     }
                     // 匿名放行接口
                     if (hasAnonymous) {
-                        AnonymousConstant.ANONYMOUS.add(fullPath);
-                        log.debug("添加匿名接口: {}", fullPath);
+                        ControllerApiConstant.ANONYMOUS_API.add(fullPath);
                     }
-                    // 添加所有外部接口
+                    // 添加所有外部接口, 外部接口也需要 jwt filter 放行
                     if (hasExternalApi) {
-                        AnonymousConstant.ANONYMOUS.add(fullPath);
-                        ExternalApiConstant.EXTERNAL_API.add(fullPath);
+                        ControllerApiConstant.ANONYMOUS_API.add(fullPath);
+                        ControllerApiConstant.EXTERNAL_API.add(fullPath);
                     }
                 }
             }
-            log.debug("匿名接口扫描完成: {}", AnonymousConstant.ANONYMOUS);
-            AllHandlerConstant.ALL_HANDLER.addAll(AnonymousConstant.ANONYMOUS);
+            log.debug("已扫面全部接口: {}", ControllerApiConstant.ALL_API);
+            log.debug("匿名接口: {}", ControllerApiConstant.ANONYMOUS_API);
+            log.debug("外部调用接口: {}", ControllerApiConstant.EXTERNAL_API);
+            log.debug("需记录日志接口: {}", ControllerApiConstant.NEED_LOGGING_API);
         } catch (Exception e) {
             throw new BeansException("匿名接口扫描失败: " + e.getMessage(), e) {
             };
@@ -111,7 +110,7 @@ public class ControllerScan implements BeanFactoryPostProcessor {
     /**
      * 扫面控制器类
      */
-    private Set<Class<?>> scanControllers() throws Exception {
+    private Set<Class<?>> scanControllers(List<String> basePackages) throws Exception {
         Set<Class<?>> classes = new HashSet<>();
         ClassPathScanningCandidateComponentProvider scanner =
                 new ClassPathScanningCandidateComponentProvider(false);
@@ -119,7 +118,7 @@ public class ControllerScan implements BeanFactoryPostProcessor {
         scanner.addIncludeFilter(new AnnotationTypeFilter(RestController.class));
         scanner.addIncludeFilter(new AnnotationTypeFilter(Controller.class));
 
-        for (String basePackage : BasePackages) {
+        for (String basePackage : basePackages) {
             scanner.findCandidateComponents(basePackage).forEach(beanDefinition -> {
                 try {
                     classes.add(Class.forName(beanDefinition.getBeanClassName()));

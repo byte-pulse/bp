@@ -1,6 +1,6 @@
-package cloud.bytepulse.bp.framework.filtter;
+package cloud.bytepulse.bp.framework.filter;
 
-import cloud.bytepulse.bp.common.constant.ExternalApiConstant;
+import cloud.bytepulse.bp.common.constant.ControllerApiConstant;
 import cloud.bytepulse.bp.common.util.CryptoUtils;
 import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
@@ -37,8 +37,10 @@ public class ExternalApiFilter extends OncePerRequestFilter {
 
     private final String iv;
 
-    public ExternalApiFilter(ApiCredentialsMapper apiCredentialsMapper, RedisUtils redisUtils
-            , AppProperties appProperties) {
+    public ExternalApiFilter(ApiCredentialsMapper apiCredentialsMapper,
+                             RedisUtils redisUtils,
+                             AppProperties appProperties) {
+
         this.apiCredentialsMapper = apiCredentialsMapper;
         this.redisUtils = redisUtils;
         AppProperties.ExternalApi externalApi = appProperties.getExternalApi();
@@ -51,7 +53,7 @@ public class ExternalApiFilter extends OncePerRequestFilter {
         response.setCharacterEncoding("utf-8");
         String requestURI = request.getRequestURI();
         // 不是第三方接口，直接放行
-        if (!ReqUtils.isPathMatching(ExternalApiConstant.EXTERNAL_API, requestURI)) {
+        if (!ReqUtils.isPathMatching(ControllerApiConstant.EXTERNAL_API, requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }
