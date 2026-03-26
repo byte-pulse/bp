@@ -1,6 +1,7 @@
 package cloud.bytepulse.bp.framework.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import cloud.bytepulse.bp.framework.properties.AppProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.StringUtils;
@@ -10,10 +11,10 @@ import org.springframework.util.StringUtils;
  * @since 2024-06-26 09:00
  */
 @Configuration
+@RequiredArgsConstructor
 public class RedisPrefixSerializer extends StringRedisSerializer {
 
-    @Value("${redis.prefix}")
-    private String PREFIX;
+    private final AppProperties appProperties;
 
     /**
      * 序列化
@@ -26,7 +27,7 @@ public class RedisPrefixSerializer extends StringRedisSerializer {
         if (s == null) {
             return new byte[0];
         }
-        String realKey = PREFIX + s;
+        String realKey = appProperties.getRedis().getPrefix() + s;
         return super.serialize(realKey);
     }
 
@@ -42,9 +43,9 @@ public class RedisPrefixSerializer extends StringRedisSerializer {
         if (!StringUtils.hasText(s)) {
             return s;
         }
-        int index = s.indexOf(PREFIX);
+        int index = s.indexOf(appProperties.getRedis().getPrefix());
         if (index != -1) {
-            return s.substring(PREFIX.length());
+            return s.substring(appProperties.getRedis().getPrefix().length());
         }
         return s;
     }

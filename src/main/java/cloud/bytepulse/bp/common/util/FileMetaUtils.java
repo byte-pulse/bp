@@ -1,9 +1,9 @@
 package cloud.bytepulse.bp.common.util;
 
-import cloud.bytepulse.bp.common.util.minio.properties.IMinioProperties;
 import cloud.bytepulse.bp.domain.entity.FileMetadata;
 import cloud.bytepulse.bp.domain.mapper.FileMetadataMapper;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
+import cloud.bytepulse.bp.framework.properties.AppProperties;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -30,7 +30,7 @@ public class FileMetaUtils {
 
     private final MinioClient minioClient;
 
-    private final IMinioProperties iMinioProperties;
+    private final AppProperties appProperties;
 
 
     /**
@@ -132,7 +132,7 @@ public class FileMetaUtils {
         try (InputStream is = multipartFile.getInputStream()) {
             minioClient.putObject(
                     PutObjectArgs.builder()
-                            .bucket(iMinioProperties.getBucketName())
+                            .bucket(appProperties.getMinio().getBucketName())
                             .object(objectName)
                             .stream(is, size, -1L) // 第三个参数是 partSize, -1 表示 SDK 自动处理
                             .contentType(contentType)

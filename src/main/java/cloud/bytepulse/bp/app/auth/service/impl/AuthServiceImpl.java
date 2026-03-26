@@ -12,11 +12,11 @@ import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
+import cloud.bytepulse.bp.framework.properties.AppProperties;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.GifCaptcha;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -47,8 +47,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final SysUserMapper sysUserMapper;
 
-    @Value("${login.expiration}")
-    private Long expiration;
+    private final AppProperties appProperties;
 
     /**
      * 获取验证码
@@ -57,14 +56,18 @@ public class AuthServiceImpl implements AuthService {
     public Map<String, String> captcha() {
         Map<String, String> map = new HashMap<>();
 
-        GifCaptcha gifCaptcha = CaptchaUtil.createGifCaptcha(160, 60, 4);
+        AppProperties.Captcha captchaConfig = appProperties.getCaptcha();
+
+        GifCaptcha gifCaptcha = CaptchaUtil.createGifCaptcha(captchaConfig.getWidth(),
+                captchaConfig.getHeight(),
+                captchaConfig.getLength());
         String imageBase64Data = gifCaptcha.getImageBase64Data();
         map.put("captcha", imageBase64Data);
         String uid = UUID.randomUUID().toString().replaceAll("-", "");
         map.put("uid", uid);
 
         // 结果存入redis
-        redisUtils.setCacheObject("captcha:" + uid, gifCaptcha.getCode(), 30L, TimeUnit.SECONDS);
+        redisUtils.setCacheObject("captcha:" + uid, gifCaptcha.getCode(), captchaConfig.getExpirationSeconds(), TimeUnit.SECONDS);
         return map;
     }
 
@@ -115,10 +118,11 @@ public class AuthServiceImpl implements AuthService {
         payload.with("userId", userId).with("fingerprint", fingerprint);
         String token = JWTUtils.createToken(payload);
         // 把用户信息存入redis
-        if (expiration == 0) {
+        if (appProperties.getLogin().getExpirationMinutes() == 0) {
             redisUtils.setCacheObject("login:" + userId, loginUser);
         } else {
-            redisUtils.setCacheObject("login:" + userId, loginUser, expiration, TimeUnit.MINUTES);
+            redisUtils.setCacheObject("login:" + userId, loginUser,
+                    appProperties.getLogin().getExpirationMinutes(), TimeUnit.MINUTES);
         }
         // 返回token给前端
         loginResultVO.setToken(token);

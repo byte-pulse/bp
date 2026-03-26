@@ -78,13 +78,6 @@ pagehelper:
   params: count=countSql
   support-methods-arguments: true
 
-redis:
-  prefix: "bp:"
-
-login:
-  # 登陆无操作多久, 登陆失效 (单位: 分钟) 0 表示不过期
-  expiration: 30
-
 swagger:
   info:
     project:
@@ -93,9 +86,3 @@ swagger:
       desc: Byte Pulse
       email: 1964234252@qq.com
       version: 1.0.0
-
-# 提供的第三方接口配置本地加密密钥(用于加密用户的密钥)
-api:
-  external:
-    secretKey: rcII2vlKYg1Fw2NvmZZg4570UwLSkYRE+yOZRCU9aTk=
-    iv: xVOqDSMzgI3ZFL68TJ21BA==

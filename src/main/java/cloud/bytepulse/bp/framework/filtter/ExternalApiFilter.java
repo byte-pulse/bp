@@ -1,18 +1,17 @@
 package cloud.bytepulse.bp.framework.filtter;
 
+import cloud.bytepulse.bp.common.constant.ExternalApiConstant;
 import cloud.bytepulse.bp.common.util.CryptoUtils;
 import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.domain.entity.ApiCredentials;
 import cloud.bytepulse.bp.domain.mapper.ApiCredentialsMapper;
-import cloud.bytepulse.bp.common.constant.ExternalApiConstant;
 import cloud.bytepulse.bp.framework.http.wrapper.CachedBodyRequestWrapper;
+import cloud.bytepulse.bp.framework.properties.AppProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -28,18 +27,24 @@ import java.util.concurrent.TimeUnit;
  * @since 2023-04-03 14:05
  */
 @Component
-@RequiredArgsConstructor
 public class ExternalApiFilter extends OncePerRequestFilter {
 
     private final ApiCredentialsMapper apiCredentialsMapper;
 
     private final RedisUtils redisUtils;
 
-    @Value("${api.external.secretKey}")
-    private String secretKey;
+    private final String secretKey;
 
-    @Value("${api.external.iv}")
-    private String iv;
+    private final String iv;
+
+    public ExternalApiFilter(ApiCredentialsMapper apiCredentialsMapper, RedisUtils redisUtils
+            , AppProperties appProperties) {
+        this.apiCredentialsMapper = apiCredentialsMapper;
+        this.redisUtils = redisUtils;
+        AppProperties.ExternalApi externalApi = appProperties.getExternalApi();
+        this.secretKey = externalApi.getSecretKey();
+        this.iv = externalApi.getIv();
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

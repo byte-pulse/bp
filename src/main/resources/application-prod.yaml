@@ -29,18 +29,30 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
-minio:
-  endpoint: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
-  bucket-name: quickly-prod
-
-# 接口是否返回内部错误信息
-exception:
-  processer:
-    debugInfo: false
-
 # 关闭 swagger
 springdoc:
   api-docs:
     enabled: false
+
+app:
+  login:
+    # 登陆无操作多久, 登陆失效 (单位: 分钟) 0 表示不过期
+    expiration-minutes: 30
+  # minio 配置
+  minio:
+    endpoint: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin
+    bucket-name: quickly-prod
+  # redis 配置
+  redis:
+    prefix: "bp:"
+  ex-processer:
+    # 接口是否返回内部错误信息
+    debug-info: false
+  # 提供的第三方接口配置本地加密密钥(用于加密用户的密钥)
+  external-api:
+    secretKey: rcII2vlKYg1Fw2NvmZZg4570UwLSkYRE+yOZRCU9aTk=
+    iv: xVOqDSMzgI3ZFL68TJ21BA==
+  captcha:
+    expiration-seconds: 30

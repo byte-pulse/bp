@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.app.file.service.impl;
 
 import cloud.bytepulse.bp.app.file.service.FileService;
-import cloud.bytepulse.bp.common.util.minio.MinioUtils;
+import cloud.bytepulse.bp.common.util.MinioUtils;
 import cloud.bytepulse.bp.domain.entity.FileMetadata;
 import cloud.bytepulse.bp.domain.mapper.FileMetadataMapper;
 import lombok.RequiredArgsConstructor;

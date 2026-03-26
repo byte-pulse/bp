@@ -1,9 +1,11 @@
-package cloud.bytepulse.bp.framework.exception;
+package cloud.bytepulse.bp.framework.exception.processor;
 
 import cloud.bytepulse.bp.domain.ApiResponse;
+import cloud.bytepulse.bp.framework.exception.BytePulseArgumentNotValidException;
+import cloud.bytepulse.bp.framework.exception.BytePulseException;
+import cloud.bytepulse.bp.framework.properties.AppProperties;
 import io.minio.errors.ErrorResponseException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -37,8 +39,11 @@ import java.util.Set;
 @ControllerAdvice
 public class ExceptionProcessor {
 
-    @Value("${exception.processer.debugInfo:false}")
-    private Boolean debug;
+    private final Boolean debug;
+
+    public ExceptionProcessor(AppProperties appProperties) {
+        this.debug = appProperties.getExProcesser().getDebugInfo();
+    }
 
     /**
      * 自定义业务务异常

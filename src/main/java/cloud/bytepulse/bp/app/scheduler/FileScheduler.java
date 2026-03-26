@@ -1,8 +1,8 @@
 package cloud.bytepulse.bp.app.scheduler;
 
-import cloud.bytepulse.bp.common.util.minio.properties.IMinioProperties;
 import cloud.bytepulse.bp.domain.entity.FileMetadata;
 import cloud.bytepulse.bp.domain.mapper.FileMetadataMapper;
+import cloud.bytepulse.bp.framework.properties.AppProperties;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.minio.MinioClient;
 import io.minio.RemoveObjectsArgs;
@@ -37,7 +37,7 @@ public class FileScheduler {
 
     private final MinioClient minioClient;
 
-    private final IMinioProperties iMinioProperties;
+    private final AppProperties appProperties;
 
 
     /**
@@ -62,7 +62,7 @@ public class FileScheduler {
         Iterable<Result<DeleteResult.Error>> results = minioClient
                 .removeObjects(
                         RemoveObjectsArgs.builder()
-                                .bucket(iMinioProperties.getBucketName())
+                                .bucket(appProperties.getMinio().getBucketName())
                                 .objects(objectNames)
                                 .build()
                 );

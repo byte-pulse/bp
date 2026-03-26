@@ -1,7 +1,7 @@
-package cloud.bytepulse.bp.common.util.minio;
+package cloud.bytepulse.bp.common.util;
 
-import cloud.bytepulse.bp.common.util.minio.properties.IMinioProperties;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
+import cloud.bytepulse.bp.framework.properties.AppProperties;
 import io.minio.*;
 import io.minio.errors.MinioException;
 import io.minio.messages.Item;
@@ -34,9 +34,9 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class MinioUtils {
 
-    private final MinioClient minioClient;
+    public final MinioClient minioClient;
 
-    private final IMinioProperties iMinioProperties;
+    public final AppProperties AppProperties;
 
     /**
      * 检查文件是否存在
@@ -47,7 +47,7 @@ public class MinioUtils {
         try {
             minioClient.statObject(
                     StatObjectArgs.builder()
-                            .bucket(iMinioProperties.getBucketName())
+                            .bucket(AppProperties.getMinio().getBucketName())
                             .object(objectName)
                             .build());
             return true;
@@ -67,7 +67,7 @@ public class MinioUtils {
         try {
             Iterable<Result<Item>> results = minioClient.listObjects(
                     ListObjectsArgs.builder()
-                            .bucket(iMinioProperties.getBucketName())
+                            .bucket(AppProperties.getMinio().getBucketName())
                             .prefix(objectName)  // 以这个前缀开头的文件
                             .recursive(true) // 递归查询
                             .build()
@@ -97,7 +97,7 @@ public class MinioUtils {
             stream.close();
             Path path = Paths.get(file.getAbsolutePath());
             minioClient.putObject(PutObjectArgs.builder()
-                    .bucket(iMinioProperties.getBucketName())
+                    .bucket(AppProperties.getMinio().getBucketName())
                     .object(objectName)
                     .stream(inputStream, file.length(), -1L)
                     .contentType(contentType)
@@ -117,7 +117,7 @@ public class MinioUtils {
     public void deleteFile(String objectName) throws Exception {
         try {
             if (fileExists(objectName)) {
-                minioClient.removeObject(RemoveObjectArgs.builder().bucket(iMinioProperties.getBucketName()).object(objectName).build());
+                minioClient.removeObject(RemoveObjectArgs.builder().bucket(AppProperties.getMinio().getBucketName()).object(objectName).build());
                 log.info("MinioUtils 文件删除成功: {}", objectName);
             }
         } catch (MinioException e) {
@@ -140,7 +140,7 @@ public class MinioUtils {
         // 列出目录下所有对象
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
-                        .bucket(iMinioProperties.getBucketName())
+                        .bucket(AppProperties.getMinio().getBucketName())
                         .prefix(directoryPath)
                         .recursive(true)
                         .build());
@@ -150,7 +150,7 @@ public class MinioUtils {
             Item item = result.get();
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
-                            .bucket(iMinioProperties.getBucketName())
+                            .bucket(AppProperties.getMinio().getBucketName())
                             .object(item.objectName())
                             .build());
         }
@@ -160,7 +160,7 @@ public class MinioUtils {
             // 尝试删除目录标记（如果有）
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
-                            .bucket(iMinioProperties.getBucketName())
+                            .bucket(AppProperties.getMinio().getBucketName())
                             .object(directoryPath)
                             .build());
             log.info("MinioUtils 目录删除成功: {}", directoryPath);
@@ -182,7 +182,7 @@ public class MinioUtils {
         }
         return minioClient.statObject(
                 StatObjectArgs.builder()
-                        .bucket(iMinioProperties.getBucketName())
+                        .bucket(AppProperties.getMinio().getBucketName())
                         .object(objectName)
                         .build());
     }
@@ -221,7 +221,7 @@ public class MinioUtils {
         try {
             Iterable<Result<Item>> results = minioClient.listObjects(
                     ListObjectsArgs.builder()
-                            .bucket(iMinioProperties.getBucketName())
+                            .bucket(AppProperties.getMinio().getBucketName())
                             .prefix(directoryPath)
                             .recursive(recursive) // 递归子目录
                             .build()
@@ -267,7 +267,7 @@ public class MinioUtils {
     public String preSignedUrl(String objectName, int expiry) throws Exception {
         return minioClient.getPresignedObjectUrl(
                 GetPresignedObjectUrlArgs.builder()
-                        .bucket(iMinioProperties.getBucketName())
+                        .bucket(AppProperties.getMinio().getBucketName())
                         .object(objectName)
                         .method(Http.Method.GET)  // 生成 GET 方式的 URL
                         .expiry(expiry, TimeUnit.MINUTES) // 设置 URL 过期时间
@@ -307,7 +307,7 @@ public class MinioUtils {
             if (!fileExists(objectName)) {
                 throw new BytePulseException("文件不存在");
             }
-            return minioClient.getObject(GetObjectArgs.builder().bucket(iMinioProperties.getBucketName()).object(objectName).build());
+            return minioClient.getObject(GetObjectArgs.builder().bucket(AppProperties.getMinio().getBucketName()).object(objectName).build());
         } catch (MinioException e) {
             throw new BytePulseException(e.getMessage());
         }

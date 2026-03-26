@@ -1,11 +1,12 @@
 package cloud.bytepulse.bp.framework.filtter;
 
+import cloud.bytepulse.bp.common.constant.AllHandlerConstant;
+import cloud.bytepulse.bp.common.constant.AnonymousConstant;
 import cloud.bytepulse.bp.common.util.JWTUtils;
 import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
-import cloud.bytepulse.bp.common.constant.AllHandlerConstant;
-import cloud.bytepulse.bp.common.constant.AnonymousConstant;
+import cloud.bytepulse.bp.framework.properties.AppProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,6 +38,8 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Value("${login.expiration}")
     private Long expiration;
+
+    private final AppProperties appProperties;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -86,10 +89,11 @@ public class JWTFilter extends OncePerRequestFilter {
         }
         ReqUtils.getRequest().setAttribute("userId", userId);
         // 把用户信息重新入redis
-        if (expiration == 0) {
+        if (appProperties.getLogin().getExpirationMinutes() == 0) {
             redisUtils.setCacheObject("login:" + userId, loginUser);
         } else {
-            redisUtils.setCacheObject("login:" + userId, loginUser, expiration, TimeUnit.MINUTES);
+            redisUtils.setCacheObject("login:" + userId, loginUser,
+                    appProperties.getLogin().getExpirationMinutes(), TimeUnit.MINUTES);
         }
         // 将用户信息存入SecurityContext
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());

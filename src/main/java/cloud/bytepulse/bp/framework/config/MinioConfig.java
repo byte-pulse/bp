@@ -1,8 +1,7 @@
 package cloud.bytepulse.bp.framework.config;
 
-import cloud.bytepulse.bp.common.util.minio.properties.IMinioProperties;
+import cloud.bytepulse.bp.framework.properties.AppProperties;
 import io.minio.MinioClient;
-import lombok.RequiredArgsConstructor;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
@@ -14,11 +13,14 @@ import java.util.concurrent.TimeUnit;
  * @author jiejiebiezheyang
  * @since 2025-03-16 17:00
  */
-@Configuration()
-@RequiredArgsConstructor
+@Configuration
 public class MinioConfig {
 
-    private final IMinioProperties iMinioProperties;
+    private final AppProperties.Minio minio;
+
+    public MinioConfig(AppProperties appProperties) {
+        this.minio = appProperties.getMinio();
+    }
 
     @Bean
     public MinioClient minioClient() {
@@ -31,9 +33,9 @@ public class MinioConfig {
                 .build();
 
         return MinioClient.builder().endpoint(
-                        iMinioProperties.getEndpoint())
+                        minio.getEndpoint())
                 .httpClient(okHttpClient)
-                .credentials(iMinioProperties.getAccessKey(),
-                        iMinioProperties.getSecretKey()).build();
+                .credentials(minio.getAccessKey(),
+                        minio.getSecretKey()).build();
     }
 }
