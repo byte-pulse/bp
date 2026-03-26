@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.domain;
 
 
-import cloud.bytepulse.bp.framework.enums.HttpStatusEnum;
+import cloud.bytepulse.bp.common.enums.HttpStatusEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**

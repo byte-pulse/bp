@@ -4,13 +4,14 @@ package cloud.bytepulse.bp.framework.runner;
 import cloud.bytepulse.bp.common.annotation.Anonymous;
 import cloud.bytepulse.bp.common.annotation.ExternalApi;
 import cloud.bytepulse.bp.common.annotation.NoLogging;
+import cloud.bytepulse.bp.common.constant.AllHandlerConstant;
+import cloud.bytepulse.bp.common.constant.AnonymousConstant;
+import cloud.bytepulse.bp.common.constant.ExternalApiConstant;
+import cloud.bytepulse.bp.common.constant.LoggingConstant;
 import cloud.bytepulse.bp.framework.config.OpenAPIConfig;
-import cloud.bytepulse.bp.framework.constant.AllHandlerConstant;
-import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
-import cloud.bytepulse.bp.framework.constant.ExternalApiConstant;
-import cloud.bytepulse.bp.framework.constant.LoggingConstant;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -42,8 +43,11 @@ public class ControllerScan implements BeanFactoryPostProcessor {
 
     private static final String[] BasePackages = {"cloud.bytepulse.**.controller"};
 
+    /**
+     * 扫描注解, 处理接口信息
+     */
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
         try {
             log.debug("开始扫描匿名接口...");
             Set<Class<?>> controllerClasses = scanControllers();
@@ -104,6 +108,9 @@ public class ControllerScan implements BeanFactoryPostProcessor {
         }
     }
 
+    /**
+     * 扫面控制器类
+     */
     private Set<Class<?>> scanControllers() throws Exception {
         Set<Class<?>> classes = new HashSet<>();
         ClassPathScanningCandidateComponentProvider scanner =
@@ -124,6 +131,9 @@ public class ControllerScan implements BeanFactoryPostProcessor {
         return classes;
     }
 
+    /**
+     * 格式化路径
+     */
     private String normalizePath(String prefix, String path) {
         String fullPath = (prefix + "/" + path)
                 .replaceAll("//+", "/")
@@ -139,6 +149,9 @@ public class ControllerScan implements BeanFactoryPostProcessor {
         return fullPath;
     }
 
+    /**
+     * 提取路径
+     */
     private String extractPath(Annotation mapping) {
         if (mapping == null) return "";
         try {
@@ -154,6 +167,9 @@ public class ControllerScan implements BeanFactoryPostProcessor {
         return "";
     }
 
+    /**
+     * 提取路径
+     */
     private String extractPathFromMethod(Method method) {
         List<Class<? extends Annotation>> mappings = Arrays.asList(
                 RequestMapping.class,

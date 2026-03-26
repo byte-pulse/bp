@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.constant;
+package cloud.bytepulse.bp.common.constant;
 
 /**
  * 正则常量

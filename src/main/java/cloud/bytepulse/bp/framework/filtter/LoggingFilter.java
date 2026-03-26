@@ -5,7 +5,7 @@ import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.common.util.TraceIdUtils;
 import cloud.bytepulse.bp.common.util.json.JsonUtils;
 import cloud.bytepulse.bp.domain.entity.SysLog;
-import cloud.bytepulse.bp.framework.constant.LoggingConstant;
+import cloud.bytepulse.bp.common.constant.LoggingConstant;
 import cloud.bytepulse.bp.framework.http.wrapper.LoggingCachedBodyRequestWrapper;
 import cloud.bytepulse.bp.framework.http.wrapper.LoggingCachedBodyResponseWrapper;
 import com.fasterxml.jackson.databind.JsonNode;

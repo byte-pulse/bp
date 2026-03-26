@@ -5,7 +5,7 @@ import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.domain.entity.ApiCredentials;
 import cloud.bytepulse.bp.domain.mapper.ApiCredentialsMapper;
-import cloud.bytepulse.bp.framework.constant.ExternalApiConstant;
+import cloud.bytepulse.bp.common.constant.ExternalApiConstant;
 import cloud.bytepulse.bp.framework.http.wrapper.CachedBodyRequestWrapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

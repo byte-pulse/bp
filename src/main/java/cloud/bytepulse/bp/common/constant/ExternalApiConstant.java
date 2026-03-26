@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.constant;
+package cloud.bytepulse.bp.common.constant;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.enums;
+package cloud.bytepulse.bp.common.enums;
 
 /**
  * 响应码

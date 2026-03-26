@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.framework.config;
 
 import cloud.bytepulse.bp.app.auth.authentication.provider.WechatAuthenticationProvider;
-import cloud.bytepulse.bp.framework.constant.AnonymousConstant;
+import cloud.bytepulse.bp.common.constant.AnonymousConstant;
 import cloud.bytepulse.bp.framework.filtter.ExternalApiFilter;
 import cloud.bytepulse.bp.framework.filtter.GlobalCorsFilter;
 import cloud.bytepulse.bp.framework.filtter.JWTFilter;
