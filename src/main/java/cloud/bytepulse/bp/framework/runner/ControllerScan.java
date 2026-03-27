@@ -102,7 +102,7 @@ public class ControllerScan implements BeanFactoryPostProcessor {
             log.debug("外部调用接口: {}", ControllerApiConstant.EXTERNAL_API);
             log.debug("需记录日志接口: {}", ControllerApiConstant.NEED_LOGGING_API);
         } catch (Exception e) {
-            throw new BeansException("匿名接口扫描失败: " + e.getMessage(), e) {
+            throw new BeansException("扫描控制器接口失败: " + e.getMessage(), e) {
             };
         }
     }
