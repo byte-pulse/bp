@@ -148,4 +148,69 @@ public class CryptoUtils {
         byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(cipherText));
         return new String(decrypted, DEFAULT_CHARSET);
     }
+
+    /**
+     * 将 Base64 编码的字符串转换为 IvParameterSpec 对象
+     */
+    public static IvParameterSpec base64ToIV(String base64IV) {
+        byte[] decodedIV = Base64.getDecoder().decode(base64IV);  // 解码 Base64 字符串
+        return new IvParameterSpec(decodedIV);  // 使用解码后的字节数组创建 IvParameterSpec
+    }
+
+    /**
+     * 将 IvParameterSpec 转换为 Base64 编码的字符串
+     */
+    public static String IVToBase64(IvParameterSpec ivSpec) {
+        byte[] ivBytes = ivSpec.getIV();  // 获取 IvParameterSpec 中的字节数组
+        return Base64.getEncoder().encodeToString(ivBytes);  // 编码为 Base64 字符串
+    }
+
+    // ========== SHA ==========
+
+    /**
+     * 获取 SHA-256 哈希值
+     */
+    public static String getSHA256(String input) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");  // 创建 SHA-256 的 MessageDigest 实例
+        byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));  // 获取哈希值
+        return Base64.getEncoder().encodeToString(hash);  // 返回 Base64 编码的哈希值
+    }
+
+    /**
+     * 获取 SHA-256 哈希值 十六进制
+     */
+    public static String getSHA256Hex(String input) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : hash) {
+            hexString.append(String.format("%02x", b));  // 转换为 16 进制
+        }
+        return hexString.toString();
+    }
+
+    /**
+     *
+     * 获取 Hmac SHA256
+     *
+     */
+    public static String signHmacSHA256(String input, String key) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        mac.init(secretKeySpec);
+        byte[] hmacBytes = mac.doFinal(input.getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(hmacBytes);
+    }
+
+    /**
+     *
+     * 获取 Hmac SHA256 HEX
+     */
+    public static String signHmacSHA256Hex(String input, String key) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        mac.init(secretKeySpec);
+        byte[] hmacBytes = mac.doFinal(input.getBytes(StandardCharsets.UTF_8));
+        return java.util.HexFormat.of().formatHex(hmacBytes);
+    }
 }
