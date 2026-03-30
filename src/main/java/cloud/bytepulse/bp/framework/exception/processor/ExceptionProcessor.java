@@ -14,6 +14,7 @@ import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -80,7 +81,15 @@ public class ExceptionProcessor {
         List<ObjectError> allErrors = ex.getBindingResult().getAllErrors();
         Set<String> msg = new HashSet<>();
         for (ObjectError error : allErrors) {
-            msg.add(error.getDefaultMessage());
+            String str = "";
+            if (error instanceof FieldError fieldError) {
+                String fieldName = fieldError.getField(); // 字段名
+                String errorMsg = fieldError.getDefaultMessage(); // 错误信息
+                str = String.format("[%s] %s", fieldName, errorMsg);
+            } else {
+                str = String.format("[%s] %s", error.getObjectName(), error.getDefaultMessage());
+            }
+            msg.add(str);
         }
         return ApiResponse.badRequest(msg.toString());
     }
