@@ -87,7 +87,7 @@ public class ExceptionProcessor {
                 String errorMsg = fieldError.getDefaultMessage(); // 错误信息
                 str = String.format("[%s] %s", fieldName, errorMsg);
             } else {
-                str = String.format("[%s] %s", error.getObjectName(), error.getDefaultMessage());
+                str = error.getDefaultMessage();
             }
             msg.add(str);
         }
