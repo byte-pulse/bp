@@ -7,11 +7,11 @@ spring:
         # 初始连接数
         initialSize: 5
         # 最小连接池数量
-        minIdle: 10
+        minIdle: 5
         # 最大连接池数量
-        maxActive: 20
+        maxActive: 10
         # 配置获取连接等待超时的时间
-        maxWait: 60000
+        maxWait: 6000
         # 配置连接超时时间
         connectTimeout: 30000
         # 配置网络超时时间
@@ -21,12 +21,16 @@ spring:
         # 配置一个连接在池中最小生存的时间，单位是毫秒
         minEvictableIdleTimeMillis: 300000
         # 配置一个连接在池中最大生存的时间，单位是毫秒
-        maxEvictableIdleTimeMillis: 900000
+        maxEvictableIdleTimeMillis: 600000
         # 配置检测连接是否有效
         validationQuery: SELECT 1 FROM DUAL
         testWhileIdle: true
         testOnBorrow: false
         testOnReturn: false
+        keep-alive: true
+        remove-abandoned: true
+        remove-abandoned-timeout-millis: 300000
+        log-abandoned: true
     druid:
       statViewServlet:
         enabled: true
