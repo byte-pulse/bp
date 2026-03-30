@@ -75,4 +75,72 @@ public class OpenAPIConfig {
                 ).components(components())
                 .addSecurityItem(new SecurityRequirement().addList("Authorization"));
     }
+
+    private Components components() {
+        return new Components()
+                .addSecuritySchemes("Authorization",
+                        new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name("Authorization"));
+    }
+
+    // 在配置文件中定义分组
+    @Bean
+    public List<ApiGroup> apiGroups() {
+        Map<String, List<String>> paths = new HashMap<>();
+        for (ApiGroup apiGroup : API_GROUPS) {
+            // 根据 key 分组, 没有先创建
+            paths.computeIfAbsent(apiGroup.getName(), k -> new ArrayList<>());
+            paths.get(apiGroup.getName()).addAll(apiGroup.getPaths());
+        }
+        // paths 转为 ApiGroup 集合
+        List<ApiGroup> groups = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : paths.entrySet()) {
+            groups.add(new ApiGroup(entry.getKey(), entry.getValue()));
+        }
+        groups.add(new ApiGroup("(全部接口)", "/**"));
+        return groups;
+    }
+
+    // 批量注册分组
+    @Bean
+    public List<GroupedOpenApi> groupedOpenApis(List<ApiGroup> groups, @Qualifier("IPageableCustomizer") OperationCustomizer IPageableCustomizer) {
+        return groups.stream()
+                .map(group -> GroupedOpenApi.builder()
+                        .group(group.getName())
+                        .pathsToMatch(group.getPaths().toArray(new String[0]))
+                        .addOperationCustomizer(IPageableCustomizer)
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 分页参数
+     */
+    @Bean
+    public OperationCustomizer IPageableCustomizer() {
+        return (operation, handlerMethod) -> {
+            if (handlerMethod.hasMethodAnnotation(Pageable.class)) {
+                operation.addParametersItem(new QueryParameter()
+                        .name("pageNum")
+                        .schema(new IntegerSchema()._default(1)));
+
+                operation.addParametersItem(new QueryParameter()
+                        .name("pageSize")
+                        .schema(new IntegerSchema()._default(10)));
+            }
+            return operation;
+        };
+    }
+
+    // 简单的分组配置类
+    @Data
+    @AllArgsConstructor
+    public static class ApiGroup {
+        private String name;
+        private List<String> paths;
+
+        public ApiGroup(String name, String... paths) {
+            this.name = name;
+            this.paths = Arrays.asList(paths);
+        }
+    }
 }
