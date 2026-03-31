@@ -54,26 +54,4 @@ public class ControllerApiConstant {
         ALL_API.addAll(MANUAL_ANONYMOUS);
         ANONYMOUS_API.addAll(MANUAL_ANONYMOUS);
     }
-
-    public static void init(Set<String> allApi,
-                            Set<String> anonymousApi,
-                            Set<String> externalApi,
-                            Set<String> needLoggingApi) {
-
-        Set<String> finalAll = new HashSet<>(allApi);
-        // 1. 手动匿名接口也需要加入到全部接口中
-        finalAll.addAll(MANUAL_ANONYMOUS);
-        // 2. 再转为不可变集合
-        allApi = Set.copyOf(finalAll);
-
-        Set<String> finalAnonymous = new HashSet<>(anonymousApi);
-        // 1. 手动匿名接口也需要加入到匿名接口中
-        finalAnonymous.addAll(MANUAL_ANONYMOUS);
-        // 2. 再转为不可变集合
-        anonymousApi = Set.copyOf(finalAnonymous);
-
-        externalApi = Set.copyOf(externalApi);
-        needLoggingApi = Set.copyOf(needLoggingApi);
-    }
-
 }

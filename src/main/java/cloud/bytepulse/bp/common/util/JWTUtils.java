@@ -1,5 +1,6 @@
 package cloud.bytepulse.bp.common.util;
 
+import cloud.bytepulse.bp.common.enums.errorcode.AuthErrorCode;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -78,7 +79,7 @@ public class JWTUtils {
                     .getPayload();
 
         } catch (Exception e) {
-            throw new BytePulseException("token非法");
+            throw new BytePulseException(AuthErrorCode.TOKEN_INVALID);
         }
         if (verifyTime) { // 是否验证过期时间
             // 获取当前时间
@@ -87,7 +88,7 @@ public class JWTUtils {
             Date expiration = claims.getExpiration();
             long l = expiration.getTime() - nowTime;
             if (l <= 0) {
-                throw new BytePulseException("token已过期");
+                throw new BytePulseException(AuthErrorCode.TOKEN_EXPIRED);
             }
         }
         return claims.get(key, String.class);

@@ -4,7 +4,7 @@ package cloud.bytepulse.bp.app.auth.service.impl;
 import cloud.bytepulse.bp.app.auth.authentication.token.WechatAuthenticationToken;
 import cloud.bytepulse.bp.app.auth.service.AuthService;
 import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
-import cloud.bytepulse.bp.common.enums.errorcode.LoginErrorCode;
+import cloud.bytepulse.bp.common.enums.errorcode.AuthErrorCode;
 import cloud.bytepulse.bp.common.util.JWTUtils;
 import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
@@ -81,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
         String cacheCaptcha = redisUtils.getCacheObject("captcha:" + uid);
         redisUtils.deleteObject("captcha:" + uid);
         if (cacheCaptcha == null || !cacheCaptcha.equalsIgnoreCase(captcha)) {
-            throw new BytePulseException(LoginErrorCode.CAPTCHA_ERROR);
+            throw new BytePulseException(AuthErrorCode.CAPTCHA_ERROR);
         }
     }
 
@@ -91,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResultVO createAuthToken(Authentication authenticate) {
         // 认证没通过,给出提示
         if (authenticate == null) {
-            throw new BytePulseException("登陆失败");
+            throw new BytePulseException(AuthErrorCode.LOGIN_FAIL);
         }
         // 认证通过
         LoginUser loginUser = (LoginUser) authenticate.getPrincipal();

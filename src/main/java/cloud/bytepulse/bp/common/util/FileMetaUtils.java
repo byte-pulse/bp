@@ -1,5 +1,6 @@
 package cloud.bytepulse.bp.common.util;
 
+import cloud.bytepulse.bp.common.enums.errorcode.FileErrorCode;
 import cloud.bytepulse.bp.domain.entity.FileMetadata;
 import cloud.bytepulse.bp.domain.mapper.FileMetadataMapper;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
@@ -139,7 +140,7 @@ public class FileMetaUtils {
                             .build()
             );
         } catch (Exception e) {
-            throw new BytePulseException("上传失败");
+            throw new BytePulseException(FileErrorCode.FIle_UPLOAD_FAIL);
         }
     }
 

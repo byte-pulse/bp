@@ -1,5 +1,6 @@
 package cloud.bytepulse.bp.common.util;
 
+import cloud.bytepulse.bp.common.enums.errorcode.FileErrorCode;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import cloud.bytepulse.bp.framework.properties.AppProperties;
 import io.minio.*;
@@ -105,7 +106,7 @@ public class MinioUtils {
             log.info("MinioUtils 文件上传成功: {}", objectName);
         } catch (MinioException e) {
             log.info("MinioUtils 文件上传失败: {}", objectName);
-            throw new BytePulseException(e.getMessage());
+            throw new BytePulseException(FileErrorCode.FIle_UPLOAD_FAIL, e);
         }
     }
 
@@ -122,7 +123,7 @@ public class MinioUtils {
             }
         } catch (MinioException e) {
             log.info("MinioUtils 文件删除失败: {}", objectName);
-            throw new BytePulseException(e.getMessage());
+            throw new BytePulseException(FileErrorCode.FILE_DELETE_FAIL, e);
         }
     }
 
@@ -167,7 +168,7 @@ public class MinioUtils {
             return true;
         } catch (Exception e) {
             log.info("MinioUtils 目录删除失败: {}", directoryPath);
-            throw new Exception(e.getMessage());
+            throw new BytePulseException(FileErrorCode.DIR_DELETE_FAIL, e);
         }
     }
 
@@ -178,7 +179,7 @@ public class MinioUtils {
      */
     public StatObjectResponse fileInfo(String objectName) throws Exception {
         if (!fileExists(objectName)) {
-            throw new BytePulseException("文件不存在");
+            throw new BytePulseException(FileErrorCode.FILE_NOT_EXIST);
         }
         return minioClient.statObject(
                 StatObjectArgs.builder()
@@ -231,7 +232,7 @@ public class MinioUtils {
                 items.add(result.get());
             }
         } catch (Exception e) {
-            throw new BytePulseException(e.getMessage());
+            throw new BytePulseException(FileErrorCode.DIR_LIST_FAIL, e);
         }
         return items;
     }
@@ -253,7 +254,7 @@ public class MinioUtils {
                 fileNames.add(objectName);
             }
         } catch (Exception e) {
-            throw new BytePulseException(e.getMessage());
+            throw new BytePulseException(FileErrorCode.DIR_LIST_FAIL, e);
         }
         return fileNames;
     }
@@ -305,11 +306,11 @@ public class MinioUtils {
     public InputStream downloadFile(String objectName) throws Exception {
         try {
             if (!fileExists(objectName)) {
-                throw new BytePulseException("文件不存在");
+                throw new BytePulseException(FileErrorCode.FILE_NOT_EXIST);
             }
             return minioClient.getObject(GetObjectArgs.builder().bucket(AppProperties.getMinio().getBucketName()).object(objectName).build());
         } catch (MinioException e) {
-            throw new BytePulseException(e.getMessage());
+            throw new BytePulseException(FileErrorCode.FILE_DOWNLOAD_FAIL, e);
         }
     }
 
@@ -322,7 +323,7 @@ public class MinioUtils {
      */
     public ResponseEntity<InputStreamResource> returnFile(String objectName, String filename, boolean download) throws Exception {
         if (!fileExists(objectName)) {
-            throw new BytePulseException("文件不存在");
+            throw new BytePulseException(FileErrorCode.FILE_NOT_EXIST);
         }
         InputStream inputStream = downloadFile(objectName);
         BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
@@ -366,7 +367,7 @@ public class MinioUtils {
      */
     public ResponseEntity<InputStreamResource> returnFile(String objectName, boolean download) throws Exception {
         if (!fileExists(objectName)) {
-            throw new BytePulseException("文件不存在");
+            throw new BytePulseException(FileErrorCode.FILE_NOT_EXIST);
         }
         StatObjectResponse fileInfo = fileInfo(objectName);
         String filename = extractFileName(fileInfo.object());
