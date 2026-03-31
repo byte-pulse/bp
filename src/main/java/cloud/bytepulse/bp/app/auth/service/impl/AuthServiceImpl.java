@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
                 captchaConfig.getLength());
         String imageBase64Data = gifCaptcha.getImageBase64Data();
         map.put("captcha", imageBase64Data);
-        String uid = UUID.randomUUID().toString().replaceAll("-", "");
+        String uid = UUID.randomUUID().toString().replace("-", "");
         map.put("uid", uid);
 
         // 结果存入redis
