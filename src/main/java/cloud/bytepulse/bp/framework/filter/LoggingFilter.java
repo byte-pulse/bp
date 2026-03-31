@@ -43,13 +43,6 @@ public class LoggingFilter extends OncePerRequestFilter {
 
     private final LoggingService loggingService;
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String init = TraceIdUtils.init();
-        String requestURI = request.getRequestURI();
-        return !isPathMatching(ControllerApiConstant.NEED_LOGGING_API, requestURI);
-    }
-
     // 判断是否为 multipart 请求
 //    private boolean isMultipart(HttpServletRequest request) {
 //        return request.getContentType() != null
@@ -109,6 +102,8 @@ public class LoggingFilter extends OncePerRequestFilter {
         LoggingCachedBodyRequestWrapper requestWrapper = new LoggingCachedBodyRequestWrapper(request);
         LoggingCachedBodyResponseWrapper responseWrapper = new LoggingCachedBodyResponseWrapper(response);
 
+        String traceId = TraceIdUtils.init();
+        String requestURI = request.getRequestURI();
 
         String resolvedException = null;
 
@@ -150,6 +145,8 @@ public class LoggingFilter extends OncePerRequestFilter {
                     } else {
                         JsonNode original = JsonUtils.OBJECT_MAPPER.readTree(rawResponseBody);
                         ObjectNode obj = (ObjectNode) original;
+                        obj.put("traceId", traceId); // 追踪 id
+                        obj.put("timestamp", System.currentTimeMillis()); // 时间戳
 
                         JsonNode eNode = obj.get("e");
                         resolvedException = eNode != null ? eNode.asText() : null;
@@ -171,7 +168,6 @@ public class LoggingFilter extends OncePerRequestFilter {
 
             requestBodyJson = requestBodyJson.equals("null") ? null : requestBodyJson;
 
-            String traceId = TraceIdUtils.get();
 
             // 控制台打印
             log.info("接口调用 [TraceId={}] {} {}ms req = {} resp = {} ex = {}",
@@ -184,21 +180,24 @@ public class LoggingFilter extends OncePerRequestFilter {
             );
 
 
-            // 存入数据库
-            SysLog sysLog = new SysLog();
-            sysLog.setTraceId(traceId);
-            sysLog.setUri(request.getRequestURI());
-            sysLog.setHttpMethod(request.getMethod());
-            sysLog.setQueryParams(request.getQueryString());
-            sysLog.setBodyParams(requestBodyJson);
-            sysLog.setResponseResult(finalJson);
-            sysLog.setRequestTime(new Date(startTime));
-            sysLog.setRequestIp(ReqUtils.getIP());
-            sysLog.setUserId(getUserId());
-            sysLog.setCost(cost);
-            sysLog.setException(resolvedException);
+            // 需要日志, 存入数据库
+            if (isPathMatching(ControllerApiConstant.NEED_LOGGING_API, requestURI)) {
+                // 存入数据库
+                SysLog sysLog = new SysLog();
+                sysLog.setTraceId(traceId);
+                sysLog.setUri(request.getRequestURI());
+                sysLog.setHttpMethod(request.getMethod());
+                sysLog.setQueryParams(request.getQueryString());
+                sysLog.setBodyParams(requestBodyJson);
+                sysLog.setResponseResult(finalJson);
+                sysLog.setRequestTime(new Date(startTime));
+                sysLog.setRequestIp(ReqUtils.getIP());
+                sysLog.setUserId(getUserId());
+                sysLog.setCost(cost);
+                sysLog.setException(resolvedException);
 
-            loggingService.save(sysLog);
+                loggingService.save(sysLog);
+            }
 
             // 修改返回前端
             if (!isFileResponse) {

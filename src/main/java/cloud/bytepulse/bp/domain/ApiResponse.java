@@ -1,7 +1,6 @@
 package cloud.bytepulse.bp.domain;
 
 
-import cloud.bytepulse.bp.common.util.TraceIdUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.http.HttpStatus;
 
@@ -65,9 +64,6 @@ public class ApiResponse<T> {
     public ApiResponse(int code, String msg) {
         this.code = code;
         this.message = msg;
-        this.timestamp = System.currentTimeMillis();
-        this.traceId = TraceIdUtils.get();
-        TraceIdUtils.clear();
     }
 
     /**
