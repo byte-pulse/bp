@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.config;
+package cloud.bytepulse.bp.framework.lifecycle;
 
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +8,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
-import java.net.URI;
 import java.util.Arrays;
 
 /**
@@ -19,14 +17,14 @@ import java.util.Arrays;
  */
 @Slf4j
 @Component
-public class StartupShutdownHookBean {
+public class ApplicationLifecycleListener {
 
     @Value("${server.port:8080}") // 获取端口, 默认8080
     private String port;
 
     private final Environment environment;
 
-    public StartupShutdownHookBean(Environment environment) {
+    public ApplicationLifecycleListener(Environment environment) {
         this.environment = environment;
     }
 
@@ -53,16 +51,16 @@ public class StartupShutdownHookBean {
             // 3. 拼接 swagger 地址
             String url = "http://127.0.0.1:" + port + "/swagger-ui/index.html";
 
-            log.info("检测到开发环境, 将自动打开Swagger: {}", url);
+            log.info("检测到开发环境, 点击打开 Swagger: {}", url);
 
             // 4. 打开浏览器
-            if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().browse(new URI(url));
-            } else {
-                // 兼容 fallback
-                ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/c", "start", url);
-                processBuilder.start();
-            }
+            // if (Desktop.isDesktopSupported()) {
+            //     Desktop.getDesktop().browse(new URI(url));
+            // } else {
+            //     // 兼容 fallback
+            //     ProcessBuilder processBuilder = new ProcessBuilder("cmd", "/c", "start", url);
+            //     processBuilder.start();
+            // }
 
         } catch (Exception e) {
             log.error("打开浏览器失败", e);

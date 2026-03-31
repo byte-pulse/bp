@@ -68,9 +68,6 @@
             <Logger name="org.springframework" level="info" additivity="false">
                 <AppenderRef ref="asyncConsole"/>
             </Logger>
-            <Logger name="org.springframework.web.servlet.DispatcherServlet" level="warn" additivity="false">
-                <AppenderRef ref="asyncConsole"/>
-            </Logger>
         </SpringProfile>
 
 
@@ -84,9 +81,15 @@
                 <AppenderRef ref="asyncRollingFile" level="error"/>
                 <AppenderRef ref="asyncRollingFileInfo" level="info"/>
             </Logger>
-            <Logger name="org.springframework.web.servlet.DispatcherServlet" level="warn" additivity="false">
-                <AppenderRef ref="asyncConsole"/>
-            </Logger>
         </SpringProfile>
+
+        <Logger name="org.springframework.web.servlet.DispatcherServlet" level="warn" additivity="false">
+            <AppenderRef ref="asyncConsole"/>
+        </Logger>
+
+        <Logger name="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver"
+                level="error" additivity="false">
+            <AppenderRef ref="asyncConsole"/>
+        </Logger>
     </Loggers>
 </Configuration>

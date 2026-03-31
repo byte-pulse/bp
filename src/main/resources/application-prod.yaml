@@ -47,9 +47,6 @@ app:
   # redis 配置
   redis:
     prefix: "bp:"
-  ex-processer:
-    # 接口是否返回内部错误信息
-    debug-info: false
   # 提供的第三方接口配置本地加密密钥(用于加密用户的密钥)
   external-api:
     secretKey: rcII2vlKYg1Fw2NvmZZg4570UwLSkYRE+yOZRCU9aTk=

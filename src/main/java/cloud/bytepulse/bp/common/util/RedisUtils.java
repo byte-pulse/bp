@@ -42,7 +42,6 @@ public class RedisUtils {
      * @param timeUnit 时间颗粒度
      */
     public <T> void setCacheObject(final String key, final T value, final Long timeout, final TimeUnit timeUnit) {
-        log.info("{}", redisTemplate);
         redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
     }
 
@@ -65,7 +64,6 @@ public class RedisUtils {
      * @param timeUnit 时间颗粒度
      */
     public void setCacheString(final String key, final String value, final Long timeout, final TimeUnit timeUnit) {
-        log.info("{}", redisTemplate);
         stringRedisTemplate.opsForValue().set(key, value, timeout, timeUnit);
     }
 

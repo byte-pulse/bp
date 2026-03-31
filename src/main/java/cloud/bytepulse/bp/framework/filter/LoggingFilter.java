@@ -150,7 +150,6 @@ public class LoggingFilter extends OncePerRequestFilter {
                     } else {
                         JsonNode original = JsonUtils.OBJECT_MAPPER.readTree(rawResponseBody);
                         ObjectNode obj = (ObjectNode) original;
-                        obj.put("timestamp", System.currentTimeMillis());
                         obj.put("traceId", traceId);
 
                         JsonNode eNode = obj.get("e");

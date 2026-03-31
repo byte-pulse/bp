@@ -1,8 +1,10 @@
 package cloud.bytepulse.bp.domain;
 
 
-import cloud.bytepulse.bp.common.enums.HttpStatusEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.http.HttpStatus;
+
+import static cloud.bytepulse.bp.common.constant.HttpStatusReasonPhraseCN.getReasonPhrase;
 
 /**
  * 操作消息提醒
@@ -62,6 +64,7 @@ public class ApiResponse<T> {
     public ApiResponse(int code, String msg) {
         this.code = code;
         this.message = msg;
+        this.timestamp = System.currentTimeMillis();
     }
 
     /**
@@ -75,34 +78,36 @@ public class ApiResponse<T> {
         this.code = code;
         this.message = msg;
         this.data = data;
+        this.timestamp = System.currentTimeMillis();
     }
 
     /**
      * 自定义消息成功
      */
     public static ApiResponse<Void> success(String message) {
-        return new ApiResponse<>(HttpStatusEnum.OK.code, message);
+        return new ApiResponse<>(HttpStatus.OK.value(), message);
     }
 
     /**
      * 无数据成功
      */
     public static ApiResponse<Void> success() {
-        return success(HttpStatusEnum.OK.message);
+        return success(getReasonPhrase(HttpStatus.OK)
+        );
     }
 
     /**
      * 有数据成功
      */
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(HttpStatusEnum.OK.code, HttpStatusEnum.OK.message, data);
+        return new ApiResponse<>(HttpStatus.OK.value(), getReasonPhrase(HttpStatus.OK), data);
     }
 
     /**
      * 参数校验失败、JSON 格式错误 , 业务逻辑错误
      */
     public static <T> ApiResponse<T> badRequest(String message, T data) {
-        return new ApiResponse<>(HttpStatusEnum.BAD_REQUEST.code, message, data);
+        return new ApiResponse<>(HttpStatus.BAD_REQUEST.value(), message, data);
     }
 
     /**
@@ -116,41 +121,41 @@ public class ApiResponse<T> {
      * 服务器内部错误
      */
     public static ApiResponse<Void> error(String message) {
-        return new ApiResponse<>(HttpStatusEnum.INTERNAL_SERVER_ERROR.code, message);
+        return new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), message);
     }
 
     /**
      * 服务器内部错误
      */
     public static ApiResponse<Void> error() {
-        return error(HttpStatusEnum.INTERNAL_SERVER_ERROR.message);
+        return error(getReasonPhrase(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     /**
      * 未登录
      */
     public static ApiResponse<Void> unauthorized(String message) {
-        return new ApiResponse<>(HttpStatusEnum.UNAUTHORIZED.code, message);
+        return new ApiResponse<>(HttpStatus.UNAUTHORIZED.value(), message);
     }
 
-    /*
+    /**
      * 未登录
-     * */
+     */
     public static ApiResponse<Void> unauthorized() {
-        return unauthorized(HttpStatusEnum.UNAUTHORIZED.message);
+        return unauthorized(getReasonPhrase(HttpStatus.UNAUTHORIZED));
     }
 
     /**
      * 无权限
      */
     public static ApiResponse<Void> forbidden() {
-        return new ApiResponse<>(HttpStatusEnum.FORBIDDEN.code, HttpStatusEnum.FORBIDDEN.message);
+        return new ApiResponse<>(HttpStatus.FORBIDDEN.value(), getReasonPhrase(HttpStatus.FORBIDDEN));
     }
 
     /**
      * 404
      */
     public static ApiResponse<Void> notFound() {
-        return new ApiResponse<>(HttpStatusEnum.NOT_FOUND.code, HttpStatusEnum.NOT_FOUND.message);
+        return new ApiResponse<>(HttpStatus.NOT_FOUND.value(), getReasonPhrase(HttpStatus.NOT_FOUND));
     }
 }

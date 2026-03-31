@@ -36,10 +36,6 @@ public class AppProperties {
 
     @Valid
     @NotNull
-    private ExProcesser exProcesser;
-
-    @Valid
-    @NotNull
     private Captcha captcha;
 
     @Data
@@ -97,16 +93,6 @@ public class AppProperties {
          */
         @NotBlank
         private String bucketName;
-    }
-
-    @Data
-    public static class ExProcesser {
-        /**
-         * 异常是否包括详细信息
-         */
-        @NotNull
-        private Boolean debugInfo = false;
-
     }
 
     /**
