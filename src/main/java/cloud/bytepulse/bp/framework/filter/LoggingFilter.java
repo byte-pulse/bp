@@ -45,6 +45,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
+        String init = TraceIdUtils.init();
         String requestURI = request.getRequestURI();
         return !isPathMatching(ControllerApiConstant.NEED_LOGGING_API, requestURI);
     }
@@ -100,11 +101,10 @@ public class LoggingFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+
         response.setCharacterEncoding("utf-8");
 
-
         long startTime = System.currentTimeMillis();
-        String traceId = TraceIdUtils.init();
 
         LoggingCachedBodyRequestWrapper requestWrapper = new LoggingCachedBodyRequestWrapper(request);
         LoggingCachedBodyResponseWrapper responseWrapper = new LoggingCachedBodyResponseWrapper(response);
@@ -150,7 +150,6 @@ public class LoggingFilter extends OncePerRequestFilter {
                     } else {
                         JsonNode original = JsonUtils.OBJECT_MAPPER.readTree(rawResponseBody);
                         ObjectNode obj = (ObjectNode) original;
-                        obj.put("traceId", traceId);
 
                         JsonNode eNode = obj.get("e");
                         resolvedException = eNode != null ? eNode.asText() : null;
@@ -171,6 +170,8 @@ public class LoggingFilter extends OncePerRequestFilter {
             }
 
             requestBodyJson = requestBodyJson.equals("null") ? null : requestBodyJson;
+
+            String traceId = TraceIdUtils.get();
 
             // 控制台打印
             log.info("接口调用 [TraceId={}] {} {}ms req = {} resp = {} ex = {}",

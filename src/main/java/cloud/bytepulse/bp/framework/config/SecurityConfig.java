@@ -79,14 +79,14 @@ public class SecurityConfig {
                 .requestMatchers(anonymous).permitAll() // 允许匿名访问
                 .anyRequest().authenticated());
 
+        // 日志过滤器
+        http.addFilterBefore(loggingFilter, UsernamePasswordAuthenticationFilter.class);
         // 全局CORS过滤器
         http.addFilterBefore(globalCorsFilter, UsernamePasswordAuthenticationFilter.class);
         // 添加JWT过滤器
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         // 外部接口过滤器
         http.addFilterBefore(externalApiFilter, UsernamePasswordAuthenticationFilter.class);
-        // 日志过滤器
-        http.addFilterBefore(loggingFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
