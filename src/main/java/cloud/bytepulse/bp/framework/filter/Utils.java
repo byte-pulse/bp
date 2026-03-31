@@ -4,6 +4,7 @@ import cloud.bytepulse.bp.common.util.json.JsonUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 
@@ -17,6 +18,7 @@ public class Utils {
      * 401 输出
      */
     public static void printUnauthorized(HttpServletResponse response, String msg) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().println(JsonUtils.toJsonStr(ApiResponse.unauthorized(msg)));
     }
@@ -26,6 +28,7 @@ public class Utils {
      *
      */
     public static void printNotFound(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.NOT_FOUND.value());
         response.setContentType("application/json;charset=UTF-8");
         ApiResponse<Void> notFound = ApiResponse.notFound();
         notFound.message = "资源不存在:" + request.getRequestURI();
