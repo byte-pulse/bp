@@ -25,4 +25,25 @@ public class UniRestConfig {
             public <T> T readValue(String value, Class<T> aClass) {
                 try {
                     return jsonMapper.readValue(value, aClass);
+                } catch (JacksonException e) {
+                    throw new UnirestException("Failed to parse JSON: " + value, e);
+                }
+            }
+
+            @Override
+            public String writeValue(Object value) {
+                try {
+                    return jsonMapper.writeValueAsString(value);
+                } catch (JacksonException e) {
+                    throw new UnirestException("Failed to serialize object to JSON", e);
+                }
+            }
+        });
+
+        Unirest.config()
+                .connectTimeout(10_000)    // 10 秒
+                .requestTimeout(30_000)     // 30 秒
+                .retryAfter(true, 3)    // 自动重试次数
+                .enableCookieManagement(false); // 关闭cookie
+    }
 }
