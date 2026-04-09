@@ -122,4 +122,108 @@ public class RedisCache {
     public Boolean hasKey(String key) {
         return redisTemplate.hasKey(key);
     }
+
+    /**
+     * 获得缓存的基本对象。
+     *
+     * @param key 缓存键值
+     * @return 缓存键值对应的数据
+     */
+    public <T> T getCacheObject(final String key, Class<T> clazz) {
+        Object value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
+            return null;
+        }
+        return clazz.cast(value);
+    }
+
+    /**
+     * 获得缓存的基本对象。
+     *
+     * @param key 缓存键值
+     * @return 缓存键值对应的数据
+     */
+    public String getCacheString(final String key) {
+        ValueOperations<String, String> operation = stringRedisTemplate.opsForValue();
+        return operation.get(key);
+    }
+
+
+    /**
+     * 删除单个对象
+     *
+     * @param key 缓存键值
+     */
+    public boolean deleteObject(final String key) {
+        return redisTemplate.delete(key);
+    }
+
+    /**
+     * 删除集合对象
+     *
+     * @param collection 多个对象
+     * @return true 成功 false 失败
+     */
+    public boolean deleteObject(final Collection<String> collection) {
+        return redisTemplate.delete(collection) > 0;
+    }
+
+    /**
+     * 缓存List数据
+     *
+     * @param key      缓存的键值
+     * @param dataList 待缓存的 List 数据
+     * @return 缓存的对象
+     */
+    public <T> long setCacheList(final String key, final List<T> dataList) {
+        Long count = redisTemplate.opsForList().rightPushAll(key, dataList);
+        return count == null ? 0 : count;
+    }
+
+    /**
+     * 获得缓存的list对象
+     *
+     * @param key 缓存的键值
+     * @return 缓存键值对应的数据
+     */
+    public <T> List<T> getCacheList(final String key, Class<T> clazz) {
+        List<Object> range = redisTemplate.opsForList().range(key, 0, -1);
+        if (range == null || range.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return range.stream()
+                .map(clazz::cast)
+                .toList();
+    }
+
+    /**
+     * 缓存Set
+     *
+     * @param key     缓存键值
+     * @param dataSet 缓存的数据
+     * @return 缓存数据的对象
+     */
+    public <T> BoundSetOperations<String, Object> setCacheSet(final String key, final Set<T> dataSet, Class<T> clazz) {
+        BoundSetOperations<String, Object> setOperation = redisTemplate.boundSetOps(key);
+        for (T t : dataSet) {
+            setOperation.add(t);
+        }
+        return setOperation;
+    }
+
+    /**
+     * 获得缓存的set
+     *
+     * @param key 缓存键值
+     * @return 缓存数据的对象
+     */
+    public <T> Set<T> getCacheSet(final String key, Class<T> clazz) {
+        Set<Object> members = redisTemplate.opsForSet().members(key);
+        if (members == null || members.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return members.stream()
+                .map(clazz::cast)
+                .collect(Collectors.toSet());
+    }
 }
