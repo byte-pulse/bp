@@ -2,6 +2,7 @@ package cloud.bytepulse.bp.common.util.json;
 
 import cloud.bytepulse.bp.framework.exception.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,10 +18,17 @@ public class JsonArr extends ArrayList<JsonNode> {
      * 允许链式调用
      */
     public JsonArr append(Object o) {
-        super.add(JsonUtils.OBJECT_MAPPER.valueToTree(o));
+        if (o == null) {
+            super.add(NullNode.instance);
+        } else {
+            super.add(JsonUtils.OBJECT_MAPPER.valueToTree(o));
+        }
         return this;
     }
 
+    /**
+     * 获取 JsonObj 节点
+     */
     public JsonObj getJsonObj(int index) {
         JsonNode jsonNode = super.get(index);
         if (!jsonNode.isObject()) {
@@ -33,6 +41,9 @@ public class JsonArr extends ArrayList<JsonNode> {
         }
     }
 
+    /**
+     * 获取 JsonArr 节点
+     */
     public JsonArr getJsonArr(int index) {
         JsonNode jsonNode = super.get(index);
         if (!jsonNode.isArray()) {
@@ -57,64 +68,64 @@ public class JsonArr extends ArrayList<JsonNode> {
         return jsonNode.asInt();
     }
 
-    public long getLong(int index, long... defaultValue) {
+    /**
+     * 获取 int 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public Integer getInt(int index, Integer... defaultValue) {
         JsonNode jsonNode = super.get(index);
-        if (!jsonNode.isNumber()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 long 类型");
-            }
-        }
-        return jsonNode.asLong();
+        return JsonUtils.getInt(jsonNode, defaultValue);
     }
 
-    public double getDouble(int index, double... defaultValue) {
+    /**
+     * 获取 long 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public Long getLong(int index, Long... defaultValue) {
         JsonNode jsonNode = super.get(index);
-        if (!jsonNode.isNumber()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 double 类型");
-            }
-        }
-        return jsonNode.asDouble();
+        return JsonUtils.getLong(jsonNode, defaultValue);
     }
 
+    /**
+     * 获取 double 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public Double getDouble(int index, Double... defaultValue) {
+        JsonNode jsonNode = super.get(index);
+        return JsonUtils.getDouble(jsonNode, defaultValue);
+    }
+
+    /**
+     * 获取 decimal 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
     public BigDecimal getBigDecimal(int index, BigDecimal... defaultValue) {
         JsonNode jsonNode = super.get(index);
-        if (!jsonNode.isNumber()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 BigDecimal 类型");
-            }
-        }
-        return jsonNode.decimalValue();
+        return JsonUtils.getBigDecimal(jsonNode, defaultValue);
     }
 
-    public boolean getBoolean(int index, boolean... defaultValue) {
+    /**
+     * 获取 boolean 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public Boolean getBoolean(int index, Boolean... defaultValue) {
         JsonNode jsonNode = super.get(index);
-        if (!jsonNode.isBoolean()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 boolean 类型");
-            }
-        }
-        return jsonNode.asBoolean();
+        return JsonUtils.getBoolean(jsonNode, defaultValue);
     }
 
+    /**
+     * 获取 boolean 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
     public String getString(int index, String... defaultValue) {
         JsonNode jsonNode = super.get(index);
-        if (!jsonNode.isTextual()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 string 类型");
-            }
-        }
-        return jsonNode.asText();
+        return JsonUtils.getString(jsonNode, defaultValue);
     }
 
     /**

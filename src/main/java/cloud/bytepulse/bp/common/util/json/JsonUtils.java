@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import java.math.BigDecimal;
+
 /**
  * json 工具类
  *
@@ -80,6 +82,18 @@ public class JsonUtils {
         }
     }
 
+    /**
+     * 解析为 JsonObj
+     *
+     */
+    public static JsonObj parseJsonObj(Object obj) {
+        try {
+            return OBJECT_MAPPER.convertValue(obj, JsonObj.class);
+        } catch (Exception e) {
+            throw new JsonParseException(e);
+        }
+    }
+
 
     /**
      * 解析为 JsonArr
@@ -108,6 +122,17 @@ public class JsonUtils {
     }
 
     /**
+     * 解析为 JsonArr
+     */
+    public static JsonArr parseJsonArr(Object obj) {
+        try {
+            return OBJECT_MAPPER.convertValue(obj, JsonArr.class);
+        } catch (Exception e) {
+            throw new JsonParseException(e);
+        }
+    }
+
+    /**
      * 直接解析基础类型 JsonNode
      * - 数字 → Integer / Long / Double / BigDecimal
      * - 布尔 → Boolean
@@ -119,11 +144,11 @@ public class JsonUtils {
             return null;
         }
 
-        if (jsonNode.isInt()) return jsonNode.asInt();
-        if (jsonNode.isLong()) return jsonNode.asLong();
-        if (jsonNode.isDouble()) return jsonNode.asDouble();
+        if (jsonNode.isInt()) return jsonNode.intValue();
+        if (jsonNode.isLong()) return jsonNode.longValue();
+        if (jsonNode.isDouble()) return jsonNode.doubleValue();
         if (jsonNode.isBigDecimal()) return jsonNode.decimalValue();
-        if (jsonNode.isBoolean()) return jsonNode.asBoolean();
+        if (jsonNode.isBoolean()) return jsonNode.booleanValue();
         if (jsonNode.isTextual()) return jsonNode.asText();
 
         return null;
@@ -145,5 +170,172 @@ public class JsonUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * 获取 int 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public static Integer getInt(JsonNode jsonNode, Integer... defaultValue) {
+        if (jsonNode == null) {
+            return defaultValue.length > 0 ? defaultValue[0] : null;
+        }
+        if (jsonNode.isNull()) {
+            return null;
+        }
+        if (jsonNode.isNumber()) {
+            return jsonNode.intValue();
+        }
+        if (jsonNode.isTextual()) {
+            String text = jsonNode.asText();
+            if (text == null || text.trim().isEmpty()) {
+                return null;
+            }
+            try {
+                return Integer.parseInt(text.trim());
+            } catch (NumberFormatException e) {
+                throw new JsonParseException("无法转为 int 类型: " + text);
+            }
+        }
+        throw new JsonParseException("非 number 或 string 类型");
+    }
+
+    /**
+     * 获取 long 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public static Long getLong(JsonNode jsonNode, Long... defaultValue) {
+        if (jsonNode == null) {
+            return defaultValue.length > 0 ? defaultValue[0] : null;
+        }
+        if (jsonNode.isNull()) {
+            return null;
+        }
+        if (jsonNode.isNumber()) {
+            return jsonNode.longValue();
+        }
+        if (jsonNode.isTextual()) {
+            String text = jsonNode.asText();
+            if (text == null || text.trim().isEmpty()) {
+                return null;
+            }
+            try {
+                return Long.parseLong(text.trim());
+            } catch (NumberFormatException e) {
+                throw new JsonParseException("无法转为 long 类型: " + text);
+            }
+        }
+        throw new JsonParseException("非 number 或 string 类型");
+    }
+
+    /**
+     * 获取 double 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public static Double getDouble(JsonNode jsonNode, Double... defaultValue) {
+        if (jsonNode == null) {
+            return defaultValue.length > 0 ? defaultValue[0] : null;
+        }
+        if (jsonNode.isNull()) {
+            return null;
+        }
+        if (jsonNode.isNumber()) {
+            return jsonNode.doubleValue();
+        }
+        if (jsonNode.isTextual()) {
+            String text = jsonNode.asText();
+            if (text == null || text.trim().isEmpty()) {
+                return null;
+            }
+            try {
+                return Double.parseDouble(text.trim());
+            } catch (NumberFormatException e) {
+                throw new JsonParseException("无法转为 double 类型: " + text);
+            }
+        }
+        throw new JsonParseException("非 number 或 string 类型");
+    }
+
+    /**
+     * 获取 decimal 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public static BigDecimal getBigDecimal(JsonNode jsonNode, BigDecimal... defaultValue) {
+        if (jsonNode == null) {
+            return defaultValue.length > 0 ? defaultValue[0] : null;
+        }
+        if (jsonNode.isNull()) {
+            return null;
+        }
+        if (jsonNode.isNumber()) {
+            return jsonNode.decimalValue();
+        }
+        if (jsonNode.isTextual()) {
+            String text = jsonNode.asText();
+            if (text == null || text.trim().isEmpty()) {
+                return null;
+            }
+            try {
+                return new BigDecimal(text.trim());
+            } catch (NumberFormatException e) {
+                throw new JsonParseException("无法转为 decimal 类型: " + text);
+            }
+        }
+        throw new JsonParseException("非 number 或 string 类型");
+    }
+
+    /**
+     * 获取 boolean 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public static Boolean getBoolean(JsonNode jsonNode, Boolean... defaultValue) {
+        if (jsonNode == null) {
+            return defaultValue.length > 0 ? defaultValue[0] : null;
+        }
+        if (jsonNode.isNull()) {
+            return null;
+        }
+        if (jsonNode.isBoolean()) {
+            return jsonNode.booleanValue();
+        }
+        if (jsonNode.isTextual()) {
+            String text = jsonNode.asText().trim();
+            if (text.isEmpty()) {
+                return null;
+            }
+            if ("true".equalsIgnoreCase(text)) {
+                return true;
+            }
+            if ("false".equalsIgnoreCase(text)) {
+                return false;
+            }
+            throw new JsonParseException("无法转为 boolean 类型: " + text);
+        }
+        throw new JsonParseException("非 boolean 或 string 类型");
+    }
+
+    /**
+     * 获取 boolean 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public static String getString(JsonNode jsonNode, String... defaultValue) {
+        if (jsonNode == null) {
+            return defaultValue.length > 0 ? defaultValue[0] : null;
+        }
+        if (jsonNode.isNull()) {
+            return null;
+        }
+        // 结构类型单独处理
+        if (jsonNode.isArray() || jsonNode.isObject()) {
+            return jsonNode.toString(); // JSON字符串
+        }
+        //  值类型
+        return jsonNode.asText();
     }
 }

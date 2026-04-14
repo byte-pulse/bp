@@ -2,6 +2,7 @@ package cloud.bytepulse.bp.common.util.json;
 
 import cloud.bytepulse.bp.framework.exception.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -16,10 +17,25 @@ public class JsonObj extends HashMap<String, JsonNode> {
      * 添加元素, 允许链式调用
      */
     public JsonObj set(String key, Object value) {
-        super.put(key, JsonUtils.OBJECT_MAPPER.valueToTree(value));
+        if (value == null) {
+            // 可以传 null
+            super.put(key, NullNode.instance);
+        } else {
+            super.put(key, JsonUtils.OBJECT_MAPPER.valueToTree(value));
+        }
         return this;
     }
 
+    /**
+     * 转为实体
+     */
+    public <T> T toBean(Class<T> clazz) {
+        return JsonUtils.OBJECT_MAPPER.convertValue(this, clazz);
+    }
+
+    /**
+     * 获取 JsonObj 节点
+     */
     public JsonObj getJsonObj(String key) {
         JsonNode jsonNode = super.get(key);
         if (jsonNode == null) {
@@ -35,6 +51,9 @@ public class JsonObj extends HashMap<String, JsonNode> {
         }
     }
 
+    /**
+     * 获取 JsonArr 节点
+     */
     public JsonArr getJsonArr(String key) {
         JsonNode jsonNode = super.get(key);
         if (jsonNode == null) {
@@ -50,100 +69,64 @@ public class JsonObj extends HashMap<String, JsonNode> {
         }
     }
 
-    public int getInt(String key, int... defaultValue) {
+    /**
+     * 获取 int 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public Integer getInt(String key, Integer... defaultValue) {
         JsonNode jsonNode = super.get(key);
-        if (jsonNode == null) {
-            if (defaultValue.length > 0) return defaultValue[0];
-            throw new JsonParseException("Key '" + key + "' 不存在");
-        }
-        if (!jsonNode.isInt()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 int 类型");
-            }
-        }
-        return jsonNode.asInt();
+        return JsonUtils.getInt(jsonNode, defaultValue);
     }
 
-    public long getLong(String key, long... defaultValue) {
+    /**
+     * 获取 long 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public Long getLong(String key, Long... defaultValue) {
         JsonNode jsonNode = super.get(key);
-        if (jsonNode == null) {
-            if (defaultValue.length > 0) return defaultValue[0];
-            throw new JsonParseException("Key '" + key + "' 不存在");
-        }
-        if (!jsonNode.isNumber()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 long 类型");
-            }
-        }
-        return jsonNode.asLong();
+        return JsonUtils.getLong(jsonNode, defaultValue);
     }
 
-    public double getDouble(String key, double... defaultValue) {
+    /**
+     * 获取 double 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public Double getDouble(String key, Double... defaultValue) {
         JsonNode jsonNode = super.get(key);
-        if (jsonNode == null) {
-            if (defaultValue.length > 0) return defaultValue[0];
-            throw new JsonParseException("Key '" + key + "' 不存在");
-        }
-        if (!jsonNode.isNumber()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 double 类型");
-            }
-        }
-        return jsonNode.asDouble();
+        return JsonUtils.getDouble(jsonNode, defaultValue);
     }
 
+    /**
+     * 获取 decimal 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
     public BigDecimal getBigDecimal(String key, BigDecimal... defaultValue) {
         JsonNode jsonNode = super.get(key);
-        if (jsonNode == null) {
-            if (defaultValue.length > 0) return defaultValue[0];
-            throw new JsonParseException("Key '" + key + "' 不存在");
-        }
-        if (!jsonNode.isNumber()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 BigDecimal 类型");
-            }
-        }
-        return jsonNode.decimalValue();
+        return JsonUtils.getBigDecimal(jsonNode, defaultValue);
     }
 
-    public boolean getBoolean(String key, boolean... defaultValue) {
+    /**
+     * 获取 boolean 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
+    public Boolean getBoolean(String key, Boolean... defaultValue) {
         JsonNode jsonNode = super.get(key);
-        if (jsonNode == null) {
-            if (defaultValue.length > 0) return defaultValue[0];
-            throw new JsonParseException("Key '" + key + "' 不存在");
-        }
-        if (!jsonNode.isBoolean()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 boolean 类型");
-            }
-        }
-        return jsonNode.asBoolean();
+        return JsonUtils.getBoolean(jsonNode, defaultValue);
     }
 
+    /**
+     * 获取 boolean 类型
+     *
+     * <p>key 不存在时, 返回 defaultValue, 没设置 defaultValue 时, 则返回 null</p>
+     */
     public String getString(String key, String... defaultValue) {
         JsonNode jsonNode = super.get(key);
-        if (jsonNode == null) {
-            if (defaultValue.length > 0) return defaultValue[0];
-            throw new JsonParseException("Key '" + key + "' 不存在");
-        }
-        if (!jsonNode.isTextual()) {
-            if (defaultValue.length > 0) {
-                return defaultValue[0];
-            } else {
-                throw new JsonParseException("非 string 类型");
-            }
-        }
-        return jsonNode.asText();
+        return JsonUtils.getString(jsonNode, defaultValue);
     }
 
     /**
