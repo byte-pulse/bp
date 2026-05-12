@@ -27,4 +27,27 @@ public class RedisPrefixSerializer extends StringRedisSerializer {
     public byte[] serialize(@Nullable String s) {
         if (s == null) {
             return new byte[0];
+        }
+        String realKey = appProperties.getRedis().getPrefix() + s;
+        return super.serialize(realKey);
+    }
+
+    /**
+     * 反序列化
+     *
+     * @param bytes 数据
+     * @return 结果
+     */
+    @Override
+    public String deserialize(byte[] bytes) {
+        String s = bytes == null ? null : new String(bytes);
+        if (!StringUtils.hasText(s)) {
+            return s;
+        }
+        int index = s.indexOf(appProperties.getRedis().getPrefix());
+        if (index != -1) {
+            return s.substring(appProperties.getRedis().getPrefix().length());
+        }
+        return s;
+    }
 }
