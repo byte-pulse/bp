@@ -40,11 +40,11 @@ public class ControllerScan implements BeanFactoryPostProcessor {
      */
     @Override
     public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        List<String> basePackages = new ArrayList<>();
+        Set<String> basePackages = new LinkedHashSet<>();
         if (AutoConfigurationPackages.has(beanFactory)) {
-            List<String> packages = AutoConfigurationPackages.get(beanFactory);
-            basePackages.addAll(packages);
+            basePackages.addAll(AutoConfigurationPackages.get(beanFactory));
         }
+
         try {
             log.debug("开始扫描控制器接口, 扫描包: {}", basePackages);
             Set<Class<?>> controllerClasses = scanControllers(basePackages);
@@ -110,7 +110,7 @@ public class ControllerScan implements BeanFactoryPostProcessor {
     /**
      * 扫面控制器类
      */
-    private Set<Class<?>> scanControllers(List<String> basePackages) throws Exception {
+    private Set<Class<?>> scanControllers(Set<String> basePackages) throws Exception {
         Set<Class<?>> classes = new HashSet<>();
         ClassPathScanningCandidateComponentProvider scanner =
                 new ClassPathScanningCandidateComponentProvider(false);
