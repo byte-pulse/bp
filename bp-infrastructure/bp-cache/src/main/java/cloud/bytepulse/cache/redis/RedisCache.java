@@ -226,4 +226,94 @@ public class RedisCache {
                 .map(clazz::cast)
                 .collect(Collectors.toSet());
     }
+
+    /**
+     * 缓存Map
+     *
+     * @param key     缓存键值
+     * @param dataMap 缓存的数据
+     */
+    public <T> void setCacheMap(final String key, final Map<String, T> dataMap) {
+        if (dataMap != null) {
+            redisTemplate.opsForHash().putAll(key, dataMap);
+        }
+    }
+
+    /**
+     * 获得缓存的Map
+     *
+     * @param key 缓存键值
+     * @return 缓存对象
+     */
+    public <T> Map<String, T> getCacheMap(final String key, Class<T> clazz) {
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
+        if (entries == null || entries.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<String, T> result = new HashMap<>();
+        entries.forEach((k, v) -> {
+            if (k != null && v != null) {
+                result.put(String.valueOf(k), clazz.cast(v));
+            }
+        });
+        return result;
+    }
+
+    /**
+     * 往Hash中存入数据
+     *
+     * @param key   Redis键
+     * @param hKey  Hash键
+     * @param value 值
+     */
+    public <T> void setCacheMapValue(final String key, final String hKey, final T value) {
+        redisTemplate.opsForHash().put(key, hKey, value);
+    }
+
+    /**
+     * 获取Hash中的数据
+     *
+     * @param key  Redis键
+     * @param hKey Hash键
+     * @return Hash中的对象
+     */
+    public <T> T getCacheMapValue(final String key, final String hKey) {
+        HashOperations<String, String, T> opsForHash = redisTemplate.opsForHash();
+        return opsForHash.get(key, hKey);
+    }
+
+    /**
+     * 获取多个Hash中的数据
+     *
+     * @param key   Redis键
+     * @param hKeys Hash键集合
+     * @return Hash对象集合
+     */
+    public <T> List<T> getMultiCacheMapValue(final String key, final Collection<Object> hKeys, Class<T> clazz) {
+        List<Object> objects = redisTemplate.opsForHash().multiGet(key, hKeys);
+        return objects.stream()
+                .map(clazz::cast)
+                .toList();
+    }
+
+    /**
+     * 删除Hash中的某条数据
+     *
+     * @param key  Redis键
+     * @param hKey Hash键
+     * @return 是否成功
+     */
+    public boolean deleteCacheMapValue(final String key, final String hKey) {
+        return redisTemplate.opsForHash().delete(key, hKey) > 0;
+    }
+
+    /**
+     * 获得缓存的基本对象列表
+     *
+     * @param pattern 字符串前缀
+     * @return 对象列表
+     */
+    public Collection<String> keys(final String pattern) {
+        return redisTemplate.keys(pattern);
+    }
 }
