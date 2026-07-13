@@ -38,4 +38,35 @@ public class SysUser {
     private Date lastLogin;
     /**
      * 上一次登录IP
+     */
+    private String lastLoginIp;
+    /**
+     * 最后更新日期
+     */
+    private Date lastUpdate;
+    /**
+     * 状态 0 禁用 1 启用
+     */
+    private Integer status;
+    /**
+     * 简介
+     */
+    private String introduction;
+    /**
+     * 头像
+     */
+    private String avatar;
+    /**
+     * 手机号
+     */
+    private String phone;
+    /**
+     * 电子邮箱
+     */
+    private String email;
+    /**
+     * 注册日期
+     */
+    private Date registerDate;
+
 }
