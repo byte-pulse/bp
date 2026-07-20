@@ -40,4 +40,37 @@ public class SysLog {
      * http请求方式
      */
     private String httpMethod;
+    /**
+     * 查询参数
+     */
+    private String queryParams;
+    /**
+     * 请求体参数
+     */
+    private String bodyParams;
+    /**
+     * 响应结果
+     */
+    private String responseResult;
+    /**
+     * 请求时间戳
+     */
+    private Date requestTime;
+    /**
+     * 请求ip
+     */
+    private String requestIp;
+    /**
+     * 用户id
+     */
+    private Long userId;
+    /**
+     * 请求耗时
+     */
+    private Long cost;
+    /**
+     * 异常信息
+     */
+    private String exception;
+
 }
