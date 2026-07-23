@@ -11,10 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
@@ -40,10 +42,7 @@ public class ControllerScan implements BeanFactoryPostProcessor {
      */
     @Override
     public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        Set<String> basePackages = new LinkedHashSet<>();
-        if (AutoConfigurationPackages.has(beanFactory)) {
-            basePackages.addAll(AutoConfigurationPackages.get(beanFactory));
-        }
+        Set<String> basePackages = getComponentScanBasePackages(beanFactory);
 
         try {
             log.debug("开始扫描控制器接口, 扫描包: {}", basePackages);
@@ -105,6 +104,46 @@ public class ControllerScan implements BeanFactoryPostProcessor {
             throw new BeansException("扫描控制器接口失败: " + e.getMessage(), e) {
             };
         }
+    }
+
+    /**
+     * 获取 Spring 组件扫描的基础包路径
+     * 合并 AutoConfigurationPackages 和所有 @ComponentScan / @SpringBootApplication 中指定的扫描包
+     */
+    private Set<String> getComponentScanBasePackages(ConfigurableListableBeanFactory beanFactory) {
+        Set<String> basePackages = new LinkedHashSet<>();
+
+        // 从 AutoConfigurationPackages 获取基础包（启动类所在包）
+        if (AutoConfigurationPackages.has(beanFactory)) {
+            basePackages.addAll(AutoConfigurationPackages.get(beanFactory));
+        }
+
+        // 从所有 BeanDefinition 中提取 @ComponentScan 指定的额外扫描包
+        // @SpringBootApplication 内部包含 @ComponentScan，所以也会被覆盖到
+        for (String beanName : beanFactory.getBeanDefinitionNames()) {
+            BeanDefinition beanDef = beanFactory.getBeanDefinition(beanName);
+            String className = beanDef.getBeanClassName();
+            if (!StringUtils.hasText(className)) {
+                continue;
+            }
+            try {
+                Class<?> clazz = Class.forName(className);
+                ComponentScan componentScan = clazz.getAnnotation(ComponentScan.class);
+                if (componentScan != null) {
+                    String[] bp = componentScan.basePackages();
+                    if (bp.length > 0) {
+                        Collections.addAll(basePackages, bp);
+                    }
+                    for (Class<?> c : componentScan.basePackageClasses()) {
+                        basePackages.add(c.getPackage().getName());
+                    }
+                }
+            } catch (ClassNotFoundException | NoClassDefFoundError e) {
+                // 忽略无法加载的类（例如来自第三方库的 BeanDefinition）
+            }
+        }
+
+        return basePackages;
     }
 
     /**
