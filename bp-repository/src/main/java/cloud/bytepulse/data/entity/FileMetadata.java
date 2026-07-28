@@ -33,4 +33,32 @@ public class FileMetadata {
      */
     private String contentType;
     /**
+     * 文件大小
+     */
+    private Long size;
+    /**
+     * 访问级别：0=公开，1=需登录
+     */
+    private Integer accessLevel;
+    /**
+     * 业务类型
+     */
+    private String bizType;
+    /**
+     * 业务实体 ID
+     */
+    private String bizId;
+    /**
+     * 文件状态 0=删除,1=存在
+     */
+    private Integer status;
+    /**
+     * 上传时间
+     */
+    private Date createTime;
+    /**
+     * 删除日期
+     */
+    private Date deleteTime;
+
 }
