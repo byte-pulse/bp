@@ -168,9 +168,8 @@ public class LoggingFilter extends OncePerRequestFilter {
 
             requestBodyJson = requestBodyJson.equals("null") ? null : requestBodyJson;
 
-
-            // 控制台打印
-            log.info("接口调用 [TraceId={}] {} {}ms req = {} resp = {} ex = {}",
+            // 日志打印
+            log.debug("接口调用 [TraceId={}] {} {}ms req = {} resp = {} ex = {}",
                     traceId,
                     request.getRequestURI(),
                     cost,
@@ -178,7 +177,6 @@ public class LoggingFilter extends OncePerRequestFilter {
                     finalJson,
                     resolvedException != null ? resolvedException : "无异常"
             );
-
 
             // 需要日志, 存入数据库
             if (isPathMatching(ControllerApiConstant.NEED_LOGGING_API, requestURI)) {
