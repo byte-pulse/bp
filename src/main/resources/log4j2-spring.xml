@@ -7,14 +7,29 @@
         <Property name="LOG_DIR">.logs</Property>
     </Properties>
 
-
     <!-- 日志处理 -->
     <Appenders>
         <!-- 控制台输出 -->
-        <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout
-                    pattern="%green{%d{yyyy-MM-dd HH:mm:ss}} [%magenta{%thread}] %magenta{[%pid]} [%highlight{%-5p}] %cyan{%logger{1.}}⤵%n%msg%n%ex%n"/>
-        </Console>
+        <!-- dev,test -->
+        <SpringProfile name="dev,test">
+            <Console name="consoleDev" target="SYSTEM_OUT">
+                <PatternLayout
+                        pattern="%green{%d{yyyy-MM-dd HH:mm:ss}} [%magenta{%thread}] %magenta{[%pid]} [%highlight{%-5p}] %cyan{%logger{1.}}⤵%n%msg%n%ex%n"/>
+            </Console>
+            <Async name="asyncConsoleDev">
+                <AppenderRef ref="consoleDev"/>
+            </Async>
+        </SpringProfile>
+        <!-- prod -->
+        <SpringProfile name="prod">
+            <Console name="consoleProd" target="SYSTEM_OUT">
+                <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] [%pid] [%-5level] : %msg%n%ex"/>
+            </Console>
+            <Async name="asyncConsoleProd">
+                <AppenderRef ref="consoleProd"/>
+            </Async>
+        </SpringProfile>
+
         <!-- 输出到文件 -->
         <RollingFile name="rollingFileWarn"
                      fileName="${LOG_DIR}/${spring:spring.application.name}/warn.log"
@@ -25,7 +40,7 @@
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] [%pid] [%-5level] : %msg%n%ex"/>
             <Policies>
                 <!-- 单文件最大大小 -->
-                <SizeBasedTriggeringPolicy size="5MB"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
                 <!-- 按时间滚动 -->
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
@@ -44,7 +59,7 @@
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] [%pid] [%-5level] : %msg%n%ex"/>
             <Policies>
                 <!-- 单文件最大大小 -->
-                <SizeBasedTriggeringPolicy size="5MB"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
                 <!-- 按时间滚动 -->
                 <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
@@ -57,44 +72,38 @@
         <Async name="asyncRollingFileInfo">
             <AppenderRef ref="rollingFileInfo"/>
         </Async>
-        <Async name="asyncConsole">
-            <AppenderRef ref="console"/>
-        </Async>
     </Appenders>
 
     <Loggers>
         <SpringProfile name="dev,test">
             <Root level="error">
-                <AppenderRef ref="asyncConsole"/>
+                <AppenderRef ref="asyncConsoleDev"/>
             </Root>
             <Logger name="cloud.bytepulse" level="debug" additivity="false">
-                <AppenderRef ref="asyncConsole"/>
+                <AppenderRef ref="asyncConsoleDev"/>
             </Logger>
             <Logger name="org.springframework" level="info" additivity="false">
-                <AppenderRef ref="asyncConsole"/>
+                <AppenderRef ref="asyncConsoleDev"/>
+            </Logger>
+            <Logger name="org.springframework.web.servlet.DispatcherServlet" level="warn" additivity="false">
+                <AppenderRef ref="asyncConsoleDev"/>
+            </Logger>
+            <Logger name="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver"
+                    level="error" additivity="false">
+                <AppenderRef ref="asyncConsoleDev"/>
             </Logger>
         </SpringProfile>
 
-
         <SpringProfile name="prod">
             <Root level="error">
-                <AppenderRef ref="console"/>
+                <AppenderRef ref="asyncConsoleProd"/>
                 <AppenderRef ref="asyncRollingFileWarn"/>
             </Root>
             <Logger name="cloud.bytepulse" level="info" additivity="false">
-                <AppenderRef ref="asyncConsole"/>
+                <AppenderRef ref="asyncConsoleProd"/>
                 <AppenderRef ref="asyncRollingFileWarn"/>
                 <AppenderRef ref="asyncRollingFileInfo"/>
             </Logger>
         </SpringProfile>
-
-        <Logger name="org.springframework.web.servlet.DispatcherServlet" level="warn" additivity="false">
-            <AppenderRef ref="asyncConsole"/>
-        </Logger>
-
-        <Logger name="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver"
-                level="error" additivity="false">
-            <AppenderRef ref="asyncConsole"/>
-        </Logger>
     </Loggers>
 </Configuration>
