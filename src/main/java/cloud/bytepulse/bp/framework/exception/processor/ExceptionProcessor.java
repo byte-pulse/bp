@@ -1,5 +1,6 @@
 package cloud.bytepulse.bp.framework.exception.processor;
 
+import cloud.bytepulse.bp.common.util.TraceIdUtils;
 import cloud.bytepulse.bp.domain.ApiResponse;
 import cloud.bytepulse.bp.framework.exception.BytePulseArgumentNotValidException;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
@@ -53,7 +54,7 @@ public class ExceptionProcessor {
         if (cause != null) {
             log.warn("业务错误", cause);
         } else {
-            log.warn("业务错误: {}", ex.getMessage());
+            log.warn("业务错误 [TraceId={}]: {}", TraceIdUtils.get(), ex.getMessage());
         }
         ApiResponse<Void> error = ApiResponse.error(ex.getMessage());
         if (ex.getErrorCode() > 0) {
@@ -70,7 +71,7 @@ public class ExceptionProcessor {
     public ResponseEntity<ApiResponse<Void>> noResourceFoundException(NoResourceFoundException exception) {
         ApiResponse<Void> notFound = ApiResponse.notFound();
         notFound.message = "资源不存在: " + exception.getResourcePath();
-        log.warn("资源不存在: {}", exception.getResourcePath());
+        log.warn("资源不存在 [TraceId={}]: {}", TraceIdUtils.get(), exception.getResourcePath());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value())
                 .body(notFound);
     }
@@ -90,7 +91,7 @@ public class ExceptionProcessor {
             // 手动触发校验发生的异常
             errMsg = e.getMessage();
         }
-        log.warn("接口参数校验失败: {}", errMsg);
+        log.warn("接口参数校验失败 [TraceId={}]: {}", TraceIdUtils.get(), errMsg);
         return ApiResponse.badRequest(errMsg);
     }
 
@@ -119,7 +120,7 @@ public class ExceptionProcessor {
     @ResponseBody
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ApiResponse<Void>> dataAccessException(DataAccessException ex) {
-        log.error("数据访问错误", ex);
+        log.error("数据访问错误 [TraceId={}]", TraceIdUtils.get(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(ApiResponse.error());
     }
@@ -130,7 +131,7 @@ public class ExceptionProcessor {
     @ResponseBody
     @ExceptionHandler(SQLException.class)
     public ResponseEntity<ApiResponse<Void>> resolveException(SQLException ex) {
-        log.error("SQL 错误", ex);
+        log.error("SQL 错误 [TraceId={}]", TraceIdUtils.get(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(ApiResponse.error());
     }
@@ -142,7 +143,7 @@ public class ExceptionProcessor {
     @ExceptionHandler({BadCredentialsException.class, InternalAuthenticationServiceException.class})
     public ResponseEntity<ApiResponse<Void>> badCredentialsException(Exception ex) {
         String msg = ex.getMessage();
-        log.warn("授权登陆错误: {}", ex.getMessage());
+        log.warn("授权登陆错误 [TraceId={}]: {}", TraceIdUtils.get(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value())
                 .body(ApiResponse.unauthorized(msg));
     }
@@ -153,7 +154,7 @@ public class ExceptionProcessor {
     @ResponseBody
     @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class, AuthorizationServiceException.class})
     public ResponseEntity<ApiResponse<Void>> accessDeniedException(Exception ex) {
-        log.warn("权限错误: {}", ex.getMessage());
+        log.warn("权限错误 [TraceId={}]: {}", TraceIdUtils.get(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value())
                 .body(ApiResponse.forbidden());
     }
@@ -164,7 +165,7 @@ public class ExceptionProcessor {
     @ResponseBody
     @ExceptionHandler(ErrorResponseException.class)
     public ResponseEntity<ApiResponse<Void>> minioException(ErrorResponseException ex) {
-        log.error("Minio 文件处理异常", ex);
+        log.error("Minio 文件处理异常 [TraceId={}]", TraceIdUtils.get(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(ApiResponse.error());
     }
@@ -175,7 +176,7 @@ public class ExceptionProcessor {
     @ResponseBody
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> jsonNotReadableException(HttpMessageNotReadableException ex) {
-        log.warn("请求 JSON 解析错误: {}", ex.getMessage());
+        log.warn("请求 JSON 解析错误  [TraceId={}]: {}", TraceIdUtils.get(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
                 .body(ApiResponse.error());
     }
@@ -192,7 +193,7 @@ public class ExceptionProcessor {
         } else if (ex instanceof MissingServletRequestPartException me) {
             missingParameterName = me.getRequestPartName();
         }
-        log.warn("请求缺少参数: {}", missingParameterName);
+        log.error("缺少必要参数 [TraceId={}]: {} ", TraceIdUtils.get(), missingParameterName, ex);
         ApiResponse<Void> error = ApiResponse.error("缺少参数: " + missingParameterName);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
                 .body(error);
@@ -205,7 +206,7 @@ public class ExceptionProcessor {
     @ResponseBody
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> resolveException(Exception ex) {
-        log.error("未处理系统错误", ex);
+        log.error("未处理错误 [TraceId={}]", TraceIdUtils.get(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(ApiResponse.error());
     }
