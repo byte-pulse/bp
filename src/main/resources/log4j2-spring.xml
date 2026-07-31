@@ -4,7 +4,7 @@
                xsi:schemaLocation="https://logging.apache.org/xml/ns https://logging.apache.org/xml/ns/log4j-config-2.xsd">
 
     <Properties>
-        <Property name="LOG_DIR">.logs/</Property>
+        <Property name="LOG_DIR">.logs</Property>
     </Properties>
 
 
@@ -16,22 +16,25 @@
                     pattern="%green{%d{yyyy-MM-dd HH:mm:ss}} [%magenta{%thread}] %magenta{[%pid]} [%highlight{%-5p}] %cyan{%logger{1.}}⤵%n%msg%n%ex%n"/>
         </Console>
         <!-- 输出到文件 -->
-        <RollingFile name="rollingFileError"
-                     fileName="${LOG_DIR}/${spring:spring.application.name}/${date:yyyy-MM-dd}/error.log"
-                     filePattern="${LOG_DIR}/${spring:spring.application.name}/${date:yyyy-MM-dd}/error-%i.log">
+        <RollingFile name="rollingFileWarn"
+                     fileName="${LOG_DIR}/${spring:spring.application.name}/warn.log"
+                     filePattern="${LOG_DIR}/${spring:spring.application.name}/%d{yyyy-MM-dd}/warn-%i.log">
             <!-- 过滤级别 -->
-            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="deny"/>
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="deny"/>
             <!-- 消息格式 -->
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] [%pid] [%-5level] : %msg%n %ex"/>
             <Policies>
                 <!-- 单文件最大大小 -->
                 <SizeBasedTriggeringPolicy size="5MB"/>
+                <!-- 按时间滚动 -->
+                <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingFile>
+
         <RollingFile name="rollingFileInfo"
-                     fileName="${LOG_DIR}/${spring:spring.application.name}/${date:yyyy-MM-dd}/info.log"
-                     filePattern="${LOG_DIR}/${spring:spring.application.name}/${date:yyyy-MM-dd}/info-%i.log">
+                     fileName="${LOG_DIR}/${spring:spring.application.name}/info.log"
+                     filePattern="${LOG_DIR}/${spring:spring.application.name}/%d{yyyy-MM-dd}/info-%i.log">
             <!-- 只接收 INFO -->
             <LevelRangeFilter minLevel="info"
                               maxLevel="info"
@@ -42,12 +45,14 @@
             <Policies>
                 <!-- 单文件最大大小 -->
                 <SizeBasedTriggeringPolicy size="5MB"/>
+                <!-- 按时间滚动 -->
+                <TimeBasedTriggeringPolicy interval="1"/>
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingFile>
 
-        <Async name="asyncRollingFileError">
-            <AppenderRef ref="rollingFileError"/>
+        <Async name="asyncRollingFileWarn">
+            <AppenderRef ref="rollingFileWarn"/>
         </Async>
         <Async name="asyncRollingFileInfo">
             <AppenderRef ref="rollingFileInfo"/>
@@ -60,7 +65,7 @@
     <Loggers>
         <SpringProfile name="dev,test">
             <Root level="error">
-                <AppenderRef ref="console"/>
+                <AppenderRef ref="asyncConsole"/>
             </Root>
             <Logger name="cloud.bytepulse" level="debug" additivity="false">
                 <AppenderRef ref="asyncConsole"/>
@@ -74,12 +79,12 @@
         <SpringProfile name="prod">
             <Root level="error">
                 <AppenderRef ref="console"/>
-                <AppenderRef ref="asyncRollingFile"/>
+                <AppenderRef ref="asyncRollingFileWarn"/>
             </Root>
             <Logger name="cloud.bytepulse" level="info" additivity="false">
                 <AppenderRef ref="asyncConsole"/>
-                <AppenderRef ref="asyncRollingFile" level="error"/>
-                <AppenderRef ref="asyncRollingFileInfo" level="info"/>
+                <AppenderRef ref="asyncRollingFileWarn"/>
+                <AppenderRef ref="asyncRollingFileInfo"/>
             </Logger>
         </SpringProfile>
 
