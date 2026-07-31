@@ -1,0 +1,20 @@
+bp:
+  app:
+    login:
+      # 登陆超时时间
+      expiration-minutes: 30
+    redis:
+      # redis 前缀
+      prefix: 'bp:'
+    external-api:
+      iv: iv
+      secretKey: key
+    # minio 配置
+    minio:
+      endpoint: http://127.0.0.1:9000
+      accessKey: minioadmin
+      secretKey: minioadmin
+      bucketName: bp-file
+    captcha:
+      expiration-seconds: 30
+
