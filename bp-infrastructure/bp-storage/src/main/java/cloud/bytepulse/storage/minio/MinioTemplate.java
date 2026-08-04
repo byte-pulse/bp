@@ -261,4 +261,119 @@ public class MinioTemplate {
         }
         return fileNames;
     }
+
+    /**
+     * 生成临时访问 URL（预签名 URL）
+     *
+     * @param objectName 文件对象名
+     * @param expiry     链接有效时长(分钟)
+     */
+    public String preSignedUrl(String objectName, int expiry) throws Exception {
+        return minioClient.getPresignedObjectUrl(
+                GetPresignedObjectUrlArgs.builder()
+                        .bucket(minioProperties.getBucketName())
+                        .object(objectName)
+                        .method(Http.Method.GET)  // 生成 GET 方式的 URL
+                        .expiry(expiry, TimeUnit.MINUTES) // 设置 URL 过期时间
+                        .build()
+        );
+    }
+
+    /**
+     * 生成临时访问 URL（预签名 URL）
+     *
+     * @param objectName 文件对象名
+     */
+    public String preSignedUrl(String objectName) throws Exception {
+        StatObjectResponse fileInfo = fileInfo(objectName);
+        long size = fileInfo.size();
+        int expiry;
+        if (size < 10 * 1024 * 1024) {
+            // <10MB，10分钟
+            expiry = 10;
+        } else if (size < 100 * 1024 * 1024) {
+            // 10MB-100MB，60分钟
+            expiry = 60;
+        } else {
+            // >100MB，24小时
+            expiry = 60 * 24;
+        }
+        return preSignedUrl(objectName, expiry);
+    }
+
+    /**
+     * 下载文件
+     *
+     * @param objectName 文件对象名
+     */
+    public InputStream downloadFile(String objectName) throws Exception {
+        try {
+            if (!fileExists(objectName)) {
+                throw new BytePulseException(FileErrorCode.FILE_NOT_EXIST);
+            }
+            return minioClient.getObject(GetObjectArgs.builder().bucket(minioProperties.getBucketName()).object(objectName).build());
+        } catch (MinioException e) {
+            throw new BytePulseException(FileErrorCode.FILE_DOWNLOAD_FAIL, e);
+        }
+    }
+
+
+    /**
+     * 返回给前端下载
+     *
+     * @param objectName 文件对象名
+     * @param filename   指定文件名
+     */
+    public ResponseEntity<InputStreamResource> returnFile(String objectName, String filename, boolean download) throws Exception {
+        if (!fileExists(objectName)) {
+            throw new BytePulseException(FileErrorCode.FILE_NOT_EXIST);
+        }
+        InputStream inputStream = downloadFile(objectName);
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+
+        // 标记流的起始位置
+        bufferedInputStream.mark(Integer.MAX_VALUE);
+
+        //  检测文件类型
+        StatObjectResponse statObjectResponse = fileInfo(objectName);
+        String contentType = statObjectResponse.contentType();
+        if (contentType == null || contentType.isEmpty()) {
+            contentType = "application/octet-stream";
+        }
+
+        // 重置流到起始位置
+        bufferedInputStream.reset();
+
+        // 设置响应头
+        HttpHeaders headers = new HttpHeaders();
+        String encodedFileName = URLEncoder.encode(filename, StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+        if (download) {
+            // 强制下载：同时提供旧版 filename 和 UTF-8 编码的 filename*
+            headers.add(HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encodedFileName);
+        } else {
+            // 内联显示：优先用 filename*=UTF-8''，但部分浏览器可能不支持，所以也提供 filename
+            headers.add(HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename=\"" + filename + "\"; filename*=UTF-8''" + encodedFileName);
+        }
+        headers.add(HttpHeaders.CONTENT_TYPE, contentType);
+
+        return ResponseEntity.ok().headers(headers).body(new InputStreamResource(bufferedInputStream));
+    }
+
+    /**
+     * 返回给前端下载
+     * 自动获取文件名
+     *
+     * @param objectName 文件对象名|文件名
+     */
+    public ResponseEntity<InputStreamResource> returnFile(String objectName, boolean download) throws Exception {
+        if (!fileExists(objectName)) {
+            throw new BytePulseException(FileErrorCode.FILE_NOT_EXIST);
+        }
+        StatObjectResponse fileInfo = fileInfo(objectName);
+        String filename = extractFileName(fileInfo.object());
+        return returnFile(objectName, filename, download);
+    }
 }
