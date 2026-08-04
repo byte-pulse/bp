@@ -14,7 +14,7 @@
         <SpringProfile name="dev,test">
             <Console name="consoleDev" target="SYSTEM_OUT">
                 <PatternLayout
-                        pattern="%green{%d{yyyy-MM-dd HH:mm:ss}} [%magenta{%thread}] %magenta{[%pid]} [%highlight{%-5p}] %cyan{%logger{1.}}⤵%n%msg%n%ex%n"/>
+                        pattern="%green{%d{yyyy-MM-dd HH:mm:ss}} [%magenta{%-23t}] %magenta{[%pid]} [%highlight{%-5p}] %cyan{%logger{1.}}⤵%n%msg%n%ex%n"/>
             </Console>
             <Async name="asyncConsoleDev">
                 <AppenderRef ref="consoleDev"/>
@@ -23,7 +23,7 @@
         <!-- prod -->
         <SpringProfile name="prod">
             <Console name="consoleProd" target="SYSTEM_OUT">
-                <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] [%pid] [%-5level] : %msg%n%ex"/>
+                <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%-23t] [%pid] [%-5level] : %msg%n%ex"/>
             </Console>
             <Async name="asyncConsoleProd">
                 <AppenderRef ref="consoleProd"/>
@@ -37,7 +37,7 @@
             <!-- 过滤级别 -->
             <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="deny"/>
             <!-- 消息格式 -->
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] [%pid] [%-5level] : %msg%n%ex"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%-23t] [%pid] [%-5level] : %msg%n%ex"/>
             <Policies>
                 <!-- 单文件最大大小 -->
                 <SizeBasedTriggeringPolicy size="10MB"/>
@@ -56,7 +56,7 @@
                               onMatch="ACCEPT"
                               onMismatch="DENY"/>
             <!-- 消息格式 -->
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] [%pid] [%-5level] : %msg%n%ex"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%-23t] [%pid] [%-5level] : %msg%n%ex"/>
             <Policies>
                 <!-- 单文件最大大小 -->
                 <SizeBasedTriggeringPolicy size="10MB"/>
