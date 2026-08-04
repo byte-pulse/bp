@@ -14,7 +14,7 @@
         <SpringProfile name="dev,test">
             <Console name="consoleDev" target="SYSTEM_OUT">
                 <PatternLayout
-                        pattern="%green{%d{yyyy-MM-dd HH:mm:ss}} [%magenta{%-23t}] %magenta{[%pid]} [%highlight{%-5p}] %cyan{%logger{1.}}⤵%n%msg%n%ex%n"/>
+                        pattern="%green{%d{yyyy-MM-dd HH:mm:ss}} %magenta{[%-23t]} %magenta{[%pid]} %highlight{[%-5p]} %cyan{%logger{1.}}⤵%n%msg%n%ex%n"/>
             </Console>
             <Async name="asyncConsoleDev">
                 <AppenderRef ref="consoleDev"/>
