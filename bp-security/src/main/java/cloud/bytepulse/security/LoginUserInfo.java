@@ -32,4 +32,30 @@ public class LoginUserInfo {
      */
     private Date lastLogin;
 
+    /**
+     * 上一次登IP
+     */
+    private String lastLoginIp;
+
+    /**
+     * 最后更新日期
+     */
+    private Date lastUpdate;
+
+    /**
+     * 登录会话 指纹
+     */
+    private String fingerprint;
+
+    public LoginUserInfo() {
+    }
+
+    public LoginUserInfo(SysUser sysUser) {
+        this.userId = sysUser.getId();
+        this.nickname = sysUser.getNickname();
+        this.username = sysUser.getUsername();
+        this.lastLogin = sysUser.getLastLogin();
+        this.lastLoginIp = sysUser.getLastLoginIp();
+        this.lastUpdate = sysUser.getLastUpdate();
+    }
 }
