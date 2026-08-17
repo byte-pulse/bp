@@ -40,4 +40,37 @@ public class Auths {
         }
         return (LoginUser) authentication.getPrincipal();
     }
+
+    /**
+     * 获取当前用户信息
+     */
+    public static LoginUserInfo getUser() {
+        LoginUser loginUser = getLoginUser();
+        if (loginUser == null) {
+            return null;
+        }
+        return loginUser.getLoginUserInfo();
+    }
+
+    /**
+     * 获取当前用户id
+     */
+    public static Long getUserId() {
+        LoginUserInfo user = getUser();
+        if (user == null) {
+            return 0L;
+        }
+        return user.getUserId();
+    }
+
+    /**
+     * 获取当前用户操作权限
+     */
+    public static Set<String> getPermissions() {
+        LoginUser loginUser = getLoginUser();
+        if (loginUser == null) {
+            return new HashSet<>();
+        }
+        return loginUser.getPermissions();
+    }
 }
