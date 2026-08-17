@@ -47,4 +47,42 @@ public class LoginUser implements UserDetails {
         // 把permissions中的权限信息封装成SimpleGrantedAuthority对象
         return permissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
+
+    @Override
+    @JsonIgnore
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        if (loginUserInfo == null) {
+            return null;
+        }
+        return loginUserInfo.getUsername();
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isEnabled() {
+        return true;
+    }
 }
