@@ -29,4 +29,29 @@ import java.util.Set;
 public class UserDetailServiceImpl implements UserDetailsService {
 
     private final SysUserMapper sysUserMapper;
+
+    @Override
+    public @NonNull UserDetails loadUserByUsername(@NonNull String username) throws RuntimeException {
+        username = username.trim();
+        // 从数据库获取用户信息
+        QueryWrapper<SysUser> wrapper = new QueryWrapper<>();
+        wrapper.eq("status", "1");
+        // 判断手机号（11位数字，以'1'开头）
+        if (username.matches("^1[3-9]\\d{9}$")) {
+            wrapper.eq("phone", username);
+        } else if (username.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            wrapper.eq("email", username);
+        } else {
+            wrapper.eq("username", username);
+        }
+        SysUser sysUser = sysUserMapper.selectOne(wrapper);
+        if (sysUser == null) {
+            throw new BadCredentialsException("用户名或密码错误");
+        } else {
+            // TODO 用户操作权限信息
+            Set<String> permissions = new HashSet<>();
+            LoginUserInfo loginUserInfo = new LoginUserInfo(sysUser);
+            return new LoginUser(loginUserInfo, sysUser.getPassword(), permissions);
+        }
+    }
 }
