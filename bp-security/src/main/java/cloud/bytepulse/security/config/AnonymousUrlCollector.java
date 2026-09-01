@@ -41,4 +41,50 @@ public class AnonymousUrlCollector {
                 .sum();
         log.info("已注册 {} 个匿名接口", totalSize);
     }
+
+    private void collectAnonymousUrls() {
+        // 获取所有 RequestMapping 信息
+        Map<RequestMappingInfo, HandlerMethod> handlerMethods =
+                requestMappingHandlerMapping.getHandlerMethods();
+
+        for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handlerMethods.entrySet()) {
+            RequestMappingInfo info = entry.getKey();
+            HandlerMethod handlerMethod = entry.getValue();
+
+            // 检查方法本身是否有 @Anonymous 注解
+            boolean hasMethodAnnotation = handlerMethod.hasMethodAnnotation(Anonymous.class);
+
+            // 检查方法所在的类是否有 @Anonymous 注解
+            boolean hasClassAnnotation = handlerMethod.getBeanType()
+                    .isAnnotationPresent(Anonymous.class);
+
+            if (hasMethodAnnotation || hasClassAnnotation) {
+                PathPatternsRequestCondition condition = info.getPathPatternsCondition();
+                if (condition == null) continue;
+                Set<String> patternValues = condition.getPatternValues();
+                Set<RequestMethod> methods = info.getMethodsCondition().getMethods();
+                // 如果没有指定请求方法, 默认支持所有请求方法
+                if (methods.isEmpty()) {
+                    for (RequestMethod method : RequestMethod.values()) {
+                        ApiPathRegistry.ANONYMOUS_API
+                                .computeIfAbsent(
+                                        method.name(),
+                                        k -> ConcurrentHashMap.newKeySet()
+                                )
+                                .addAll(patternValues);
+                    }
+                } else {
+                    // 按指定的请求方法添加 URL
+                    for (RequestMethod method : methods) {
+                        ApiPathRegistry.ANONYMOUS_API
+                                .computeIfAbsent(
+                                        method.name(),
+                                        k -> ConcurrentHashMap.newKeySet()
+                                )
+                                .addAll(patternValues);
+                    }
+                }
+            }
+        }
+    }
 }
