@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.framework.config;
 
-import cloud.bytepulse.bp.framework.properties.AppProperties;
+import cloud.bytepulse.bp.core.properties.AppProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.serializer.StringRedisSerializer;

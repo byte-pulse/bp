@@ -4,7 +4,7 @@ import cloud.bytepulse.bp.common.enums.errorcode.FileErrorCode;
 import cloud.bytepulse.bp.domain.entity.FileMetadata;
 import cloud.bytepulse.bp.domain.mapper.FileMetadataMapper;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
-import cloud.bytepulse.bp.framework.properties.AppProperties;
+import cloud.bytepulse.bp.core.properties.AppProperties;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;

@@ -47,7 +47,7 @@ public class FileServiceImpl implements FileService {
     }
 
     /**
-     * 文件访问, 公开
+     * 文件访问
      *
      * @param fileId 文件id
      */
@@ -59,7 +59,7 @@ public class FileServiceImpl implements FileService {
         }
         if (fileMetadata.getAccessLevel() != 0) {
             // 不是公开文件, 重定向 到 可以鉴权的接口
-            String redirectUrl = "/file/private/" + fileId;
+            String redirectUrl = "/file/authentication/" + fileId;
             return ResponseEntity.status(HttpStatus.FOUND) // 302
                     .location(URI.create(redirectUrl)).build();
         }

@@ -2,7 +2,7 @@ package cloud.bytepulse.bp.common.util;
 
 import cloud.bytepulse.bp.common.enums.errorcode.FileErrorCode;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
-import cloud.bytepulse.bp.framework.properties.AppProperties;
+import cloud.bytepulse.bp.core.properties.AppProperties;
 import io.minio.*;
 import io.minio.errors.MinioException;
 import io.minio.messages.Item;

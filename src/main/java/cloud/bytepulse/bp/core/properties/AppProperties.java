@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.properties;
+package cloud.bytepulse.bp.core.properties;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -77,7 +77,7 @@ public class AppProperties {
          * minio 服务器地址
          */
         @NotBlank
-        private String endpoint;
+        private String endpoint = "http://127.0.0.1:9000";
         /**
          * minio 访问 key
          */

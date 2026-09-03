@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.framework.exception.processor;
 
 import cloud.bytepulse.bp.common.util.TraceIdUtils;
-import cloud.bytepulse.bp.domain.ApiResponse;
+import cloud.bytepulse.bp.common.web.ApiResponse;
 import cloud.bytepulse.bp.framework.exception.BytePulseArgumentNotValidException;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
 import io.minio.errors.ErrorResponseException;

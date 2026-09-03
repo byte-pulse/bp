@@ -6,8 +6,7 @@ import cloud.bytepulse.bp.app.auth.vo.auth.LoginResultVO;
 import cloud.bytepulse.bp.common.annotation.Anonymous;
 import cloud.bytepulse.bp.common.annotation.NoLogging;
 import cloud.bytepulse.bp.common.annotation.RequestLimit;
-import cloud.bytepulse.bp.common.util.RedisUtils;
-import cloud.bytepulse.bp.domain.ApiResponse;
+import cloud.bytepulse.bp.common.web.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +29,6 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
-
-    private final RedisUtils redisUtils;
 
     @GetMapping("/captcha")
     @Operation(summary = "获取验证码")

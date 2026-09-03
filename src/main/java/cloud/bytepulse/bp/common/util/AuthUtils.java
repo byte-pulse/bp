@@ -1,7 +1,7 @@
 package cloud.bytepulse.bp.common.util;
 
-import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
-import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
+import cloud.bytepulse.bp.domain.models.auth.LoginUser;
+import cloud.bytepulse.bp.domain.models.auth.LoginUserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

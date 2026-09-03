@@ -1,6 +1,6 @@
 package cloud.bytepulse.bp.framework.config;
 
-import cloud.bytepulse.bp.framework.properties.AppProperties;
+import cloud.bytepulse.bp.core.properties.AppProperties;
 import io.minio.MinioClient;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;

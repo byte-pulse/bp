@@ -10,10 +10,10 @@ import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.domain.entity.SysUser;
 import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
-import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
-import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUserInfo;
+import cloud.bytepulse.bp.domain.models.auth.LoginUser;
+import cloud.bytepulse.bp.domain.models.auth.LoginUserInfo;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
-import cloud.bytepulse.bp.framework.properties.AppProperties;
+import cloud.bytepulse.bp.core.properties.AppProperties;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.GifCaptcha;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser.NEED_RE_LOGIN;
+import static cloud.bytepulse.bp.domain.models.auth.LoginUser.NEED_RE_LOGIN;
 
 /**
  * @author jiejiebiezheyang

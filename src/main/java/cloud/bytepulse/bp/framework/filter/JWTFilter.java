@@ -4,8 +4,9 @@ import cloud.bytepulse.bp.common.constant.ControllerApiConstant;
 import cloud.bytepulse.bp.common.util.JWTUtils;
 import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
-import cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser;
-import cloud.bytepulse.bp.framework.properties.AppProperties;
+import cloud.bytepulse.bp.common.web.ApiResponse;
+import cloud.bytepulse.bp.domain.models.auth.LoginUser;
+import cloud.bytepulse.bp.core.properties.AppProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +21,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static cloud.bytepulse.bp.common.util.ReqUtils.isPathMatching;
-import static cloud.bytepulse.bp.domain.models.auth.pojo.LoginUser.NEED_RE_LOGIN;
+import static cloud.bytepulse.bp.domain.models.auth.LoginUser.NEED_RE_LOGIN;
 
 /**
  * token认证过滤器
@@ -46,7 +47,7 @@ public class JWTFilter extends OncePerRequestFilter {
         // 匿名接口和不存在的接口直接放行
         // 提供给第三方的接口也放行
         if (!ReqUtils.isPathMatching(ControllerApiConstant.ALL_API, requestURI)) {
-            Utils.printNotFound(request, response);
+            ApiResponse.printNotFound(request, response);
             return;
         }
         if (isPathMatching(ControllerApiConstant.ANONYMOUS_API, requestURI)
@@ -61,26 +62,26 @@ public class JWTFilter extends OncePerRequestFilter {
             userId = JWTUtils.parseToken(token, "userId", false);
             fingerprint = JWTUtils.parseToken(token, "fingerprint", false);
         } catch (Exception e) {
-            Utils.printUnauthorized(response, "未登录");
+            ApiResponse.printUnauthorized(response, "未登录");
             return;
         }
         // 从redis中获取用户信息
         LoginUser loginUser = redisUtils.getCacheObject("login:" + userId);
         if (loginUser == null || loginUser.getLoginUserInfo() == null) {
-            Utils.printUnauthorized(response, "登录状态失效");
+            ApiResponse.printUnauthorized(response, "登录状态失效");
             return;
         }
         String redisFingerprint = loginUser.getLoginUserInfo().getFingerprint();
         if (fingerprint == null) {
-            Utils.printUnauthorized(response, "登录过期");
+            ApiResponse.printUnauthorized(response, "登录过期");
             return;
         } else if (!fingerprint.equals(redisFingerprint)) {
-            Utils.printUnauthorized(response, "账号在别处登陆");
+            ApiResponse.printUnauthorized(response, "账号在别处登陆");
             return;
         }
         if (NEED_RE_LOGIN.contains(Long.valueOf(userId))) {
             NEED_RE_LOGIN.remove(Long.valueOf(userId));
-            Utils.printUnauthorized(response, "账户或角色有调整，请重新登录");
+            ApiResponse.printUnauthorized(response, "账户或角色有调整，请重新登录");
             return;
         }
         ReqUtils.getRequest().setAttribute("userId", userId);

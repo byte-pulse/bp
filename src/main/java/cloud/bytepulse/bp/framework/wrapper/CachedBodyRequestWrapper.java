@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.http.wrapper;
+package cloud.bytepulse.bp.framework.wrapper;
 
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;

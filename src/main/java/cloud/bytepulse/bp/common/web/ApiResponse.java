@@ -1,8 +1,13 @@
-package cloud.bytepulse.bp.domain;
+package cloud.bytepulse.bp.common.web;
 
 
+import cloud.bytepulse.bp.common.util.json.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
+
+import java.io.IOException;
 
 import static cloud.bytepulse.bp.common.constant.HttpStatusReasonPhraseCN.getReasonPhrase;
 
@@ -154,5 +159,26 @@ public class ApiResponse<T> {
      */
     public static ApiResponse<Void> notFound() {
         return new ApiResponse<>(HttpStatus.NOT_FOUND.value(), getReasonPhrase(HttpStatus.NOT_FOUND));
+    }
+
+    /**
+     * 401 输出
+     */
+    public static void printUnauthorized(HttpServletResponse response, String msg) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().println(JsonUtils.toJsonStr(ApiResponse.unauthorized(msg)));
+    }
+
+    /**
+     * 404 输出
+     *
+     */
+    public static void printNotFound(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.NOT_FOUND.value());
+        response.setContentType("application/json;charset=UTF-8");
+        ApiResponse<Void> notFound = ApiResponse.notFound();
+        notFound.message = "资源不存在:" + request.getRequestURI();
+        response.getWriter().println(JsonUtils.toJsonStr(notFound));
     }
 }

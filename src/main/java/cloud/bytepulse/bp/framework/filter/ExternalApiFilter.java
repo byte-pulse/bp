@@ -4,10 +4,11 @@ import cloud.bytepulse.bp.common.constant.ControllerApiConstant;
 import cloud.bytepulse.bp.common.util.CryptoUtils;
 import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
+import cloud.bytepulse.bp.common.web.ApiResponse;
 import cloud.bytepulse.bp.domain.entity.ApiCredentials;
 import cloud.bytepulse.bp.domain.mapper.ApiCredentialsMapper;
-import cloud.bytepulse.bp.framework.http.wrapper.CachedBodyRequestWrapper;
-import cloud.bytepulse.bp.framework.properties.AppProperties;
+import cloud.bytepulse.bp.framework.wrapper.CachedBodyRequestWrapper;
+import cloud.bytepulse.bp.core.properties.AppProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -63,32 +64,32 @@ public class ExternalApiFilter extends OncePerRequestFilter {
         String nonce = request.getHeader("X-Nonce");
         String signature = request.getHeader("X-Signature");
         if (appKey == null || timestamp == null || nonce == null || signature == null) {
-            Utils.printUnauthorized(response, "未授权");
+            ApiResponse.printUnauthorized(response, "未授权");
             return;
         }
         String hashAppKey = null;
         try {
             hashAppKey = CryptoUtils.getSHA256(appKey);
         } catch (Exception e) {
-            Utils.printUnauthorized(response, "未授权");
+            ApiResponse.printUnauthorized(response, "未授权");
             return;
         }
         // 查询 appKey
         ApiCredentials apiCredentials = apiCredentialsMapper.selectByApiKeyHash(hashAppKey);
         if (apiCredentials == null) {
-            Utils.printUnauthorized(response, "未授权");
+            ApiResponse.printUnauthorized(response, "未授权");
             return;
         }
         // 判断时间是否超多5分钟
         long timestampLong = Long.parseLong(timestamp);
         if (System.currentTimeMillis() - timestampLong > 5 * 60 * 1000) {
-            Utils.printUnauthorized(response, "未授权");
+            ApiResponse.printUnauthorized(response, "未授权");
             return;
         }
         String redisNonce = redisUtils.getCacheObject("nonce:" + appKey + ":" + nonce);
         // 判断 nonce 是否重复
         if ("1".equals(redisNonce)) {
-            Utils.printUnauthorized(response, "未授权");
+            ApiResponse.printUnauthorized(response, "未授权");
             return;
         }
         // 缓存 nonce
@@ -102,7 +103,7 @@ public class ExternalApiFilter extends OncePerRequestFilter {
                     secretKey,
                     CryptoUtils.base64ToIV(iv));
         } catch (Exception e) {
-            Utils.printUnauthorized(response, "未授权");
+            ApiResponse.printUnauthorized(response, "未授权");
             return;
         }
         StringBuilder stringBuilder = new StringBuilder();
@@ -113,7 +114,7 @@ public class ExternalApiFilter extends OncePerRequestFilter {
                     .append(nonce).append("\n")
                     .append(CryptoUtils.getSHA256(cachedBody));
         } catch (Exception e) {
-            Utils.printUnauthorized(response, "未授权");
+            ApiResponse.printUnauthorized(response, "未授权");
             return;
         }
         // 签名校验
@@ -121,13 +122,13 @@ public class ExternalApiFilter extends OncePerRequestFilter {
         try {
             sign = CryptoUtils.signHmacSHA256Hex(stringBuilder.toString(), userSecret);
         } catch (Exception e) {
-            Utils.printUnauthorized(response, "未授权");
+            ApiResponse.printUnauthorized(response, "未授权");
             return;
         }
         if (!MessageDigest.isEqual(
                 sign.getBytes(StandardCharsets.UTF_8),
                 signature.getBytes(StandardCharsets.UTF_8))) {
-            Utils.printUnauthorized(response, "未授权");
+            ApiResponse.printUnauthorized(response, "未授权");
             return;
         }
         filterChain.doFilter(cachedRequest, response);

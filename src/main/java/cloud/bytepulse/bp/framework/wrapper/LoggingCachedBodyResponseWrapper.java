@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.framework.http.wrapper;
+package cloud.bytepulse.bp.framework.wrapper;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.tomcat.util.http.fileupload.util.mime.MimeUtility;

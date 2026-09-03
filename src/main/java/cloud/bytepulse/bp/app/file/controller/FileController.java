@@ -23,8 +23,8 @@ public class FileController {
 
     private final FileService fileService;
 
-    @GetMapping("/private/{fileId}")
-    @Operation(summary = "文件访问, 需要权限")
+    @GetMapping("/authentication/{fileId}")
+    @Operation(summary = "文件需要鉴权", hidden = true)
     public ResponseEntity<Void> privateAccess(@PathVariable Long fileId) throws Exception {
         return fileService.privateAccess(fileId);
     }

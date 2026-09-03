@@ -14,7 +14,7 @@ public interface FileService {
     ResponseEntity<Void> privateAccess(Long fileId) throws Exception;
 
     /**
-     * 文件访问, 公开
+     * 文件访问
      */
     ResponseEntity<Void> access(Long fileId) throws Exception;
 }

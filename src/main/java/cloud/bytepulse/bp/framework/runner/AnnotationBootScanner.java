@@ -28,14 +28,14 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * 匿名接口扫描
+ * 自定义注解扫描
  *
  * @author jiejiebiezheyang
  * @since 2024-06-26 00:00
  */
 @Slf4j
 @Component
-public class ControllerScan implements BeanFactoryPostProcessor {
+public class AnnotationBootScanner implements BeanFactoryPostProcessor {
 
     /**
      * 扫描注解, 处理接口信息

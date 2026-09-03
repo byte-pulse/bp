@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.domain.models.auth.pojo;
+package cloud.bytepulse.bp.domain.models.auth;
 
 import cloud.bytepulse.bp.domain.entity.SysUser;
 import lombok.Data;
