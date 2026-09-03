@@ -50,4 +50,46 @@ public class SecurityFilterChainPrinter implements ApplicationListener<Applicati
                     filters.stream()
                             .map(f -> f.getClass().getSimpleName())
                             .mapToInt(String::length)
+                            .max()
+                            .orElse(0)
+            );
+
+            int classWidth = Math.max(
+                    "Class".length(),
+                    filters.stream()
+                            .map(f -> f.getClass().getName())
+                            .mapToInt(String::length)
+                            .max()
+                            .orElse(0)
+            );
+
+            String format = "| %-" + orderWidth + "s | %-" + nameWidth + "s | %-" + classWidth + "s |%n";
+
+            String separator =
+                    "+" + "-".repeat(orderWidth + 2)
+                            + "+" + "-".repeat(nameWidth + 2)
+                            + "+" + "-".repeat(classWidth + 2)
+                            + "+";
+
+            sb.append("\nChain #").append(chainIndex).append('\n');
+            sb.append(separator).append('\n');
+            sb.append(String.format(format, "Order", "Name", "Class"));
+            sb.append(separator).append('\n');
+
+            for (int j = 0; j < filters.size(); j++) {
+                Filter filter = filters.get(j);
+
+                sb.append(String.format(
+                        format,
+                        j,
+                        filter.getClass().getSimpleName(),
+                        filter.getClass().getName()
+                ));
+            }
+
+            sb.append(separator).append('\n');
+        }
+
+        log.debug("{}", sb);
+    }
 }
