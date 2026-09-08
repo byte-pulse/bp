@@ -8,7 +8,7 @@ import cloud.bytepulse.bp.common.web.ApiResponse;
 import cloud.bytepulse.bp.domain.entity.ApiCredentials;
 import cloud.bytepulse.bp.domain.mapper.ApiCredentialsMapper;
 import cloud.bytepulse.bp.framework.wrapper.CachedBodyRequestWrapper;
-import cloud.bytepulse.bp.core.properties.AppProperties;
+import cloud.bytepulse.bp.common.properties.AppProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

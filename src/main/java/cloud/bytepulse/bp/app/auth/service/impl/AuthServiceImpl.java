@@ -13,7 +13,7 @@ import cloud.bytepulse.bp.domain.mapper.SysUserMapper;
 import cloud.bytepulse.bp.domain.models.auth.LoginUser;
 import cloud.bytepulse.bp.domain.models.auth.LoginUserInfo;
 import cloud.bytepulse.bp.framework.exception.BytePulseException;
-import cloud.bytepulse.bp.core.properties.AppProperties;
+import cloud.bytepulse.bp.common.properties.AppProperties;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.GifCaptcha;
 import lombok.RequiredArgsConstructor;

@@ -6,7 +6,7 @@ import cloud.bytepulse.bp.common.util.RedisUtils;
 import cloud.bytepulse.bp.common.util.ReqUtils;
 import cloud.bytepulse.bp.common.web.ApiResponse;
 import cloud.bytepulse.bp.domain.models.auth.LoginUser;
-import cloud.bytepulse.bp.core.properties.AppProperties;
+import cloud.bytepulse.bp.common.properties.AppProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

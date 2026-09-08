@@ -1,4 +1,4 @@
-package cloud.bytepulse.bp.core.properties;
+package cloud.bytepulse.bp.common.properties;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
