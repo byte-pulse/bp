@@ -1,0 +1,23 @@
+${AnsiColor.BRIGHT_CYAN}
+ __               __                                    ___
+/\ \             /\ \__                                /\_ \
+\ \ \____  __  __\ \ ,_\    __           _____   __  __\//\ \     ____     __
+ \ \ '__`\/\ \/\ \\ \ \/  /'__`\ _______/\ '__`\/\ \/\ \ \ \ \   /',__\  /'__`\
+  \ \ \L\ \ \ \_\ \\ \ \_/\  __//\______\ \ \L\ \ \ \_\ \ \_\ \_/\__, `\/\  __/
+   \ \_,__/\/`____ \\ \__\ \____\/______/\ \ ,__/\ \____/ /\____\/\____/\ \____\
+    \/___/  `/___/> \\/__/\/____/         \ \ \/  \/___/  \/____/\/___/  \/____/
+               /\___/                      \ \_\
+               \/__/                        \/_/
+${AnsiColor.CYAN}
+*************************************************************************
+                             Byte-Pulse
+${AnsiColor.CYAN}Port: ${AnsiColor.GREEN}${server.port}
+${AnsiColor.CYAN}Gitee: ${AnsiColor.GREEN}${swagger.info.project.url}
+${AnsiColor.CYAN}Swagger UI: ${AnsiColor.GREEN}http://127.0.0.1:${server.port}/swagger-ui/index.html
+${AnsiColor.CYAN}Druid UI: ${AnsiColor.GREEN}http://127.0.0.1:${server.port}/druid/login.html
+${AnsiColor.CYAN}Application Name: ${AnsiColor.GREEN}${spring.application.name}
+${AnsiColor.CYAN}Springboot Version: ${AnsiColor.GREEN}v${spring-boot.version}
+${AnsiColor.CYAN}Java Version: ${AnsiColor.GREEN}v${java.version}
+${AnsiColor.CYAN}untime OS: ${AnsiColor.GREEN}${os.name}
+${AnsiColor.CYAN}Project Dir: ${AnsiColor.GREEN}${user.dir}${file.separator}
+${AnsiColor.CYAN}*************************************************************************${AnsiColor.DEFAULT}

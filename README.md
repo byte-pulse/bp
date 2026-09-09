@@ -1,39 +1,156 @@
 # BytePulse BP
 
-企业级 Spring Boot 通用开发框架，集成认证授权、日志追踪、文件存储、第三方接口认证等核心能力。
+> 企业级 Spring Boot 多模块开发框架。内置认证授权、接口限流、文件存储、异步日志等能力，
+> 采用「按层分模块 + 配置驱动」的组织方式，适合作为后端服务脚手架。
+
+- 启动类：`cloud.bytepulse.BootApplication`（模块 `bp-app`）
+- 默认端口：`19420`，上下文路径：`/`
+- 应用名：`byte-pulse`
+- 技术基线：Java 25 · Spring Boot 4.1.1 · MyBatis-Plus 3.5.17
+
+---
+
+## 目录
+
+- [核心特性](#核心特性)
+- [技术栈](#技术栈)
+- [模块架构](#模块架构)
+- [环境要求](#环境要求)
+- [快速开始](#快速开始)
+- [配置文件](#配置文件)
+- [接口一览](#接口一览)
+- [核心机制](#核心机制)
+  - [统一响应格式](#统一响应格式)
+  - [认证与 Token 管理](#认证与-token-管理)
+  - [自定义注解体系](#自定义注解体系)
+  - [分布式限流](#分布式限流)
+  - [全局异常处理与错误码](#全局异常处理与错误码)
+  - [文件访问](#文件访问)
+- [数据库表](#数据库表)
+- [功能状态说明](#功能状态说明)
+- [开发指南](#开发指南)
+- [许可证](#许可证)
+
+---
 
 ## 核心特性
 
-- **JWT 认证授权** - 无状态 Token 认证，支持登录状态管理与 Token 刷新
-- **第三方接口认证** - HMAC-SHA256 签名 + Nonce 防重放攻击
-- **请求日志追踪** - TraceId 链路追踪，完整记录请求响应
-- **MinIO 文件存储** - 对象存储服务，支持公开/私有访问控制
-- **接口限流防护** - 基于 Redis + Lua 的分布式限流
-- **统一异常处理** - 全局异常捕获，标准化错误响应
-- **API 文档自动生成** - SpringDoc OpenAPI 3.0
+- **多模块分层架构** - `repository / service / web / security / infrastructure / common` 六层解耦，依赖方向自底向上。
+- **JWT + Redis 认证** - Spring Security 无状态认证；Token 明文（JWT 仅携带 `userId` 与 `fingerprint`），登录态存 Redis 并支持**滑动续期**与**单会话互踢**。
+- **图形验证码** - Hutool `GifCaptcha` 动态 GIF，校验码存 Redis，一次一验。
+- **多方式账号登录** - 用户名 / 手机号 / 邮箱三种标识自动路由查询，BCrypt 校验。
+- **分布式接口限流** - `@RequestLimit` 注解 + Redis Lua 原子计数，已登录按 `userId`、未登录按 IP。
+- **MinIO 文件访问** - 公开/鉴权两种访问模式，预签名 URL 302 跳转，Tika 探测 Content-Type。
+- **灵活注解控制** - `@Anonymous`、`@NoLogging`、`@Pageable`、`@RequestLimit` 覆盖安全、日志、文档、限流。
+- **统一异常与响应** - 全局异常处理器 + 中文语义化响应 + 业务错误码唯一性启动校验。
+- **丰富基础设施** - 动态数据源(Druid + MyBatis-Plus)、Redis 带前缀序列化、虚拟线程、SpringDoc、Actuator 全端点、RabbitMQ(预留)。
+
+---
 
 ## 技术栈
 
-| 技术            | 版本   | 说明         |
-| --------------- | ------ | ------------ |
-| Spring Boot     | 3.5.12 | 核心框架     |
-| Spring Security | -      | 安全框架     |
-| MyBatis-Plus    | 3.5.16 | ORM 框架     |
-| Druid           | 1.2.28 | 数据库连接池 |
-| Redis           | -      | 分布式缓存   |
-| SpringDoc       | 2.8.16 | API 文档     |
-| JJWT            | 0.13.0 | JWT 认证     |
-| MinIO           | 9.0.0  | 对象存储     |
-| Apache Tika     | 3.3.0  | 文件类型检测 |
-| Kaptcha         | 2.3.2  | 图形验证码   |
+| 分类     | 组件                     | 版本           | 说明                                   |
+| -------- | ------------------------ | -------------- | -------------------------------------- |
+| 语言     | Java                     | 25             | `java.version=25`                      |
+| 框架     | Spring Boot              | 4.1.1          | 含虚拟线程                             |
+| 安全     | Spring Security          | Boot BOM 管理  | JWT 无状态认证                         |
+| ORM      | MyBatis-Plus             | 3.5.17         | `mybatis-plus-spring-boot4-starter`    |
+| 多数据源 | dynamic-datasource       | 4.5.0          | master/slave                           |
+| 连接池   | Druid                    | 1.2.28         | `druid-spring-boot-4-starter` + 监控台 |
+| 分页     | PageHelper               | starter 4.1.1  | MySQL 方言                             |
+| 缓存     | Spring Data Redis        | Boot BOM 管理  | Lettuce 连接池                         |
+| 文档     | SpringDoc OpenAPI        | 3.1.0          | swagger-ui                             |
+| JWT      | JJWT                     | 0.13.0         | 签名/解析                              |
+| 验证码   | hutool-captcha           | 5.8.44         | GIF 验证码                             |
+| 对象存储 | MinIO SDK                | 9.0.3          | 文件上传/预签名                        |
+| 文件类型 | Apache Tika              | 4.0.0          | Content-Type 探测                      |
+| JSON     | fastjson2                | 2.0.65         | 响应/过滤链输出                        |
+| MQ       | spring-boot-starter-amqp | Boot BOM 管理  | 预留模块                               |
+| HTTP     | OkHttp / UniRest         | 5.5.0 / 4.10.1 | 第三方调用                             |
+| 编译     | Lombok                   | Boot BOM 管理  | 注解处理器手动装配                     |
+
+> 版本统一由根 [pom.xml](pom.xml) 的 `dependencyManagement` 声明，各子模块不重复写版本号；
+> 因此**必须从根目录进行 reactor 聚合构建**，单个子模块无法独立打包。
+
+---
+
+## 模块架构
+
+根聚合 POM：`cloud.bytepulse:bp:0.0.1`，聚合顺序 `bp-repository → bp-common → bp-infrastructure → bp-web → bp-app → bp-service → bp-security`（顺序对聚合无影响，依赖由 POM 声明决定）。
+
+```
+bp (聚合 POM)
+├── bp-common
+│   └── bp-common-core            # 公共核心：注解/响应模型/异常/错误码/工具类/配置属性/全局过滤器
+├── bp-infrastructure
+│   ├── bp-cache                  # Redis 封装：带前缀序列化 + 对象/字符串/集合操作
+│   ├── bp-storage                # MinIO 封装：上传/下载/删除/预签名 URL
+│   └── bp-mq                     # RabbitMQ 预留模块（仅引入 starter，暂无源码）
+├── bp-repository                 # 数据访问：实体、BaseMapper 接口、MyBatis 配置
+├── bp-security                   # 认证授权：SecurityConfig、JwtFilter、LoginUser、权限上下文
+├── bp-service                    # 业务服务：auth / file / logging
+├── bp-web                        # Web 层：Controller、切面限流、全局异常、日志过滤器
+└── bp-app                        # 启动模块：BootApplication、可执行 jar、全部环境配置
+```
+
+模块依赖关系（箭头 = 依赖）：
+
+```
+bp-common-core (无内部依赖，最底层)
+   ▲
+   ├── bp-cache ── bp-storage ── bp-mq        (bp-infrastructure)
+   │        │        │
+   ├── bp-repository   (依赖 bp-common-core)
+   │        ▲
+   ├── bp-security     (依赖 bp-repository + bp-cache)
+   │        ▲
+   ├── bp-service      (依赖 cache/storage/mq/repository/security)
+   │        ▲
+   ├── bp-web          (依赖 bp-service + starter-web/actuator)
+   │        ▲
+   └── bp-app          (依赖 bp-web，可执行)
+```
+
+组件装配说明：
+
+- 各模块 Java 类均位于 `cloud.bytepulse.*` 包，由 `BootApplication`（包 `cloud.bytepulse`）统一组件扫描；
+- Mapper 由 `MyBatisConfig` 的 `@MapperScan("cloud.bytepulse.**.mapper")` 装配，实体字段遵循「下划线 ↔ 驼峰」自动映射；
+- Redis / MinIO / MQ 等外部组件配置统一由 `bp.app.*` 前缀 + 各环境 YAML 驱动。
+
+### 关键类索引
+
+| 模块           | 包                                  | 说明                                                        |
+| -------------- | ----------------------------------- | ----------------------------------------------------------- |
+| bp-common-core | `common.core.annotation`            | `Anonymous` / `NoLogging` / `Pageable` / `RequestLimit`     |
+| bp-common-core | `common.core.model`                 | `ApiResponse<T>` 统一响应                                   |
+| bp-common-core | `common.core.exception`             | `BytePulseException`、错误码枚举、重复错误码校验器          |
+| bp-common-core | `common.core.properties`            | `AppProperties`（前缀 `bp.app`）                            |
+| bp-common-core | `common.core.constant`              | `ApiPathRegistry` 匿名/免日志路径注册表                     |
+| bp-common-core | `common.core.util`                  | `JWTUtils` / `CryptoUtils` / `ReqUtils` / `TraceIdUtils` 等 |
+| bp-security    | `security.config`                   | `SecurityConfig` 过滤链、匿名路径收集器                     |
+| bp-security    | `security.filter`                   | `JwtFilter`                                                 |
+| bp-security    | `security`                          | `LoginUser` / `LoginUserInfo` / `Auths`                     |
+| bp-cache       | `cache.redis`                       | `RedisCache` / `RedisConfig` / `RedisPrefixSerializer`      |
+| bp-storage     | `storage.minio`                     | `MinioTemplate` / `MinioConfig`                             |
+| bp-repository  | `data.entity` / `data.mapper`       | 4 张表实体 + 4 个 Mapper                                    |
+| bp-service     | `service.auth` / `file` / `logging` | 登录、文件、日志服务                                        |
+| bp-web         | `web.aspect`                        | `RequestLimitAspect`（Redis Lua 限流）                      |
+| bp-web         | `web.exception.handler`             | `GlobalExceptionHandler`                                    |
+| bp-web         | `web.logging`                       | `LoggingFilter` 与请求/响应包装器                           |
+| bp-web         | `web.controller`                    | `AuthController` / `FileController`                         |
+
+---
 
 ## 环境要求
 
-- JDK 21+
-- Maven 3.6+
-- MySQL 8.0+
+- JDK 25+
+- Maven 3.9+
+- MySQL 8.0+（数据库名默认 `bytepulse`）
 - Redis 6.0+
-- MinIO (可选，用于文件存储)
+- MinIO（可选，仅在文件上传/访问时需要）
+- RabbitMQ（可选，`bp-mq` 目前为预留模块，不启动不影响应用）
+
+---
 
 ## 快速开始
 
@@ -44,24 +161,19 @@ git clone https://gitee.com/byte-pulse/bp.git
 cd bp
 ```
 
-### 2. 数据库初始化
+### 2. 初始化数据库
 
 ```bash
 mysql -u root -p < init.sql
 ```
 
-初始化脚本将创建以下数据表：
-
-| 表名            | 说明                                     |
-| --------------- | ---------------------------------------- |
-| sys_user        | 系统用户表，默认管理员: admin / admin123 |
-| sys_log         | 系统日志表，记录 TraceId 追踪信息        |
-| api_credentials | API 凭证表，用于第三方接口认证           |
-| file_metadata   | 文件元数据表                             |
+脚本创建 `bytepulse` 库所需的 4 张表，并内置管理员 `admin`（密码以 BCrypt 哈希固化在脚本中；
+如需自定义密码，请在导入前将 `sys_user` 的 `password` 字段替换为目标密码的 BCrypt 值）。
 
 ### 3. 修改配置
 
-编辑 `src/main/resources/application-dev.yaml`：
+开发环境配置位于 `bp-app/src/main/resources/application-dev.yaml`，
+修改数据源、Redis、MinIO 指向即可：
 
 ```yaml
 spring:
@@ -69,364 +181,295 @@ spring:
     dynamic:
       datasource:
         master:
-          url: jdbc:mysql://localhost:3306/bytepulse?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
-          username: your_username
-          password: your_password
+          url: jdbc:mysql://localhost:3306/bytepulse?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+          username: root
+          password: 你的密码
+          driverClassName: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: localhost
+      host: 127.0.0.1
       port: 6379
+      database: 0
 
-app:
-  minio:
-    endpoint: http://localhost:9000
-    access-key: minioadmin
-    secret-key: minioadmin
-    bucket-name: bytepulse
+bp:
+  app:
+    minio:
+      endpoint: http://127.0.0.1:9000
+      accessKey: minioadmin
+      secretKey: minioadmin
+      bucketName: bytepulse
 ```
 
-### 4. 启动项目
+> 环境 YAML（dev/test/prod）会覆盖 `config/application-app.yaml` 中的同名默认项（例如 MinIO `bucketName`）。
+
+### 4. 构建并启动
 
 ```bash
+# 根目录聚合构建（必须，子模块依赖根 POM 的依赖管理）
 mvn clean install -DskipTests
-mvn spring-boot:run -Pdev
+
+# 方式一：开发模式运行（默认 active=dev）
+mvn spring-boot:run -pl bp-app -am
+
+# 方式二：打包后运行
+mvn clean package -DskipTests
+java -jar bp-app/target/bp-app-0.0.1.jar
 ```
 
 ### 5. 访问应用
 
-- 应用地址: http://localhost:19420
-- API 文档: http://localhost:19420/swagger-ui.html
-- 健康检查: http://localhost:19420/actuator/health
+| 入口         | 地址                                         | 备注                         |
+| ------------ | -------------------------------------------- | ---------------------------- |
+| 应用         | http://localhost:19420/                      | 默认上下文 `/`               |
+| Swagger UI   | http://localhost:19420/swagger-ui/index.html | 默认分组「(全部接口)」       |
+| Druid 监控台 | http://localhost:19420/druid/login.html      | 账密 `bytepulse / bytepulse` |
+| 健康检查     | http://localhost:19420/actuator/health       | Actuator 全端点已暴露        |
 
-## 项目结构
+Swagger / Druid / Actuator 路径默认在匿名放行名单内，可直接访问。
+
+---
+
+## 配置文件
+
+`bp-app/src/main/resources/`：
 
 ```
-src/main/java/cloud/bytepulse/bp/
-├── BPApplication.java              # 启动类
-├── app/                            # 应用层
-│   ├── auth/                       # 认证模块
-│   │   ├── controller/             # 认证控制器
-│   │   ├── dto/                    # 数据传输对象
-│   │   ├── service/                # 认证服务
-│   │   └── vo/                     # 视图对象
-│   ├── file/                       # 文件模块
-│   │   ├── controller/             # 文件控制器
-│   │   └── service/                # 文件服务
-│   ├── logging/                    # 日志模块
-│   └── scheduler/                  # 定时任务
-├── common/                         # 公共模块
-│   ├── annotation/                 # 自定义注解
-│   │   ├── Anonymous.java          # 匿名访问注解
-│   │   ├── ExternalApi.java        # 第三方接口注解
-│   │   ├── NoLogging.java          # 跳过日志注解
-│   │   └── RequestLimit.java       # 接口限流注解
-│   ├── constant/                   # 常量定义
-│   ├── enums/                      # 枚举类
-│   │   └── errorcode/              # 错误码枚举
-│   └── util/                       # 工具类
-│       ├── json/                   # JSON 工具
-│       ├── AuthUtils.java          # 认证工具
-│       ├── CryptoUtils.java        # 加密工具
-│       ├── DateUtils.java          # 日期工具
-│       ├── JWTUtils.java           # JWT 工具
-│       ├── MinioUtils.java         # MinIO 工具
-│       ├── RedisUtils.java         # Redis 工具
-│       └── TraceIdUtils.java       # TraceId 工具
-├── domain/                         # 领域模型
-│   ├── entity/                     # 实体类
-│   ├── mapper/                     # 数据访问层
-│   └── ApiResponse.java            # 统一响应格式
-└── framework/                      # 框架层
-    ├── aspect/                     # 切面编程
-    ├── config/                     # 配置类
-    ├── exception/                  # 异常处理
-    ├── filter/                     # 过滤器
-    │   ├── ExternalApiFilter.java  # 第三方接口认证过滤器
-    │   ├── JWTFilter.java          # JWT 认证过滤器
-    │   └── LoggingFilter.java      # 日志过滤器
-    ├── http/                       # HTTP 相关
-    │   └── wrapper/                # 请求响应包装器
-    ├── lifecycle/                  # 生命周期
-    ├── properties/                 # 配置属性
-    └── runner/                     # 启动运行器
+application.yaml                 # 基础配置：端口、Jackson、Redis 池、虚拟线程、multipart、springdoc
+application-dev.yaml             # 开发环境：数据源/Redis/RabbitMQ/MinIO
+application-test.yaml            # 测试环境
+application-prod.yaml            # 生产环境
+config/application-app.yaml      # profile=app：bp.app.* 公共业务默认值
+config/application-druid.yaml    # profile=druid：Druid 连接池 + 监控台 + MyBatis/分页
 ```
 
-## 核心功能
+`application.yaml` 默认 `spring.profiles.include: app,druid`、`spring.profiles.active: dev`；
+dev/test/prod 三套环境结构一致（数据源默认 master/slave 均指向本地 `bytepulse` 库，供读写分离扩展），
+激活哪个 profile 即生效哪份数据源配置。日志框架为 Log4j2（`log4j2-spring.xml`），按环境输出到 `.logs/` 目录。
+
+### `bp.app` 业务配置项
+
+| 配置项                              | 默认值                  | 说明                                                    |
+| ----------------------------------- | ----------------------- | ------------------------------------------------------- |
+| `bp.app.login.expiration-minutes`   | `30`                    | 登录态 Redis 有效期(分钟)，`0` = 永久                   |
+| `bp.app.redis.prefix`               | `bp:`                   | Redis 键前缀（写读自动补/去）                           |
+| `bp.app.minio.endpoint`             | `http://127.0.0.1:9000` | MinIO 地址                                              |
+| `bp.app.minio.access-key`           | `minioadmin`            | 访问密钥                                                |
+| `bp.app.minio.secret-key`           | `minioadmin`            | 私钥（dev 环境为 `minioadmin123`）                      |
+| `bp.app.minio.bucket-name`          | `bp-file`               | 默认桶（环境 YAML 覆盖为 `bytepulse`）                  |
+| `bp.app.captcha.width`              | `160`                   | 验证码宽度                                              |
+| `bp.app.captcha.height`             | `60`                    | 验证码高度                                              |
+| `bp.app.captcha.length`             | `4`                     | 验证码字符数                                            |
+| `bp.app.captcha.expiration-seconds` | `30`                    | 验证码有效期(秒)                                        |
+| `bp.app.external-api.secret-key`    | `key`                   | 第三方接口密钥（占位，见[功能状态说明](#功能状态说明)） |
+| `bp.app.external-api.iv`            | `iv`                    | AES IV（占位，见[功能状态说明](#功能状态说明)）         |
+
+---
+
+## 接口一览
+
+| 接口                            | 方法 | 说明                                              | 权限                          |
+| ------------------------------- | ---- | ------------------------------------------------- | ----------------------------- |
+| `/auth/captcha`                 | GET  | 获取 GIF 验证码（返回 `captcha` Base64 与 `uid`） | 匿名 + 限流                   |
+| `/auth/login`                   | POST | 用户名密码登录（携带验证码）                      | 匿名                          |
+| `/auth/getToken`                | POST | 免验证码快速登录                                  | 匿名，仅 `dev`/`test` profile |
+| `/auth/check`                   | GET  | 检查登录态                                        | 需登录                        |
+| `/file/access/{fileId}`         | GET  | 公开文件访问（302 到预签名 URL）                  | 匿名                          |
+| `/file/authentication/{fileId}` | GET  | 私有文件访问（登录鉴权后 302）                    | 需登录                        |
+
+---
+
+## 核心机制
 
 ### 统一响应格式
 
-所有接口返回统一的 JSON 格式：
+所有接口返回统一 JSON。成功响应 `data` 存在时：
 
 ```json
 {
   "code": 200,
-  "message": "操作成功",
-  "data": {},
-  "traceId": "a1b2c3d4e5f6",
-  "timestamp": 1712345678901
+  "message": "成功",
+  "data": {}
 }
 ```
 
-### JWT 认证
-
-#### 认证接口
-
-| 接口           | 方法 | 说明                   | 权限              |
-| -------------- | ---- | ---------------------- | ----------------- |
-| /auth/captcha  | GET  | 获取验证码             | 匿名              |
-| /auth/login    | POST | 用户登录               | 匿名              |
-| /auth/check    | GET  | 检查登录状态           | 需登录            |
-| /auth/getToken | POST | 开发环境快速获取 Token | 匿名 (仅开发环境) |
-
-#### 登录流程
-
-1. 调用 `/auth/captcha` 获取验证码
-2. 提交用户名、密码、验证码到 `/auth/login`
-3. 获取 JWT Token，后续请求在 Header 中携带 `Authorization: <token>`
-
-#### Token 管理
-
-- Token 存储于 Redis，支持分布式部署
-- 支持配置登录过期时间
-- 支持设备指纹校验，防止多设备登录
-- 支持强制重新登录机制
-
-### 第三方接口认证
-
-使用 `@ExternalApi` 注解标记第三方接口：
+- `data` / `e` / `traceId` / `timestamp` 字段均为 `@JsonInclude(NON_NULL)`，空值不输出；
+- `traceId` / `timestamp` 为预留字段（见[功能状态说明](#功能状态说明)）；
+- 业务异常时 `code` 会被替换为具体业务错误码（如验证码错误 `10001`）而非 `500`。
 
 ```java
-@PostMapping("/external")
-@Operation(summary = "第三方接口")
-@ExternalApi
-public ApiResponse<OrderVO> externalApi(@RequestBody OrderDTO orderDTO) {
-    return ApiResponse.success(orderVO);
-}
+return ApiResponse.success(data);          // code=200
+return ApiResponse.badRequest("参数有误"); // code=400
+return ApiResponse.unauthorized("未登录"); // code=401
+return ApiResponse.forbidden();            // code=403
+return ApiResponse.notFound();             // code=404
+return ApiResponse.error("服务内部错误");   // code=500
 ```
 
-#### 请求头要求
+### 认证与 Token 管理
 
-| Header      | 说明                |
-| ----------- | ------------------- |
-| X-App-Key   | 应用标识            |
-| X-Timestamp | 请求时间戳 (毫秒)   |
-| X-Nonce     | 随机字符串 (防重放) |
-| X-Signature | HMAC-SHA256 签名    |
+登录流程（`AuthServiceImpl`）：
 
-#### 签名算法
+1. 客户端先调 `/auth/captcha` 获取 GIF 验证码与 `uid`；
+2. `/auth/login` 提交 `username/password/uid/captcha`，先校验验证码（取用即删、大小写不敏感）；
+3. 通过 Spring Security `AuthenticationManager` + `BCryptPasswordEncoder` 校验密码；
+4. 生成随机 `fingerprint`（UUID），签发仅含 `userId`、`fingerprint` 的 JWT；
+5. 用户信息（`LoginUser`）序列化写入 Redis `login:{userId}`，TTL = `bp.app.login.expiration-minutes`；
+6. 返回 `userId / nickname / username / lastLogin / lastLoginIp / token`。
 
-```
-body_hash = SHA256(body) -> Base64
-sign_content = uri + "\n" + app_key + "\n" + timestamp + "\n" + nonce + "\n" + body_hash
-signature = HMAC-SHA256(sign_content, api_secret)
-```
+请求认证（`JwtFilter`）：
 
-#### Python 调用示例
+- 携带 `Authorization: <token>` 访问受保护接口；
+- 匿名路径（`ApiPathRegistry` + `@Anonymous`）直接放行；
+- Redis 中无 `login:{userId}` → `401 登录状态失效`；
+- JWT 内 `fingerprint` 与 Redis 中不一致 → `401 账号在别处登陆`（新登录会覆盖旧登录态，实现单会话互踢）；
+- 命中 `NEED_RE_LOGIN` 集合 → `401` 提示重新登录（权限/角色调整后强制下线）；
+- 认证通过后按过期时间**滑动续期**回写 Redis（TTL 配置为 `0` 表示永久不过期）。
 
-```python
-import time
-import uuid
-import hmac
-import hashlib
-import requests
-import base64
+> 说明：`fingerprint` 是登录会话的随机指纹而非基于设备特征计算，用于「新登录使旧 Token 失效」。
+> 登录账号支持用户名 / 手机号（`^1[3-9]\d{9}$`）/ 邮箱三种标识自动识别（`UserDetailServiceImpl`）。
+> 开发/测试环境可用 `/auth/getToken?username=xxx&password=xxx` 免验证码登录。
 
-def sha256_base64(data: str) -> str:
-    hash_bytes = hashlib.sha256(data.encode("utf-8")).digest()
-    return base64.b64encode(hash_bytes).decode("utf-8")
+### 自定义注解体系
 
-def sign_hmac_sha256_hex(data: str, secret: str) -> str:
-    mac = hmac.new(secret.encode("utf-8"), data.encode("utf-8"), hashlib.sha256)
-    return mac.hexdigest()
+| 注解            | 位置    | 作用                                                                                        |
+| --------------- | ------- | ------------------------------------------------------------------------------------------- |
+| `@Anonymous`    | 类/方法 | 接口免登录，路径自动并入匿名名单（`AnonymousUrlCollector` 启动扫描注册）                    |
+| `@NoLogging`    | 类/方法 | 免日志记录名单（`NoLoggingUrlCollector` 注册；消费方预留，见[功能状态说明](#功能状态说明)） |
+| `@Pageable`     | 方法    | 让 SpringDoc 自动为接口补充 `pageNum`(默认1)/`pageSize`(默认10) 查询参数                    |
+| `@RequestLimit` | 方法    | 接口限流：`time`(窗口ms，默认60000) + `count`(次数，默认5)                                  |
 
-def call_external_api():
-    url = "http://localhost:19420/test/external"
-    uri = "/test/external"
-    app_key = "your_app_key"
-    api_secret = "your_api_secret"
-    body = '{"orderId":123,"amount":99.9}'
-
-    timestamp = str(int(time.time() * 1000))
-    nonce = uuid.uuid4().hex
-    body_hash = sha256_base64(body)
-
-    sign_content = f"{uri}\n{app_key}\n{timestamp}\n{nonce}\n{body_hash}"
-    signature = sign_hmac_sha256_hex(sign_content, api_secret)
-
-    headers = {
-        "Content-Type": "application/json",
-        "X-App-Key": app_key,
-        "X-Timestamp": timestamp,
-        "X-Nonce": nonce,
-        "X-Signature": signature
-    }
-
-    response = requests.post(url, data=body, headers=headers)
-    print(response.json())
-
-if __name__ == "__main__":
-    call_external_api()
-```
-
-完整示例见 [example/external_api/external_api_demo.py](example/external_api/external_api_demo.py)
-
-### 接口限流
-
-使用 `@RequestLimit` 注解限制接口访问频率：
+示例：
 
 ```java
-@GetMapping("/sensitive")
-@RequestLimit(count = 10, time = 60000)  // 60秒内最多10次
-public ApiResponse<Void> sensitiveApi() {
-    return ApiResponse.success();
-}
-```
-
-参数说明：
-
-- `count`: 时间窗口内最大请求次数
-- `time`: 时间窗口大小 (毫秒)
-
-限流基于 Redis + Lua 脚本实现，保证原子性。已登录用户按 userId 限流，未登录用户按 IP 限流。
-
-### 文件存储
-
-基于 MinIO 的文件存储服务，支持：
-
-- 文件上传下载
-- 公开访问 (无需登录)
-- 私有访问 (需登录)
-- 文件元数据管理
-
-#### 文件访问接口
-
-| 接口                   | 方法 | 说明         | 权限   |
-| ---------------------- | ---- | ------------ | ------ |
-| /file/access/{fileId}  | GET  | 公开文件访问 | 匿名   |
-| /file/private/{fileId} | GET  | 私有文件访问 | 需登录 |
-
-### 请求日志追踪
-
-框架自动记录所有 API 请求日志，包含：
-
-- TraceId 链路追踪标识
-- 请求 URI、方法、参数
-- 请求/响应体
-- 请求耗时
-- 异常信息
-
-使用 `@NoLogging` 注解可跳过日志记录：
-
-```java
-@GetMapping("/health")
+@GetMapping("/captcha")
+@Anonymous
 @NoLogging
-public ApiResponse<Void> health() {
-    return ApiResponse.success();
+@RequestLimit(count = 10, time = 8000)   // 8 秒内最多 10 次
+public ApiResponse<Map<String, String>> captcha() {
+    ...
 }
 ```
 
-### 自定义注解
+### 分布式限流
 
-| 注解          | 说明                           |
-| ------------- | ------------------------------ |
-| @Anonymous    | 允许匿名访问，无需登录         |
-| @ExternalApi  | 标记为第三方接口，使用签名认证 |
-| @NoLogging    | 跳过请求日志记录               |
-| @RequestLimit | 接口限流                       |
-| @Pageable     | 分页参数封装                   |
+`RequestLimitAspect` 拦截标注 `@RequestLimit` 的接口：
 
-### 异常处理
+- 限流键：`rl:user:{userId|ip:{IP}}:{HTTP方法}:{URI}`；
+- 已登录用户按 `userId`，未登录按 IP；
+- 基于 Redis + Lua 原子 `INCR`，首次请求设置 `PEXPIRE`，超过阈值返回 `请求过于频繁, 请稍后重试`（HTTP 200，业务码 500）。
 
-框架提供统一异常处理，支持：
+### 全局异常处理与错误码
 
-- 业务异常 (BytePulseException)
-- 参数校验异常
-- 权限异常
-- 数据库异常
-- 其他运行时异常
+`GlobalExceptionHandler`（`@ControllerAdvice`）统一处理：
 
-业务异常示例：
+| 异常                                                 | HTTP    | 响应 `code`            |
+| ---------------------------------------------------- | ------- | ---------------------- |
+| `BytePulseException`（业务异常）                     | 500     | 业务错误码（如 10001） |
+| `NoResourceFoundException`（资源不存在）             | 401     | 401                    |
+| 参数校验异常（`@Validated` / `ValidUtils`）          | 400     | 400                    |
+| `BadCredentialsException` 等认证失败                 | 401     | 401                    |
+| `AccessDeniedException` 等权限不足                   | 403     | 403                    |
+| 数据访问异常 / MinIO 异常 / JSON 解析异常 / 缺失参数 | 400/500 | 对应码                 |
+| 其他运行时异常                                       | 500     | 500                    |
 
-```java
-if (user == null) {
-    throw new BytePulseException(AuthErrorCode.USER_NOT_FOUND);
-}
-```
-
-错误码枚举：
+业务错误码通过枚举 + `ErrorCode` 接口定义：
 
 ```java
 public enum AuthErrorCode implements ErrorCode {
-    USER_NOT_FOUND(1001, "用户不存在"),
-    PASSWORD_ERROR(1002, "密码错误");
+    CAPTCHA_ERROR(10001, "验证码错误"),
+    LOGIN_FAIL(10002, "登陆失败"),
+    TOKEN_INVALID(10003, "Token 无效"),
+    TOKEN_EXPIRED(10004, "Token 已过期");
     // ...
 }
 ```
 
-## 配置说明
+服务中直接抛出即可：
 
-### 应用配置 (application.yaml)
-
-```yaml
-server:
-  port: 19420
-
-spring:
-  profiles:
-    active: dev
-  jackson:
-    time-zone: GMT+8
-    date-format: yyyy-MM-dd HH:mm:ss
-  servlet:
-    multipart:
-      max-file-size: 1024MB
-      max-request-size: 4096MB
-  threads:
-    virtual:
-      enabled: true # 启用虚拟线程
+```java
+throw new BytePulseException(AuthErrorCode.CAPTCHA_ERROR);
 ```
 
-### 业务配置 (application-dev.yaml)
+`ErrorCodeChecker` 在应用启动时扫描基础包下所有 `ErrorCode` 枚举，发现重复错误码会直接终止启动，从源头避免错误码冲突。
 
-```yaml
-app:
-  login:
-    expiration-minutes: 300 # 登录过期时间 (分钟), 0 表示永不过期
-  redis:
-    prefix: 'bp:' # Redis 键前缀
-  minio:
-    endpoint: http://localhost:9000
-    access-key: minioadmin
-    secret-key: minioadmin
-    bucket-name: bytepulse
-  external-api:
-    secretKey: your_secret_key # 第三方接口密钥加密密钥
-    iv: your_iv # AES 加密 IV
-  captcha:
-    expiration-seconds: 30 # 验证码过期时间
-```
+### 文件访问
+
+`FileController` + `FileServiceImpl` 基于 `file_metadata` 表与 MinIO 预签名 URL：
+
+- **公开文件**（`access_level = 0`）：`GET /file/access/{fileId}` → 302 跳转 MinIO 预签名 URL（120 分钟有效）；
+- **私有文件**（`access_level = 1`）：先 302 到 `GET /file/authentication/{fileId}` 完成登录鉴权，再跳预签名 URL；
+- 上传对象路径规则：`{bizType}/{yyyyMMdd}/{bizId||"_tmp"}/{fileId}.{ext}`；
+- `MinioTemplate` 提供无过期时间参数时的分级签名策略：<10MB 10 分钟、10–100MB 60 分钟、>100MB 24 小时。
+
+---
+
+## 数据库表
+
+[init.sql](init.sql) 初始化 `bytepulse` 库以下 4 张表：
+
+| 表                | 说明           | 关键字段                                                                                                                      |
+| ----------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `sys_user`        | 系统用户       | `username`/`password`(BCrypt)/`phone`/`email`/`status`(0禁用 1启用)/`last_login` 等                                           |
+| `sys_log`         | 系统接口日志   | `trace_id`(唯一)/`uri`/`http_method`/`query_params`/`body_params`/`response_result`/`cost`/`exception`/`request_ip`/`user_id` |
+| `api_credentials` | 第三方接口凭证 | `owner_id`/`api_key_hash`(SHA-256)/`api_secret_enc`/`status`/`scope`/`plan`/`expires_at`                                      |
+| `file_metadata`   | 文件元数据     | `object_name`(MinIO 对象名)/`content_type`/`size`/`access_level`(0公开 1需登录)/`biz_type`/`biz_id`/`status`                  |
+
+Mapper 使用 MyBatis-Plus `BaseMapper<T>`，实体下划线列 ↔ 驼峰属性自动映射。
+
+---
+
+## 功能状态说明
+
+为保证文档与代码一致，以下功能当前状态如下：
+
+| 功能                                    | 现状                                                                                                                                               |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 认证 / 验证码 / 限流 / 统一异常         | ✅ 已实现并接线                                                                                                                                    |
+| 文件上传 / 访问                         | ✅ 服务与 MinIO 封装已实现；Controller 已暴露访问接口，上传接口按业务自行接入                                                                      |
+| `@Pageable` 文档分页参数                | ✅ 已实现（作用于 SpringDoc 文档）                                                                                                                 |
+| `@NoLogging` 注册                       | ✅ 注册表已实现；实际消费链路为预留                                                                                                                |
+| 请求日志落库（`sys_log`）               | 🚧 脚手架：`LoggingFilter`、请求/响应缓存包装器、`LoggingService.asyncSaveLog` 均已提供，但过滤器尚未触发落库，亦未开启 `@EnableAsync`，属预留链路 |
+| `traceId` / `timestamp` 响应字段        | 🚧 字段与 `TraceIdUtils` 已预留，暂未在链路中赋值                                                                                                  |
+| 第三方接口签名认证（HMAC/Nonce 防重放） | 🚧 基础能力已就绪：`api_credentials` 表、`CryptoUtils`(RSA/AES/SHA/HMAC)、`bp.app.external-api` 配置占位；签名校验过滤器/切面尚未实现              |
+| RabbitMQ（`bp-mq`）                     | 🚧 仅引入 starter 依赖，暂无业务代码                                                                                                               |
+| 权限体系（角色/权限点）                 | 🚧 `LoginUser.permissions` 与 `@PreAuthorize` 支撑已预留，权限数据来源为 TODO                                                                      |
+
+接入上述预留链路前，请勿在对外描述中将其声明为已上线能力。
+
+---
 
 ## 开发指南
 
 ### 环境切换
 
 ```bash
-# 开发环境
-mvn spring-boot:run -Pdev
+# 开发（默认）
+mvn spring-boot:run -pl bp-app -am
 
-# 生产环境
-mvn spring-boot:run -Pprod
+# 指定环境（dev / test / prod）
+mvn spring-boot:run -pl bp-app -am -Dspring-boot.run.profiles=prod
 ```
 
-### 构建部署
+打包后运行：
 
 ```bash
-# 打包
-mvn clean package -DskipTests
-
-# 运行
-java -jar target/bp-1.0.jar --spring.profiles.active=prod
+java -jar bp-app/target/bp-app-0.0.1.jar --spring.profiles.active=prod
 ```
+
+### 新增业务模块步骤
+
+1. 新业务 Controller / 切面 / 异常处理放 `bp-web`，业务服务放 `bp-service`（`service.xxx`）；
+2. 新表对应实体与 `BaseMapper` 放 `bp-repository`（`data.entity` / `data.mapper`）；
+3. 错误码在 `common.core.exception.enums` 新增枚举，注意错误码全局唯一（启动期自动校验）；
+4. 匿名接口加 `@Anonymous`，敏感接口用 `@RequestLimit`，希望出现在 Swagger 分页文档加 `@Pageable`；
+5. 分页查询：接口参数 `pageNum`/`pageSize`，业务内调用 `PageUtils.startPage()` + MyBatis-Plus 查询。
+
+### 默认放行的匿名/免日志路径
+
+`/error`、`/actuator/**`、`/druid/**`、Swagger 相关路径等默认在匿名名单内；
+业务匿名接口统一用 `@Anonymous` 声明，免日志统一用 `@NoLogging` 声明。
+
+---
 
 ## 许可证
 
