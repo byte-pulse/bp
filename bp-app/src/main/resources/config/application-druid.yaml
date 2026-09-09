@@ -38,6 +38,7 @@ spring:
         # 控制台管理用户名和密码
         login-username: bytepulse
         login-password: bytepulse
+        allow: 127.0.0.1
       aop-patterns: cloud.bytepulse.*.controller.*
       webStatFilter:
         enabled: true
