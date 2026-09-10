@@ -81,7 +81,9 @@ public class SecurityConfig {
 
         JwtFilter jwtFilter = new JwtFilter(redisCache, appProperties);
         // 日志过滤器
-        http.addFilterBefore(loggingFilterInterface, UsernamePasswordAuthenticationFilter.class);
+        if (loggingFilterInterface != null) {
+            http.addFilterBefore(loggingFilterInterface, UsernamePasswordAuthenticationFilter.class);
+        }
         // 添加JWT过滤器
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -54,7 +54,6 @@ public class AuthController {
 
     @GetMapping("/check")
     @Operation(summary = "检查登陆状态")
-    @PreAuthorize("hasRole('admin')")
     @BpLogging(value = OperateEnum.QUERY, desc = "检查登陆状态")
     public ApiResponse<Void> check() {
         return ApiResponse.success();
