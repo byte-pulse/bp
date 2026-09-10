@@ -77,4 +77,78 @@ public class FileServiceImpl implements FileService {
                 suffix
         );
     }
+
+    /**
+     * 文件访问, 需要权限
+     *
+     * @param fileId 文件id
+     */
+    @Override
+    public ResponseEntity<Void> privateAccess(Long fileId) throws Exception {
+        FileMetadata fileMetadata = fileMetadataMapper.selectById(fileId);
+        if (fileMetadata == null) {
+            throw new NoResourceFoundException(HttpMethod.GET, fileId.toString(), fileId.toString());
+        }
+        // 获取文件预签名链接
+        String preSignedUrl = minioTemplate.preSignedUrl(fileMetadata.getObjectName(), 120);
+        return ResponseEntity.status(HttpStatus.FOUND) // 302
+                .location(URI.create(preSignedUrl)).build();
+    }
+
+    /**
+     * 文件访问
+     *
+     * @param fileId 文件id
+     */
+    @Override
+    public ResponseEntity<Void> access(Long fileId) throws Exception {
+        FileMetadata fileMetadata = fileMetadataMapper.selectById(fileId);
+        if (fileMetadata == null) {
+            throw new NoResourceFoundException(HttpMethod.GET, fileId.toString(), fileId.toString());
+        }
+        if (fileMetadata.getAccessLevel() != 0) {
+            // 不是公开文件, 重定向 到 可以鉴权的接口
+            String redirectUrl = "/file/authentication/" + fileId;
+            return ResponseEntity.status(HttpStatus.FOUND) // 302
+                    .location(URI.create(redirectUrl)).build();
+        }
+        // 获取文件预签名链接
+        String preSignedUrl = minioTemplate.preSignedUrl(fileMetadata.getObjectName(), 120);
+        return ResponseEntity.status(HttpStatus.FOUND) // 302
+                .location(URI.create(preSignedUrl)).build();
+    }
+
+    /**
+     * 获取文件元信息
+     *
+     * @param fileId 文件id
+     */
+    @Override
+    public FileMetadata getFileMeta(Long fileId) {
+        return fileMetadataMapper.selectById(fileId);
+    }
+
+    /**
+     * 删除文件
+     *
+     * @param fileId 文件id
+     */
+    @Override
+    public int deleteById(Long fileId) {
+        FileMetadata fileMetadata = new FileMetadata();
+        fileMetadata.setId(fileId);
+        fileMetadata.setStatus(0); // 逻辑删除
+        fileMetadata.setDeleteTime(new Date());
+        return fileMetadataMapper.updateById(fileMetadata);
+    }
+
+    /**
+     * 删除文件 批量
+     *
+     * @param ids 文件id
+     */
+    @Override
+    public int deleteByIds(List<Long> ids) {
+        return fileMetadataMapper.deleteByIds(ids);
+    }
 }
