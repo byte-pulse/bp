@@ -5,12 +5,14 @@ import io.swagger.v3.oas.annotations.servers.Server;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * @author jiejiebiezheyang
  * @since 2026-09-07 17:09
  */
 @Slf4j
+@EnableAsync
 @SpringBootApplication
 @OpenAPIDefinition(servers = {@Server(url = "/", description = "Default Server URL")})
 public class BootApplication {
