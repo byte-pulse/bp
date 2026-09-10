@@ -1,5 +1,6 @@
 package cloud.bytepulse.common.core.constant;
 
+import cloud.bytepulse.common.core.model.ApiLoggingInfo;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.Map;
@@ -13,9 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ApiPathRegistry {
 
     /**
-     * 无日志接口
+     * 日志接口
      */
-    public final static Map<String, Set<String>> NOLOGGING_API = new ConcurrentHashMap<>();
+    public final static Map<String, Set<ApiLoggingInfo>> LOGGING_API = new ConcurrentHashMap<>();
 
     /**
      * 匿名接口
@@ -40,8 +41,6 @@ public class ApiPathRegistry {
         for (RequestMethod method : RequestMethod.values()) {
             String methodName = method.name();
             ANONYMOUS_API.computeIfAbsent(methodName, k -> ConcurrentHashMap.newKeySet())
-                    .addAll(defaultUrls);
-            NOLOGGING_API.computeIfAbsent(methodName, k -> ConcurrentHashMap.newKeySet())
                     .addAll(defaultUrls);
         }
     }

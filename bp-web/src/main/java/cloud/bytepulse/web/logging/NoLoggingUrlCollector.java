@@ -1,7 +1,9 @@
 package cloud.bytepulse.web.logging;
 
-import cloud.bytepulse.common.core.annotation.NoLogging;
+import cloud.bytepulse.common.core.annotation.BpLogging;
 import cloud.bytepulse.common.core.constant.ApiPathRegistry;
+import cloud.bytepulse.common.core.enums.OperateEnum;
+import cloud.bytepulse.common.core.model.ApiLoggingInfo;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 无需记录日志的接口收集
@@ -37,7 +40,7 @@ public class NoLoggingUrlCollector {
     @PostConstruct
     public void init() {
         collectAnonymousUrls();
-        int totalSize = ApiPathRegistry.NOLOGGING_API.values()
+        int totalSize = ApiPathRegistry.LOGGING_API.values()
                 .stream()
                 .mapToInt(Set::size)
                 .sum();
@@ -54,13 +57,12 @@ public class NoLoggingUrlCollector {
             HandlerMethod handlerMethod = entry.getValue();
 
             // 检查方法本身是否有 @NoLogging 注解
-            boolean hasMethodAnnotation = handlerMethod.hasMethodAnnotation(NoLogging.class);
+            boolean hasMethodAnnotation = handlerMethod.hasMethodAnnotation(BpLogging.class);
+            BpLogging bpLogging = handlerMethod.getMethodAnnotation(BpLogging.class);
+            if (hasMethodAnnotation && bpLogging != null) {
+                String desc = bpLogging.desc();
+                OperateEnum operateEnum = bpLogging.value();
 
-            // 检查方法所在的类是否有 @NoLogging 注解
-            boolean hasClassAnnotation = handlerMethod.getBeanType()
-                    .isAnnotationPresent(NoLogging.class);
-
-            if (hasMethodAnnotation || hasClassAnnotation) {
                 PathPatternsRequestCondition condition = info.getPathPatternsCondition();
                 if (condition == null) continue;
                 Set<String> patternValues = condition.getPatternValues();
@@ -68,22 +70,24 @@ public class NoLoggingUrlCollector {
                 // 如果没有指定请求方法, 默认支持所有请求方法
                 if (methods.isEmpty()) {
                     for (RequestMethod method : RequestMethod.values()) {
-                        ApiPathRegistry.NOLOGGING_API
+                        ApiPathRegistry.LOGGING_API
                                 .computeIfAbsent(
                                         method.name(),
                                         k -> ConcurrentHashMap.newKeySet()
                                 )
-                                .addAll(patternValues);
+                                .addAll(patternValues.stream().map(p -> new ApiLoggingInfo(p, operateEnum, desc))
+                                        .collect(Collectors.toSet()));
                     }
                 } else {
                     // 按指定的请求方法添加 URL
                     for (RequestMethod method : methods) {
-                        ApiPathRegistry.NOLOGGING_API
+                        ApiPathRegistry.LOGGING_API
                                 .computeIfAbsent(
                                         method.name(),
                                         k -> ConcurrentHashMap.newKeySet()
                                 )
-                                .addAll(patternValues);
+                                .addAll(patternValues.stream().map(p -> new ApiLoggingInfo(p, operateEnum, desc))
+                                        .collect(Collectors.toSet()));
                     }
                 }
             }

@@ -121,7 +121,7 @@ bp-common-core (无内部依赖，最底层)
 
 | 模块           | 包                                  | 说明                                                        |
 | -------------- | ----------------------------------- | ----------------------------------------------------------- |
-| bp-common-core | `common.core.annotation`            | `Anonymous` / `NoLogging` / `Pageable` / `RequestLimit`     |
+| bp-common-core | `common.core.annotation`            | `Anonymous` / `BpLogging` / `Pageable` / `RequestLimit`     |
 | bp-common-core | `common.core.model`                 | `ApiResponse<T>` 统一响应                                   |
 | bp-common-core | `common.core.exception`             | `BytePulseException`、错误码枚举、重复错误码校验器          |
 | bp-common-core | `common.core.properties`            | `AppProperties`（前缀 `bp.app`）                            |

@@ -25,6 +25,14 @@ public class SysLog {
      */
     private String traceId;
     /**
+     * 操作类型
+     */
+    private String operate;
+    /**
+     * 操作描述
+     */
+    private String description;
+    /**
      * 接口uri
      */
     private String uri;

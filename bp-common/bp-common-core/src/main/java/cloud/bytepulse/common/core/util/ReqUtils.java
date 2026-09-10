@@ -98,6 +98,14 @@ public class ReqUtils {
     }
 
     /**
+     * 路径是否匹配
+     */
+    public static boolean isPathMatching(String path, String apiPath) {
+        AntPathMatcher matcher = new AntPathMatcher();
+        return matcher.match(path, apiPath);
+    }
+
+    /**
      * 获取设备信息
      */
     public static String getDeviceInfo(String userAgent) {

@@ -1,6 +1,8 @@
 package cloud.bytepulse.web.controller;
 
 import cloud.bytepulse.common.core.annotation.Anonymous;
+import cloud.bytepulse.common.core.annotation.BpLogging;
+import cloud.bytepulse.common.core.enums.OperateEnum;
 import cloud.bytepulse.service.file.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +27,7 @@ public class FileController {
 
     @GetMapping("/authentication/{fileId}")
     @Operation(summary = "文件需要鉴权", hidden = true)
+    @BpLogging(value = OperateEnum.QUERY, desc = "文件访问, 非公开")
     public ResponseEntity<Void> privateAccess(@PathVariable Long fileId) throws Exception {
         return fileService.privateAccess(fileId);
     }
@@ -32,6 +35,7 @@ public class FileController {
     @GetMapping("/access/{fileId}")
     @Operation(summary = "文件访问, 公开")
     @Anonymous
+    @BpLogging(value = OperateEnum.QUERY, desc = "文件访问, 公开")
     public ResponseEntity<Void> access(@PathVariable Long fileId) throws Exception {
         return fileService.access(fileId);
     }

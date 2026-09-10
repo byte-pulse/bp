@@ -1,6 +1,7 @@
 package cloud.bytepulse.security.config;
 
 import cloud.bytepulse.cache.redis.RedisCache;
+import cloud.bytepulse.common.core.component.LoggingFilterInterface;
 import cloud.bytepulse.common.core.constant.ApiPathRegistry;
 import cloud.bytepulse.common.core.properties.AppProperties;
 import cloud.bytepulse.security.filter.JwtFilter;
@@ -33,6 +34,8 @@ import java.util.Collections;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final LoggingFilterInterface loggingFilterInterface;
 
     /**
      * 用户名密码认证 Provider
@@ -77,6 +80,8 @@ public class SecurityConfig {
         );
 
         JwtFilter jwtFilter = new JwtFilter(redisCache, appProperties);
+        // 日志过滤器
+        http.addFilterBefore(loggingFilterInterface, UsernamePasswordAuthenticationFilter.class);
         // 添加JWT过滤器
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
