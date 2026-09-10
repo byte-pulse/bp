@@ -63,6 +63,7 @@
         <pagehelper.version>4.1.1</pagehelper.version>
         <springdoc.version>3.1.0</springdoc.version>
         <fastjson2.version>2.0.65</fastjson2.version>
+        <json-masker.version>1.1.4</json-masker.version>
         <minio.version>9.0.3</minio.version>
         <tika.version>4.0.0</tika.version>
         <okhttp.version>5.5.0</okhttp.version>
@@ -200,6 +201,12 @@
                 <groupId>com.alibaba.fastjson2</groupId>
                 <artifactId>fastjson2</artifactId>
                 <version>${fastjson2.version}</version>
+            </dependency>
+            <!-- json 脱敏 -->
+            <dependency>
+                <groupId>dev.blaauwendraad</groupId>
+                <artifactId>json-masker</artifactId>
+                <version>${json-masker.version}</version>
             </dependency>
             <!-- minio -->
             <dependency>

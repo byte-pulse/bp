@@ -9,11 +9,12 @@ import cloud.bytepulse.service.auth.AuthService;
 import cloud.bytepulse.service.auth.vo.LoginResultVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -38,8 +39,14 @@ public class DevAuthController {
     @Operation(summary = "无验证码直接登陆")
     @Anonymous
     @BpLogging(value = OperateEnum.LOGIN, desc = "无验证码直接登陆")
-    public ApiResponse<LoginResultVO> login(@RequestParam String username, @RequestParam String password) {
-        LoginResultVO loginResultVO = authService.login(username, password);
+    public ApiResponse<LoginResultVO> login(@RequestBody LoginParam loginParam) {
+        LoginResultVO loginResultVO = authService.login(loginParam.username, loginParam.password);
         return ApiResponse.success(loginResultVO);
+    }
+
+    @Data
+    public static class LoginParam {
+        private String username;
+        private String password;
     }
 }

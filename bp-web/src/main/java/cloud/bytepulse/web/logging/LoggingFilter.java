@@ -3,6 +3,7 @@ package cloud.bytepulse.web.logging;
 import cloud.bytepulse.common.core.component.LoggingFilterInterface;
 import cloud.bytepulse.common.core.constant.ApiPathRegistry;
 import cloud.bytepulse.common.core.model.ApiLoggingInfo;
+import cloud.bytepulse.common.core.util.JsonMaskerUtils;
 import cloud.bytepulse.common.core.util.ReqUtils;
 import cloud.bytepulse.common.core.util.TraceIdUtils;
 import cloud.bytepulse.data.entity.SysLog;
@@ -117,6 +118,9 @@ public class LoggingFilter extends LoggingFilterInterface {
             }
 
             requestBodyJson = requestBodyJson.equals("null") ? null : requestBodyJson;
+            // 数据脱敏
+            requestBodyJson = JsonMaskerUtils.simpleMask(requestBodyJson);
+            finalJson = JsonMaskerUtils.simpleMask(finalJson);
 
             String method = request.getMethod();
             ApiLoggingInfo apiLoggingInfo = ApiPathRegistry.LOGGING_API.get(method)
