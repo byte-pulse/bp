@@ -69,4 +69,74 @@ public class AuthServiceImpl implements AuthService {
         redisCache.setCacheObject("captcha:" + uid, gifCaptcha.getCode(), captchaConfig.getExpirationSeconds(), TimeUnit.SECONDS);
         return map;
     }
+
+    /**
+     * 校验验证码
+     */
+    @Override
+    public void checkCaptcha(String uid, String captcha) {
+        // 验证码
+        String cacheCaptcha = redisCache.getCacheObject("captcha:" + uid, String.class);
+        redisCache.deleteObject("captcha:" + uid);
+        if (cacheCaptcha == null || !cacheCaptcha.equalsIgnoreCase(captcha)) {
+            throw new BytePulseException(AuthErrorCode.CAPTCHA_ERROR);
+        }
+    }
+
+    /**
+     * 登录返回 token
+     */
+    public LoginResultVO createAuthToken(Authentication authenticate) {
+        // 认证没通过,给出提示
+        if (authenticate == null) {
+            throw new BytePulseException(AuthErrorCode.LOGIN_FAIL);
+        }
+        // 认证通过
+        LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+        LoginUserInfo loginUserInfo = loginUser.getLoginUserInfo();
+        // 返回给前端的数据
+        LoginResultVO loginResultVO = new LoginResultVO();
+        loginResultVO.setUserId(loginUserInfo.getUserId());
+        loginResultVO.setNickname(loginUserInfo.getNickname());
+        loginResultVO.setUsername(loginUserInfo.getUsername());
+        loginResultVO.setLastLogin(loginUserInfo.getLastLogin());
+        loginResultVO.setLastLoginIp(loginUserInfo.getLastLoginIp());
+        // 更新登录记录
+        SysUser user = new SysUser();
+        user.setId(loginUserInfo.getUserId());
+        user.setLastLoginIp(ReqUtils.getIP());
+        user.setLastLogin(new Date());
+        sysUserMapper.updateById(user);
+
+        // 生成UUID作为token指纹
+        String fingerprint = UUID.randomUUID().toString();
+        loginUserInfo.setFingerprint(fingerprint);
+        // 使用 userId 和 角色 生成token,返回token
+        String userId = String.valueOf(loginUser.getLoginUserInfo().getUserId());
+        JWTUtils.Payload payload = new JWTUtils.Payload();
+        payload.with("userId", userId).with("fingerprint", fingerprint);
+        String token = JWTUtils.createToken(payload);
+        // 把用户信息存入redis
+        if (appProperties.getLogin().getExpirationMinutes() == 0) {
+            redisCache.setCacheObject("login:" + userId, loginUser);
+        } else {
+            redisCache.setCacheObject("login:" + userId, loginUser,
+                    appProperties.getLogin().getExpirationMinutes(), TimeUnit.MINUTES);
+        }
+        // 返回token给前端
+        loginResultVO.setToken(token);
+        // 移除需要重新登录的标记
+        NEED_RE_LOGIN.remove(loginUser.getLoginUserInfo().getUserId());
+        return loginResultVO;
+    }
+
+    @Override
+    public LoginResultVO login(String username, String password) {
+        // 使用authenticate进行认证
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(username, password);
+        Authentication authenticate = authenticationManager.authenticate(authentication);
+        return createAuthToken(authenticate);
+    }
+
 }
