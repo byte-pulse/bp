@@ -122,4 +122,105 @@ public class LoggingFilter extends LoggingFilterInterface {
             requestBodyJson = JsonMaskerUtils.simpleMask(requestBodyJson);
             finalJson = JsonMaskerUtils.simpleMask(finalJson);
 
+            String method = request.getMethod();
+            ApiLoggingInfo apiLoggingInfo = ApiPathRegistry.LOGGING_API.get(method)
+                    .stream()
+                    .filter(api -> ReqUtils.isPathMatching(api.getPath(), requestURI))
+                    .findFirst()
+                    .orElseGet(ApiLoggingInfo::new);
+
+            // 日志打印
+            log.debug("接口调用 [TraceId={}] {} {} {} {}ms req = {} resp = {} ex = {}",
+                    traceId,
+                    apiLoggingInfo.getOperate().getDesc(),
+                    apiLoggingInfo.getDesc(),
+                    request.getRequestURI(),
+                    cost,
+                    requestBodyJson,
+                    finalJson,
+                    resolvedException != null ? resolvedException : "无异常"
+            );
+            Set<String> loggingApiCollect = ApiPathRegistry.LOGGING_API.get(method)
+                    .stream().map(ApiLoggingInfo::getPath)
+                    .collect(Collectors.toSet());
+            // 需要日志, 存入数据库
+            if (ReqUtils.isPathMatching(loggingApiCollect, requestURI)) {
+                // 存入数据库
+                SysLog sysLog = new SysLog();
+                sysLog.setTraceId(traceId);
+                sysLog.setOperate(apiLoggingInfo.getOperate().getDesc());
+                sysLog.setDescription(apiLoggingInfo.getDesc());
+                sysLog.setUri(request.getRequestURI());
+                sysLog.setHttpMethod(request.getMethod());
+                sysLog.setQueryParams(request.getQueryString());
+                sysLog.setBodyParams(requestBodyJson);
+                sysLog.setResponseResult(finalJson);
+                sysLog.setRequestTime(new Date(startTime));
+                sysLog.setRequestIp(ReqUtils.getIP());
+                sysLog.setUserId(Auths.getUserId());
+                sysLog.setCost(cost);
+                sysLog.setException(resolvedException);
+                try {
+                    LoggingService.asyncSaveLog(sysLog);
+                } catch (Exception e) {
+                    log.error("日志保存失败", e);
+                }
+            }
+
+            // 修改返回前端
+            if (!isFileResponse) {
+                responseWrapper.resetBuffer();
+                responseWrapper.getOutputStream().write(rawResponseBody.getBytes());
+            }
+            responseWrapper.copyBodyToResponse();
+            TraceIdUtils.clear();
+        }
+
+    }
+
+    // 判断是否为 multipart 请求
+    private boolean isMultipart(HttpServletRequest request) {
+        return request.getContentType() != null
+                && request.getContentType().toLowerCase().startsWith("multipart/");
+    }
+
+    // 解析 multipart 请求内容, 文件字段记录为元信息 (不读文件内容)
+    private String buildMultipartJson(HttpServletRequest request)
+            throws IOException, ServletException {
+
+        JSONObject root = new JSONObject();
+
+        // 普通表单字段
+        request.getParameterMap().forEach((k, v) -> {
+            if (v != null && v.length == 1) {
+                root.put(k, v[0]);
+            } else {
+                root.put(k, v);
+            }
+        });
+
+        // 文件字段
+        Collection<Part> parts = request.getParts();
+
+        // 用 Map 收集同名文件
+        Map<String, JSONArray> fileMap = new HashMap<>();
+
+        for (Part part : parts) {
+            if (part.getContentType() != null) {
+                JSONObject fileNode = new JSONObject();
+                fileNode.put("fileName", part.getSubmittedFileName());
+                fileNode.put("size", part.getSize());
+                fileNode.put("contentType", part.getContentType());
+
+                // 如果是同名文件，就放到数组里
+                fileMap.computeIfAbsent(part.getName(), k -> new JSONArray())
+                        .add(fileNode);
+            }
+        }
+
+        // 放回 root
+        root.putAll(fileMap);
+
+        return JSON.toJSONString(root);
+    }
 }
