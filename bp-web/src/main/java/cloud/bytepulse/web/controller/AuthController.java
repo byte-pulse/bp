@@ -32,4 +32,30 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @GetMapping("/captcha")
+    @Operation(summary = "获取验证码")
+    @Anonymous
+    @RequestLimit(count = 10, time = 8000)
+    public ApiResponse<Map<String, String>> captcha() {
+        Map<String, String> map = authService.captcha();
+        return ApiResponse.success(map);
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "登录")
+    @Anonymous
+    @BpLogging(value = OperateEnum.LOGIN, desc = "登录")
+    public ApiResponse<LoginResultVO> login(@RequestBody @Validated LoginDTO loginDTO) {
+        // 先校验验证码
+        authService.checkCaptcha(loginDTO.getUid(), loginDTO.getCaptcha());
+        LoginResultVO loginResultVO = authService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        return ApiResponse.success(loginResultVO);
+    }
+
+    @GetMapping("/check")
+    @Operation(summary = "检查登陆状态")
+    @BpLogging(value = OperateEnum.QUERY, desc = "检查登陆状态")
+    public ApiResponse<Void> check() {
+        return ApiResponse.success();
+    }
 }
