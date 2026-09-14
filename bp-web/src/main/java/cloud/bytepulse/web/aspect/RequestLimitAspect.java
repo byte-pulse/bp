@@ -56,4 +56,53 @@ public class RequestLimitAspect {
         redisScript.setResultType(Long.class);
         return redisScript;
     }
+
+    @Pointcut("@annotation(cloud.bytepulse.common.core.annotation.RequestLimit)")
+    public void requestLimitPointCut() {
+    }
+
+    @Around("requestLimitPointCut()")
+    public Object doAround(ProceedingJoinPoint point) throws Throwable {
+
+        HttpServletRequest request = ReqUtils.getRequest();
+
+        MethodSignature signature = (MethodSignature) point.getSignature();
+        Method method = signature.getMethod();
+        RequestLimit requestLimit = method.getAnnotation(RequestLimit.class);
+
+        // 1. 获取用户标识, 登录用 userId, 未登录兜底 IP
+        String userKey;
+        Long userId = Auths.getUserId(); // 你自己项目里的获取方式
+        if (userId > 0L) {
+            userKey = String.valueOf(userId);
+        } else {
+            userKey = "ip:" + ReqUtils.getIP();
+        }
+
+        // 2. 构建 Redis Key
+        String redisKey = String.format(
+                "rl:user:%s:%s:%s",
+                userKey,
+                request.getMethod(),
+                request.getRequestURI()
+        );
+
+        // 3. Lua 脚本(原子限流, 毫秒级)
+        DefaultRedisScript<Long> redisScript = getLongDefaultRedisScript();
+
+        Long pass = redisTemplate.execute(
+                redisScript,
+                Collections.singletonList(redisKey),
+                requestLimit.count(),
+                requestLimit.time()
+        );
+
+        // 5. 判断是否放行
+        if (pass == null || pass == 0) {
+            return ApiResponse.error("请求过于频繁, 请稍后重试");
+        }
+
+        return point.proceed();
+    }
+
 }
