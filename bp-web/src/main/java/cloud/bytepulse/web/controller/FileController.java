@@ -27,4 +27,27 @@ public class FileController {
     @GetMapping("/authentication/{fileId}")
     @Operation(summary = "文件需要鉴权", hidden = true)
     @BpLogging(value = OperateEnum.QUERY, desc = "文件访问, 非公开")
+    public ResponseEntity<Void> privateAccess(@PathVariable Long fileId) throws Exception {
+        return fileService.privateAccess(fileId);
+    }
+
+    @GetMapping("/access/{fileId}")
+    @Operation(summary = "文件访问, 公开")
+    @Anonymous
+    @BpLogging(value = OperateEnum.QUERY, desc = "文件访问, 公开")
+    public ResponseEntity<Void> access(@PathVariable Long fileId) throws Exception {
+        return fileService.access(fileId);
+    }
+
+    @PostMapping("/access/upload")
+    @Operation(summary = "文件上传测试")
+    @Anonymous
+    @BpLogging(value = OperateEnum.UPLOAD, desc = "文件上传测试")
+    public ApiResponse<Void> upload(@RequestPart MultipartFile[] files,
+                                    @RequestPart String bizId) throws Exception {
+        for (MultipartFile file : files) {
+            fileService.uploadFile("test", bizId, file, true, false);
+        }
+        return ApiResponse.success();
+    }
 }
