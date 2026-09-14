@@ -27,4 +27,26 @@ import org.springframework.web.bind.annotation.RestController;
 @Profile({"dev", "test"})
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
+public class DevAuthController {
+
+    private final AuthService authService;
+
+    /**
+     * 此接口仅用于开发环境测试，生产环境不应该使用
+     */
+    @PostMapping("/getToken")
+    @Operation(summary = "无验证码直接登陆")
+    @Anonymous
+    @BpLogging(value = OperateEnum.LOGIN, desc = "无验证码直接登陆")
+    public ApiResponse<LoginResultVO> login(@RequestBody LoginParam loginParam) {
+        LoginResultVO loginResultVO = authService.login(loginParam.username, loginParam.password);
+        return ApiResponse.success(loginResultVO);
+    }
+
+    @Data
+    public static class LoginParam {
+        private String username;
+        private String password;
+    }
 }
