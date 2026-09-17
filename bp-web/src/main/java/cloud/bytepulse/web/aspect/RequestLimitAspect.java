@@ -36,18 +36,19 @@ public class RequestLimitAspect {
     public final RedisTemplate<String, Object> redisTemplate;
 
     private static @NonNull DefaultRedisScript<Long> getLongDefaultRedisScript() {
-        String lua =
-                "local key = KEYS[1] " +
-                        "local limit = tonumber(ARGV[1]) " +
-                        "local expire = tonumber(ARGV[2]) " +
-                        "local count = redis.call('INCR', key) " +
-                        "if count == 1 then " +
-                        "  redis.call('PEXPIRE', key, expire) " +
-                        "end " +
-                        "if count > limit then " +
-                        "  return 0 " +
-                        "end " +
-                        "return 1";
+        String lua = """
+                local key = KEYS[1]
+                local limit = tonumber(ARGV[1])
+                local expire = tonumber(ARGV[2])
+                local count = redis.call('INCR', key)
+                if count == 1 then
+                  redis.call('PEXPIRE', key, expire)
+                end
+                if count > limit then
+                  return 0
+                end
+                return 1
+                """;
 
         // 4. 执行 Lua
         DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
