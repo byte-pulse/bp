@@ -46,4 +46,51 @@ public class NoLoggingUrlCollector {
                 .sum();
         log.info("已忽略 {} 个接口日志", totalSize);
     }
+
+    private void collectAnonymousUrls() {
+        // 获取所有 RequestMapping 信息
+        Map<RequestMappingInfo, HandlerMethod> handlerMethods =
+                requestMappingHandlerMapping.getHandlerMethods();
+
+        for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handlerMethods.entrySet()) {
+            RequestMappingInfo info = entry.getKey();
+            HandlerMethod handlerMethod = entry.getValue();
+
+            // 检查方法本身是否有 @NoLogging 注解
+            boolean hasMethodAnnotation = handlerMethod.hasMethodAnnotation(BpLogging.class);
+            BpLogging bpLogging = handlerMethod.getMethodAnnotation(BpLogging.class);
+            if (hasMethodAnnotation && bpLogging != null) {
+                String desc = bpLogging.desc();
+                OperateEnum operateEnum = bpLogging.value();
+
+                PathPatternsRequestCondition condition = info.getPathPatternsCondition();
+                if (condition == null) continue;
+                Set<String> patternValues = condition.getPatternValues();
+                Set<RequestMethod> methods = info.getMethodsCondition().getMethods();
+                // 如果没有指定请求方法, 默认支持所有请求方法
+                if (methods.isEmpty()) {
+                    for (RequestMethod method : RequestMethod.values()) {
+                        ApiPathRegistry.LOGGING_API
+                                .computeIfAbsent(
+                                        method.name(),
+                                        k -> ConcurrentHashMap.newKeySet()
+                                )
+                                .addAll(patternValues.stream().map(p -> new ApiLoggingInfo(p, operateEnum, desc))
+                                        .collect(Collectors.toSet()));
+                    }
+                } else {
+                    // 按指定的请求方法添加 URL
+                    for (RequestMethod method : methods) {
+                        ApiPathRegistry.LOGGING_API
+                                .computeIfAbsent(
+                                        method.name(),
+                                        k -> ConcurrentHashMap.newKeySet()
+                                )
+                                .addAll(patternValues.stream().map(p -> new ApiLoggingInfo(p, operateEnum, desc))
+                                        .collect(Collectors.toSet()));
+                    }
+                }
+            }
+        }
+    }
 }
