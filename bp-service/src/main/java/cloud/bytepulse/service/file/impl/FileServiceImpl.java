@@ -151,4 +151,83 @@ public class FileServiceImpl implements FileService {
     public int deleteByIds(List<Long> ids) {
         return fileMetadataMapper.deleteByIds(ids);
     }
+
+    /**
+     * 上传文件到 minio 并保存信息
+     *
+     * @param bizType       业务类型
+     * @param bizId         业务id
+     * @param multipartFile 文件
+     * @param isPublic      是否公开
+     * @param isUnique      是否唯一
+     */
+    @Override
+    public void uploadFile(String bizType, String bizId,
+                           MultipartFile multipartFile,
+                           boolean isPublic, boolean isUnique)
+            throws Exception {
+        // 如果是唯一
+        if (isUnique) {
+            // 判断此业务是否已存在关联文件
+            FileMetadata fileMetadata = fileMetadataMapper.selectOne(new LambdaQueryWrapper<FileMetadata>()
+                    .eq(FileMetadata::getStatus, 1)
+                    .eq(FileMetadata::getBizType, bizType)
+                    .eq(FileMetadata::getBizId, bizId));
+            if (fileMetadata != null) {
+                // 先逻辑删除
+                fileMetadata.setStatus(0);
+                fileMetadata.setDeleteTime(new Date());
+                fileMetadataMapper.updateById(fileMetadata);
+            }
+        }
+        // 生成文件id
+        Long fileId = IdWorker.getId();
+        // 原文件名
+        String originalFilename = multipartFile.getOriginalFilename();
+        // minio 对象名
+        int dotIndex = 0;
+        if (originalFilename != null) {
+            dotIndex = originalFilename.lastIndexOf('.');
+        }
+        String ext = "";
+        if (originalFilename != null && dotIndex != -1 && dotIndex < originalFilename.length() - 1) {
+            ext = originalFilename.substring(dotIndex + 1);
+        }
+        String objectName = buildPath(bizType, bizId, fileId, ext);
+        // 获取 content_type
+        String contentType = multipartFile.getContentType();
+        // 文件大小
+        long size = multipartFile.getSize();
+        // 访问级别
+        Integer accessLevel = isPublic ? 0 : 1;
+
+
+        // 保存文件元信息
+        FileMetadata fileMetadata = new FileMetadata();
+        fileMetadata.setId(fileId);
+        fileMetadata.setFileName(originalFilename);
+        fileMetadata.setObjectName(objectName);
+        fileMetadata.setContentType(contentType);
+        fileMetadata.setSize(size);
+        fileMetadata.setAccessLevel(accessLevel);
+        fileMetadata.setBizType(bizType);
+        fileMetadata.setBizId(bizId);
+        fileMetadata.setStatus(1);
+        fileMetadata.setCreateTime(new Date());
+        fileMetadataMapper.insert(fileMetadata);
+
+        // 上传到 minio
+        try (InputStream is = multipartFile.getInputStream()) {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(appProperties.getMinio().getBucketName())
+                            .object(objectName)
+                            .stream(is, size, -1L) // 第三个参数是 partSize, -1 表示 SDK 自动处理
+                            .contentType(contentType)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new BytePulseException(FileErrorCode.FIle_UPLOAD_FAIL);
+        }
+    }
 }
