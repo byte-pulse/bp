@@ -114,4 +114,101 @@ public class GlobalExceptionHandler {
         log.warn("接口参数校验失败 [TraceId={}]: {}", TraceIdUtils.get(), errMsg);
         return ApiResponse.badRequest(errMsg);
     }
+
+    /**
+     * 数据访问错误
+     */
+    @ResponseBody
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ApiResponse<Void>> dataAccessException(DataAccessException ex) {
+        log.error("数据访问错误 [TraceId={}]", TraceIdUtils.get(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .body(ApiResponse.error());
+    }
+
+    /**
+     * SQL 错误
+     */
+    @ResponseBody
+    @ExceptionHandler(SQLException.class)
+    public ResponseEntity<ApiResponse<Void>> resolveException(SQLException ex) {
+        log.error("SQL 错误 [TraceId={}]", TraceIdUtils.get(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .body(ApiResponse.error());
+    }
+
+    /**
+     * 授权异常
+     */
+    @ResponseBody
+    @ExceptionHandler({BadCredentialsException.class, InternalAuthenticationServiceException.class})
+    public ResponseEntity<ApiResponse<Void>> badCredentialsException(Exception ex) {
+        String msg = ex.getMessage();
+        log.warn("授权登陆错误 [TraceId={}]: {}", TraceIdUtils.get(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value())
+                .body(ApiResponse.unauthorized(msg));
+    }
+
+    /**
+     * 权限异常
+     */
+    @ResponseBody
+    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class, AuthorizationServiceException.class})
+    public ResponseEntity<ApiResponse<Void>> accessDeniedException(Exception ex) {
+        log.warn("权限错误 [TraceId={}]: {}", TraceIdUtils.get(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value())
+                .body(ApiResponse.forbidden());
+    }
+
+    /**
+     * Minio文件处理异常
+     */
+    @ResponseBody
+    @ExceptionHandler(ErrorResponseException.class)
+    public ResponseEntity<ApiResponse<Void>> minioException(ErrorResponseException ex) {
+        log.error("Minio 文件处理异常 [TraceId={}]", TraceIdUtils.get(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .body(ApiResponse.error());
+    }
+
+    /**
+     * JSON参数序列化异常
+     */
+    @ResponseBody
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> jsonNotReadableException(HttpMessageNotReadableException ex) {
+        log.warn("请求 JSON 解析错误  [TraceId={}]: {}", TraceIdUtils.get(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
+                .body(ApiResponse.error());
+    }
+
+    /**
+     * JSON参数序列化异常
+     */
+    @ResponseBody
+    @ExceptionHandler(value = {MissingServletRequestParameterException.class, MissingServletRequestPartException.class})
+    public ResponseEntity<ApiResponse<Void>> resolveMissingParameterException(Exception ex) {
+        String missingParameterName = "";
+        if (ex instanceof MissingServletRequestParameterException me) {
+            missingParameterName = me.getParameterName();
+        } else if (ex instanceof MissingServletRequestPartException me) {
+            missingParameterName = me.getRequestPartName();
+        }
+        log.error("缺少必要参数 [TraceId={}]: {} ", TraceIdUtils.get(), missingParameterName, ex);
+        ApiResponse<Void> error = ApiResponse.error("缺少参数: " + missingParameterName);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
+                .body(error);
+    }
+
+    /**
+     * 统一异常处理方法
+     * 将异常进行统一处理,并将结果返回给前端
+     */
+    @ResponseBody
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> resolveException(Exception ex) {
+        log.error("未处理错误 [TraceId={}]", TraceIdUtils.get(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .body(ApiResponse.error());
+    }
 }
