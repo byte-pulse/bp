@@ -12,7 +12,7 @@ ${AnsiColor.CYAN}
 *************************************************************************
                              Byte-Pulse
 ${AnsiColor.CYAN}Port: ${AnsiColor.GREEN}${server.port}
-${AnsiColor.CYAN}Gitee: ${AnsiColor.GREEN}${swagger.info.project.url}
+${AnsiColor.CYAN}GitHub: ${AnsiColor.GREEN}${swagger.info.project.url}
 ${AnsiColor.CYAN}Swagger UI: ${AnsiColor.GREEN}http://127.0.0.1:${server.port}/swagger-ui/index.html
 ${AnsiColor.CYAN}Druid UI: ${AnsiColor.GREEN}http://127.0.0.1:${server.port}/druid/login.html
 ${AnsiColor.CYAN}Application Name: ${AnsiColor.GREEN}${spring.application.name}
