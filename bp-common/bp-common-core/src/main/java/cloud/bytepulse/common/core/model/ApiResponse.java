@@ -82,6 +82,13 @@ public class ApiResponse<T> {
     }
 
     /**
+     * 返回 string 类型结果
+     */
+    public static ApiResponse<String> successWithString(String string) {
+        return new ApiResponse<>(HttpStatus.OK.value(), string);
+    }
+
+    /**
      * 自定义消息成功
      */
     public static ApiResponse<Void> success(String message) {
