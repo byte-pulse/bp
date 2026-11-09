@@ -28,6 +28,10 @@
             <groupId>cloud.bytepulse</groupId>
             <artifactId>bp-security</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
