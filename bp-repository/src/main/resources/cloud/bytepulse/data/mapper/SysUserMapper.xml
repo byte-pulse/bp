@@ -4,4 +4,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cloud.bytepulse.data.mapper.SysUserMapper">
 
+    <select id="selectCurrentUserStatus" resultType="cloud.bytepulse.data.entity.SysUser">
+        SELECT id, nickname, username, IFNULL(introduction, '') AS introduction
+        FROM sys_user
+        WHERE id = #{userId}
+    </select>
+    <select id="selectUserStatus" resultType="cloud.bytepulse.data.entity.SysUser">
+        SELECT id, nickname, username, IFNULL(introduction, '') AS introduction
+        FROM sys_user
+        WHERE id = #{userId}
+    </select>
 </mapper>
