@@ -17,4 +17,7 @@ bp:
       bucketName: bp-file
     captcha:
       expiration-seconds: 30
-
+spring:
+  ai:
+    deepseek:
+      api-key: ${DEEPSEEK_API_KEY}
