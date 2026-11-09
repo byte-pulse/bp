@@ -2,6 +2,7 @@ package cloud.bytepulse.web.aspect;
 
 
 import cloud.bytepulse.common.core.annotation.RequestLimit;
+import cloud.bytepulse.common.core.exception.BytePulseException;
 import cloud.bytepulse.common.core.model.ApiResponse;
 import cloud.bytepulse.common.core.util.ReqUtils;
 import cloud.bytepulse.security.Auths;
@@ -99,7 +100,7 @@ public class RequestLimitAspect {
 
         // 5. 判断是否放行
         if (pass == null || pass == 0) {
-            return ApiResponse.error("请求过于频繁, 请稍后重试");
+            throw new BytePulseException("请求过于频繁, 请稍后重试");
         }
 
         return point.proceed();
