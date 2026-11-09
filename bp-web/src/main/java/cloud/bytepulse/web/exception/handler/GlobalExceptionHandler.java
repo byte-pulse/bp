@@ -6,11 +6,14 @@ import cloud.bytepulse.common.core.exception.BytePulseException;
 import cloud.bytepulse.common.core.model.ApiResponse;
 import cloud.bytepulse.common.core.util.TraceIdUtils;
 import io.minio.errors.ErrorResponseException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
@@ -31,6 +34,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -202,13 +206,29 @@ public class GlobalExceptionHandler {
 
     /**
      * 统一异常处理方法
-     * 将异常进行统一处理,并将结果返回给前端
      */
     @ResponseBody
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> resolveException(Exception ex) {
+    public ResponseEntity<ApiResponse<Void>> resolveException(Exception ex,
+                                                              HttpServletRequest request,
+                                                              HttpServletResponse response) {
+        if (isEventStream(response)) {
+            // SSE 请求的异常已在流式处理的 onError 回调中记录
+            // 此处仅记录 debug, 避免 ERROR 派发产生的 HttpMessageNotWritableException 干扰真实错误
+            log.debug("SSE 请求未处理异常 [TraceId={}]", TraceIdUtils.get(), ex);
+            return null;
+        }
         log.error("未处理错误 [TraceId={}]", TraceIdUtils.get(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(ApiResponse.error());
+    }
+
+    private static boolean isEventStream(HttpServletResponse response) {
+        if (response.isCommitted()) {
+            return true;
+        }
+        String contentType = response.getContentType();
+        return contentType != null
+                && contentType.toLowerCase(Locale.ROOT).startsWith(MediaType.TEXT_EVENT_STREAM_VALUE);
     }
 }
