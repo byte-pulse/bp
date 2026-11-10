@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -16,6 +18,14 @@ import java.io.IOException;
  * @since 2026-09-10 14:12
  */
 public class ContentCachingWrapperFilter extends OncePerRequestFilter {
+
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        // SSE 等流式响应不能走缓存包装：请求线程结束时 copyBodyToResponse 会提前提交响应
+        // 并把 Content-Length 固化为当前已缓存的数据量，导致后续消息无法下发
+        String accept = request.getHeader(HttpHeaders.ACCEPT);
+        return accept != null && accept.contains(MediaType.TEXT_EVENT_STREAM_VALUE);
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,

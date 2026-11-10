@@ -1,21 +1,21 @@
 package cloud.bytepulse.web.controller;
 
 import cloud.bytepulse.ai.deepseek.DeepseekService;
+import cloud.bytepulse.common.core.annotation.Anonymous;
 import cloud.bytepulse.common.core.annotation.RequestLimit;
 import cloud.bytepulse.common.core.model.ApiResponse;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author jiejiebiezheyang
@@ -32,15 +32,13 @@ public class AIController {
 
 
     @PostMapping("/generate")
-    @Operation(summary = "对话")
     @RequestLimit(count = 10, time = 8000)
     public ApiResponse<String> generate(@RequestParam String message) {
         String result = deepseekService.generate(message);
         return ApiResponse.successWithString(result);
     }
 
-    @PostMapping("/generateStream")
-    @Operation(summary = "流式对话")
+    @PostMapping(value = "/generateStream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @RequestLimit(count = 10, time = 8000)
     public SseEmitter generateStream(@RequestParam String message) {
         SseEmitter emitter = new SseEmitter(60_000L);
@@ -75,6 +73,34 @@ public class AIController {
         emitter.onError(e -> {
             subscription.dispose();
             log.warn("SSE emitter 错误", e);
+        });
+
+        return emitter;
+    }
+
+
+    // 用一个固定线程池处理推送，避免阻塞请求线程
+    private static final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+
+    @GetMapping(value = "/sse/demo", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Anonymous
+    public SseEmitter demo() {
+        // 超时时间 60 秒，到时间没推完会自动断开
+        SseEmitter emitter = new SseEmitter(60_000L);
+
+        executor.submit(() -> {
+            try {
+                for (int i = 0; i < 5; i++) {
+                    // 发送一条消息，前端 onmessage 会收到
+                    emitter.send("第 " + (i + 1) + " 条消息，时间戳：" + System.currentTimeMillis());
+                    Thread.sleep(1000);
+                }
+                // 正常结束，关闭连接
+                emitter.complete();
+            } catch (Exception e) {
+                // 出错时关闭连接
+                emitter.completeWithError(e);
+            }
         });
 
         return emitter;

@@ -6,6 +6,7 @@ import cloud.bytepulse.common.core.constant.ApiPathRegistry;
 import cloud.bytepulse.common.core.properties.AppProperties;
 import cloud.bytepulse.security.filter.JwtFilter;
 import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.DispatcherTypeRequestMatcher;
 
 import java.util.Collections;
 
@@ -68,6 +70,10 @@ public class SecurityConfig {
         http.sessionManagement(sessionManagement ->
                 sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(auth -> {
+                    // 异步请求的二次派发（如 SseEmitter 完成时的 ASYNC dispatch）直接放行：
+                    // 首次 REQUEST 派发已完成鉴权，而 STATELESS 下 SecurityContext 不会保留到异步派发，
+                    // 再次鉴权会抛 AuthorizationDeniedException，此时流式响应已提交，错误也无法回写
+                    auth.requestMatchers(new DispatcherTypeRequestMatcher(DispatcherType.ASYNC)).permitAll();
                     ApiPathRegistry.ANONYMOUS_API.forEach((methodName, urls) -> {
                         // 设置放行接口
                         HttpMethod httpMethod = HttpMethod.valueOf(methodName);

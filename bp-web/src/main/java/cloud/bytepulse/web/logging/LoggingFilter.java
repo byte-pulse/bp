@@ -21,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.util.mime.MimeUtility;
 import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -43,6 +45,14 @@ import java.util.stream.Collectors;
 public class LoggingFilter extends LoggingFilterInterface {
 
     private final LoggingService LoggingService;
+
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        // SSE 等流式响应不能走缓存包装：finally 中的 copyBodyToResponse 会提前提交响应
+        // 并把 Content-Length 固化为当前已缓存的数据量，导致后续消息无法下发
+        String accept = request.getHeader(HttpHeaders.ACCEPT);
+        return accept != null && accept.contains(MediaType.TEXT_EVENT_STREAM_VALUE);
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
