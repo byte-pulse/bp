@@ -4,9 +4,13 @@ import cloud.bytepulse.common.core.util.ReqUtils;
 import cloud.bytepulse.security.Auths;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.deepseek.DeepSeekChatOptions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -51,7 +55,10 @@ public class DeepseekService {
 
     private final ChatClient chatClient;
 
-    public DeepseekService(ChatClient.Builder builder, BPTools bpTools) {
+    private final ChatMemory chatMemory;
+
+    public DeepseekService(ChatClient.Builder builder, BPTools bpTools, ChatMemory chatMemory) {
+        this.chatMemory = chatMemory;
         this.chatClient = builder
                 .defaultSystem(systemPrompt)
                 .defaultTools(bpTools)
@@ -82,13 +89,17 @@ public class DeepseekService {
     /**
      * 流式问答
      */
-    public Flux<String> generateStream(String message) {
+    public Flux<ChatResponse> generateStream(String message, String chatId) {
         long userId = Auths.getUserId();
         String ip = ReqUtils.getIP();
+
+        // 构建单次请求的 DeepSeek 选项：开启思考模式
         return chatClient.prompt()
                 .user(message)
+                .advisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, chatId))
                 .toolContext(Map.of("userId", userId, "ip", ip))
                 .stream()
-                .content();
+                .chatResponse();
     }
 }

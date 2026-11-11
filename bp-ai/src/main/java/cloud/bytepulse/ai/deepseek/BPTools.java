@@ -7,12 +7,9 @@ import kong.unirest.core.HttpResponse;
 import kong.unirest.core.Unirest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -37,13 +34,6 @@ import java.util.concurrent.TimeUnit;
 public class BPTools {
 
     private final UserService userService;
-
-    @Bean
-    public ChatMemory chatMemory() {
-        return MessageWindowChatMemory.builder()
-                .maxMessages(20)
-                .build();
-    }
 
     @Tool(description = "查询 bp 系统当前用户的账号状态和所属角色。只读操作。")
     public String queryCurrentUserStatus(ToolContext toolContext) {
