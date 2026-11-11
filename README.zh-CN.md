@@ -8,7 +8,8 @@
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.2-6DB33F.svg)](https://spring.io/projects/spring-boot)
+[![Spring AI](https://img.shields.io/badge/Spring%20AI-2.0.0-1B6B4A.svg)](https://spring.io/projects/spring-ai)
 [![MyBatis-Plus](https://img.shields.io/badge/MyBatis--Plus-3.5.17-red.svg)](https://baomidou.com/)
 [![Redis](https://img.shields.io/badge/Redis-6.0%2B-DC382D.svg)](https://redis.io/)
 [![MinIO](https://img.shields.io/badge/MinIO-SDK%209.0.3-C72E49.svg)](https://min.io/)
@@ -27,7 +28,7 @@
 - 启动类：`cloud.bytepulse.BootApplication`（模块 `bp-app`）
 - 默认端口：`19420`，上下文路径：`/`
 - 应用名：`byte-pulse`
-- 技术基线：Java 25 · Spring Boot 4.1.1 · MyBatis-Plus 3.5.17
+- 技术基线：Java 25 · Spring Boot 4.1.2 · Spring AI 2.0.0 · MyBatis-Plus 3.5.17
 
 ---
 
@@ -48,6 +49,7 @@
   - [分布式限流](#分布式限流)
   - [全局异常处理与错误码](#全局异常处理与错误码)
   - [文件访问](#文件访问)
+  - [AI 对话助手](#ai-对话助手)
 - [数据库表](#数据库表)
 - [功能状态说明](#功能状态说明)
 - [开发指南](#开发指南)
@@ -57,7 +59,7 @@
 
 ## 核心特性
 
-- **多模块分层架构** - `repository / service / web / security / infrastructure / common` 六层解耦，依赖方向自底向上。
+- **多模块分层架构** - `repository / service / web / security / infrastructure / common` 六层解耦，另有 `bp-ai` 模块，依赖方向自底向上。
 - **JWT + Redis 认证** - Spring Security 无状态认证；Token 明文（JWT 仅携带 `userId` 与 `fingerprint`），登录态存 Redis 并支持**滑动续期**与**单会话互踢**。
 - **图形验证码** - Hutool `GifCaptcha` 动态 GIF，校验码存 Redis，一次一验。
 - **多方式账号登录** - 用户名 / 手机号 / 邮箱三种标识自动路由查询，BCrypt 校验。
@@ -66,6 +68,7 @@
 - **灵活注解控制** - `@Anonymous`、`@BpLogging`、`@Pageable`、`@RequestLimit` 覆盖安全、日志、文档、限流。
 - **统一异常与响应** - 全局异常处理器 + 中文语义化响应 + 业务错误码唯一性启动校验。
 - **接口调用日志** - 请求/响应体自动捕获、对 JSON 做脱敏、向响应注入 `traceId` 与 `timestamp`，操作日志（含类型与描述）落库 `sys_log`。
+- **AI 对话助手** - 基于 Spring AI 接入 DeepSeek：同步与 SSE 流式两种对话接口，多轮对话记忆经 JDBC 仓库持久化，并支持工具调用（当前用户状态、系统运行指标、天气）。
 - **丰富基础设施** - 动态数据源(Druid + MyBatis-Plus)、Redis 带前缀序列化、虚拟线程、SpringDoc、Actuator 全端点、RabbitMQ（含延迟队列案例）。
 
 ---
@@ -75,7 +78,8 @@
 | 分类     | 组件                     | 版本           | 说明                                   |
 | -------- | ------------------------ | -------------- | -------------------------------------- |
 | 语言     | Java                     | 25             | `java.version=25`                      |
-| 框架     | Spring Boot              | 4.1.1          | 含虚拟线程                             |
+| 框架     | Spring Boot              | 4.1.2          | 含虚拟线程                             |
+| AI       | Spring AI (DeepSeek)     | 2.0.0          | 对话客户端、流式输出、工具调用         |
 | 安全     | Spring Security          | Boot BOM 管理  | JWT 无状态认证                         |
 | ORM      | MyBatis-Plus             | 3.5.17         | `mybatis-plus-spring-boot4-starter`    |
 | 多数据源 | dynamic-datasource       | 4.5.0          | master/slave                           |
@@ -99,7 +103,7 @@
 
 ## 模块架构
 
-根聚合 POM：`cloud.bytepulse:bp:0.0.1`，聚合顺序 `bp-repository → bp-common → bp-infrastructure → bp-web → bp-app → bp-service → bp-security`（顺序对聚合无影响，依赖由 POM 声明决定）。
+根聚合 POM：`cloud.bytepulse:bp:0.0.1`，聚合顺序 `bp-repository → bp-common → bp-infrastructure → bp-web → bp-app → bp-service → bp-security → bp-ai`（顺序对聚合无影响，依赖由 POM 声明决定）。
 
 ```
 bp (聚合 POM)
@@ -111,7 +115,8 @@ bp (聚合 POM)
 │   └── bp-mq                     # RabbitMQ：Jackson JSON 消息转换器 + 延迟队列（死信/TTL）案例
 ├── bp-repository                 # 数据访问：实体、BaseMapper 接口、MyBatis 配置
 ├── bp-security                   # 认证授权：SecurityConfig、JwtFilter、LoginUser、权限上下文
-├── bp-service                    # 业务服务：auth / file / logging
+├── bp-service                    # 业务服务：auth / file / logging / user
+├── bp-ai                         # AI：DeepSeek 对话服务、工具集、对话调试页面
 ├── bp-web                        # Web 层：Controller、切面限流、全局异常、日志过滤器
 └── bp-app                        # 启动模块：BootApplication、可执行 jar、全部环境配置
 ```
@@ -129,7 +134,9 @@ bp-common-core (无内部依赖，最底层)
    │        ▲
    ├── bp-service      (依赖 cache/storage/mq/repository/security)
    │        ▲
-   ├── bp-web          (依赖 bp-service + starter-web/actuator)
+   ├── bp-ai           (依赖 bp-service + Spring AI starters)
+   │        ▲
+   ├── bp-web          (依赖 bp-service + bp-ai + starter-web/actuator)
    │        ▲
    └── bp-app          (依赖 bp-web，可执行)
 ```
@@ -138,7 +145,8 @@ bp-common-core (无内部依赖，最底层)
 
 - 各模块 Java 类均位于 `cloud.bytepulse.*` 包，由 `BootApplication`（包 `cloud.bytepulse`）统一组件扫描；
 - Mapper 由 `MyBatisConfig` 的 `@MapperScan("cloud.bytepulse.**.mapper")` 装配，实体字段遵循「下划线 ↔ 驼峰」自动映射；
-- Redis / MinIO / MQ 等外部组件配置统一由 `bp.app.*` 前缀 + 各环境 YAML 驱动。
+- Redis / MinIO / MQ 等外部组件配置统一由 `bp.app.*` 前缀 + 各环境 YAML 驱动；
+- `bp-ai` 由 Spring AI starter 自动装配，DeepSeek 密钥取自 `DEEPSEEK_API_KEY` 环境变量，对话记忆通过 JDBC 仓库持久化。
 
 ### 关键类索引
 
@@ -158,11 +166,12 @@ bp-common-core (无内部依赖，最底层)
 | bp-cache       | `cache.redis`                       | `RedisCache` / `RedisConfig` / `RedisPrefixSerializer`                          |
 | bp-storage     | `storage.minio`                     | `MinioTemplate` / `MinioConfig`                                                 |
 | bp-repository  | `data.entity` / `data.mapper`       | 实体 + Mapper（`SysUser` / `SysLog` / `FileMetadata`）                          |
-| bp-service     | `service.auth` / `file` / `logging` | 登录、文件、日志服务                                                            |
+| bp-service     | `service.auth` / `file` / `logging` / `user` | 登录、文件、日志与用户服务                                             |
+| bp-ai          | `ai.deepseek`                       | `DeepseekService`（ChatClient + 系统提示词）/ `BPTools`（`@Tool` 工具）          |
 | bp-web         | `web.aspect`                        | `RequestLimitAspect`（Redis Lua 限流）                                          |
 | bp-web         | `web.exception.handler`             | `GlobalExceptionHandler`                                                        |
 | bp-web         | `web.logging`                       | `LoggingFilter`（捕获/脱敏/落库）、`NoLoggingUrlCollector`                      |
-| bp-web         | `web.controller`                    | `AuthController` / `DevAuthController` / `FileController`                       |
+| bp-web         | `web.controller`                    | `AuthController` / `DevAuthController` / `FileController` / `AIController`      |
 
 ---
 
@@ -174,6 +183,7 @@ bp-common-core (无内部依赖，最底层)
 - Redis 6.0+
 - MinIO（可选，仅在文件上传/访问时需要）
 - RabbitMQ（可选，`bp-mq` 含延迟队列简单案例，不配置不影响其它功能）
+- `DEEPSEEK_API_KEY` 环境变量中的 DeepSeek API Key（`bp-ai` 必需）
 
 ---
 
@@ -192,7 +202,7 @@ cd bp
 mysql -u root -p < init.sql
 ```
 
-脚本创建 `bytepulse` 库所需的 4 张表，并内置管理员 `admin`（密码以 BCrypt 哈希固化在脚本中；
+脚本创建 `bytepulse` 库所需的 3 张表，并内置管理员 `admin`（密码以 BCrypt 哈希固化在脚本中；
 如需自定义密码，请在导入前将 `sys_user` 的 `password` 字段替换为目标密码的 BCrypt 值）。
 
 ### 3. 修改配置
@@ -226,6 +236,12 @@ bp:
 ```
 
 > 环境 YAML（dev/test/prod）会覆盖 `config/application-app.yaml` 中的同名默认项（例如 MinIO `bucketName`）。
+
+AI 模块从环境变量读取密钥，启动前先导出：
+
+```powershell
+$env:DEEPSEEK_API_KEY="sk-你的密钥"
+```
 
 ### 4. 构建并启动
 
@@ -288,6 +304,14 @@ dev/test/prod 三套环境结构一致（数据源默认 master/slave 均指向�
 | `bp.app.external-api.secret-key`    | `key`                   | 第三方接口密钥（占位，见[功能状态说明](#功能状态说明)） |
 | `bp.app.external-api.iv`            | `iv`                    | AES IV（占位，见[功能状态说明](#功能状态说明)）         |
 
+### AI 配置项（`spring.ai`）
+
+| 配置项                                                    | 默认值                | 说明                                    |
+| --------------------------------------------------------- | --------------------- | --------------------------------------- |
+| `spring.ai.deepseek.api-key`                              | `${DEEPSEEK_API_KEY}` | DeepSeek API Key，取自同名环境变量      |
+| `spring.ai.chat.memory.repository.jdbc.platform`          | `mysql`               | 对话记忆仓库的 SQL 方言                 |
+| `spring.ai.chat.memory.repository.jdbc.initialize-schema` | `always`              | 启动时自动创建对话记忆表                |
+
 ---
 
 ## 接口一览
@@ -301,6 +325,11 @@ dev/test/prod 三套环境结构一致（数据源默认 master/slave 均指向�
 | `/file/access/{fileId}`         | GET  | 公开文件访问（302 到预签名 URL）                     | 匿名                                                 |
 | `/file/authentication/{fileId}` | GET  | 私有文件访问（登录鉴权后 302）                       | 需登录                                               |
 | `/file/access/upload`           | POST | 文件上传测试（multipart：`files` + `bizId`）         | 匿名                                                 |
+| `/ai/generate`                  | POST | 同步对话（参数 `message`）                           | 需登录 + 限流（10 次 / 8 秒）                        |
+| `/ai/generateStream`            | POST | SSE 流式对话（参数 `message` + `chatId`）            | 需登录 + 限流（10 次 / 8 秒）                        |
+| `/ai/sse/demo`                  | GET  | SSE 演示（5 条消息，间隔 1 秒）                      | 匿名                                                 |
+
+> AI 对话调试页面：http://localhost:19420/chat.html （默认在匿名放行名单内）。
 
 > 接口标注 `@BpLogging` 后，其调用会自动记录到 `sys_log`（操作类型与描述见「接口日志记录」）。
 
@@ -451,6 +480,19 @@ throw new BytePulseException(AuthErrorCode.CAPTCHA_ERROR);
 - 上传对象路径规则：`{bizType}/{yyyyMMdd}/{bizId||"_tmp"}/{fileId}.{ext}`；
 - `MinioTemplate` 提供无过期时间参数时的分级签名策略：<10MB 10 分钟、10–100MB 60 分钟、>100MB 24 小时。
 
+### AI 对话助手
+
+`DeepseekService`（`bp-ai`）基于 Spring AI 构建 `ChatClient`，固定系统提示词并挂载 `BPTools` 工具集；
+对话状态由 JDBC `ChatMemory` 仓库按 `chatId` 持久化。
+
+- `POST /ai/generate` 一次性返回完整回答；
+- `POST /ai/generateStream` 订阅 `Flux<String>`，将增量片段以 `message` 事件推送；片段经 JSON 编码后写入，
+  避免 `data:` 后的前导空格被吞掉（保留代码块缩进）。异常时推送 `error` 事件并结束；
+  客户端断开或超时会取消订阅；
+- `BPTools` 提供三个只读 `@Tool`：当前用户状态、系统运行指标（OSHI）、天气（wttr.in，
+  未指定城市时按调用方 IP 解析）。工具上下文携带 `userId` 与 `ip`；
+- 两个对话接口均有限流（`@RequestLimit(count = 10, time = 8000)`）且需登录。
+
 ---
 
 ## 数据库表
@@ -464,6 +506,9 @@ throw new BytePulseException(AuthErrorCode.CAPTCHA_ERROR);
 | `file_metadata` | 文件元数据   | `object_name`(MinIO 对象名)/`content_type`/`size`/`access_level`(0公开 1需登录)/`biz_type`/`biz_id`/`status`                                    |
 
 > `sys_log` 新增了 `operate`（操作类型）与 `description`（操作描述）两列，由 `@BpLogging` 填充。
+
+`bp-ai` 使用 Spring AI 的 JDBC 对话记忆仓库，其数据表由框架自动创建与维护
+（`spring.ai.chat.memory.repository.jdbc.initialize-schema: always`），不在 `init.sql` 中。
 
 Mapper 使用 MyBatis-Plus `BaseMapper<T>`，实体下划线列 ↔ 驼峰属性自动映射。
 
@@ -485,6 +530,7 @@ Mapper 使用 MyBatis-Plus `BaseMapper<T>`，实体下划线列 ↔ 驼峰属性
 | 权限体系（角色/权限点）                 | 🚧 `LoginUser.permissions` 支撑已就绪，但权限数据来源为 TODO（当前为空，`@PreAuthorize` 暂无实际权限点数据）                                        |
 | 第三方接口签名认证（HMAC/Nonce 防重放） | 🚧 基础能力已就绪：`CryptoUtils`(RSA/AES/SHA/HMAC)、`bp.app.external-api` 配置占位；`api_credentials` 表与实体已被移除，签名校验过滤器/切面尚未实现 |
 | RabbitMQ（`bp-mq`）                     | ✅ 含简单案例：`JacksonJsonMessageConverter` 消息转换、死信 + TTL 延迟队列（`RabbitConfig` / `DelayQueue`）                                         |
+| AI 对话助手（`bp-ai`）                  | ✅ 已实现：DeepSeek 对话（同步 + SSE 流式）、JDBC 多轮对话记忆、工具调用（当前用户 / 系统信息 / 天气），调试页面 `/chat.html`                      |
 
 接入上述预留链路前，请勿在对外描述中将其声明为已上线能力。
 
@@ -518,7 +564,7 @@ java -jar bp-app/target/bp-app-0.0.1.jar --spring.profiles.active=prod
 
 ### 默认放行的匿名 / 日志接口路径
 
-`/error`、`/actuator/**`、`/druid/**`、Swagger 相关路径等默认在匿名名单内；
+`/error`、`/actuator/**`、`/druid/**`、Swagger 相关路径、`/chat.html` 等默认在匿名名单内；
 业务匿名接口统一用 `@Anonymous` 声明，需要记录调用日志的接口统一用 `@BpLogging` 标注。
 
 ---

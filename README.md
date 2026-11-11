@@ -3,12 +3,13 @@
 # BytePulse BP
 
 **An enterprise-grade Spring Boot multi-module development framework.**
-Built-in authentication & authorization, API rate limiting, file storage, async logging and more —
+Built-in authentication & authorization, API rate limiting, file storage, async logging and an AI chat assistant —
 organized as "layered modules + configuration-driven", ready to serve as a backend service scaffold.
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.2-6DB33F.svg)](https://spring.io/projects/spring-boot)
+[![Spring AI](https://img.shields.io/badge/Spring%20AI-2.0.0-1B6B4A.svg)](https://spring.io/projects/spring-ai)
 [![MyBatis-Plus](https://img.shields.io/badge/MyBatis--Plus-3.5.17-red.svg)](https://baomidou.com/)
 [![Redis](https://img.shields.io/badge/Redis-6.0%2B-DC382D.svg)](https://redis.io/)
 [![MinIO](https://img.shields.io/badge/MinIO-SDK%209.0.3-C72E49.svg)](https://min.io/)
@@ -27,7 +28,7 @@ organized as "layered modules + configuration-driven", ready to serve as a backe
 - Entry point: `cloud.bytepulse.BootApplication` (module `bp-app`)
 - Default port: `19420`, context path: `/`
 - Application name: `byte-pulse`
-- Tech baseline: Java 25 · Spring Boot 4.1.1 · MyBatis-Plus 3.5.17
+- Tech baseline: Java 25 · Spring Boot 4.1.2 · Spring AI 2.0.0 · MyBatis-Plus 3.5.17
 
 ---
 
@@ -48,6 +49,7 @@ organized as "layered modules + configuration-driven", ready to serve as a backe
   - [Distributed Rate Limiting](#distributed-rate-limiting)
   - [Global Exception Handling & Error Codes](#global-exception-handling--error-codes)
   - [File Access](#file-access)
+  - [AI Chat Assistant](#ai-chat-assistant)
 - [Database Tables](#database-tables)
 - [Feature Status](#feature-status)
 - [Development Guide](#development-guide)
@@ -57,7 +59,7 @@ organized as "layered modules + configuration-driven", ready to serve as a backe
 
 ## Core Features
 
-- **Multi-module layered architecture** — six decoupled layers (`repository / service / web / security / infrastructure / common`) with dependencies flowing bottom-up.
+- **Multi-module layered architecture** — six decoupled layers (`repository / service / web / security / infrastructure / common`) plus the `bp-ai` module, with dependencies flowing bottom-up.
 - **JWT + Redis authentication** — stateless authentication via Spring Security; the token is opaque (the JWT carries only `userId` and `fingerprint`), while login state lives in Redis with **sliding renewal** and **single-session eviction**.
 - **Captcha** — Hutool `GifCaptcha` animated GIF; the code is stored in Redis and verified once.
 - **Multi-identifier login** — username / phone / email are auto-routed to the right lookup, verified with BCrypt.
@@ -66,6 +68,7 @@ organized as "layered modules + configuration-driven", ready to serve as a backe
 - **Annotation-driven control** — `@Anonymous`, `@BpLogging`, `@Pageable`, `@RequestLimit` cover security, logging, docs and rate limiting.
 - **Unified exceptions & responses** — global exception handler + semantic messages + startup-time uniqueness check for business error codes.
 - **API call logging** — automatic request/response body capture, JSON masking, `traceId` and `timestamp` injected into responses, operation logs (type + description) persisted to `sys_log`.
+- **AI chat assistant** — DeepSeek via Spring AI: blocking and SSE streaming endpoints, multi-turn memory persisted through a JDBC chat-memory repository, and tool calling for current-user status, runtime/system metrics and weather.
 - **Rich infrastructure** — dynamic datasource (Druid + MyBatis-Plus), prefix-aware Redis serialization, virtual threads, SpringDoc, all Actuator endpoints, RabbitMQ (with a delay-queue sample).
 
 ---
@@ -75,7 +78,8 @@ organized as "layered modules + configuration-driven", ready to serve as a backe
 | Category       | Component                | Version        | Notes                                   |
 | -------------- | ------------------------ | -------------- | --------------------------------------- |
 | Language       | Java                     | 25             | `java.version=25`                       |
-| Framework      | Spring Boot              | 4.1.1          | Virtual threads enabled                 |
+| Framework      | Spring Boot              | 4.1.2          | Virtual threads enabled                 |
+| AI             | Spring AI (DeepSeek)     | 2.0.0          | Chat client, streaming, tool calling    |
 | Security       | Spring Security          | Boot BOM       | JWT stateless auth                      |
 | ORM            | MyBatis-Plus             | 3.5.17         | `mybatis-plus-spring-boot4-starter`     |
 | Datasource     | dynamic-datasource       | 4.5.0          | master / slave                          |
@@ -99,7 +103,7 @@ organized as "layered modules + configuration-driven", ready to serve as a backe
 
 ## Module Architecture
 
-Root aggregator POM: `cloud.bytepulse:bp:0.0.1`, aggregating `bp-repository → bp-common → bp-infrastructure → bp-web → bp-app → bp-service → bp-security` (order does not affect aggregation; dependencies are defined by the POMs).
+Root aggregator POM: `cloud.bytepulse:bp:0.0.1`, aggregating `bp-repository → bp-common → bp-infrastructure → bp-web → bp-app → bp-service → bp-security → bp-ai` (order does not affect aggregation; dependencies are defined by the POMs).
 
 ```
 bp (aggregator POM)
@@ -111,7 +115,8 @@ bp (aggregator POM)
 │   └── bp-mq                     # RabbitMQ: Jackson JSON message converter + delay queue (DLX/TTL) sample
 ├── bp-repository                 # Data access: entities, BaseMapper interfaces, MyBatis config
 ├── bp-security                   # Auth: SecurityConfig, JwtFilter, LoginUser, permission context
-├── bp-service                    # Business services: auth / file / logging
+├── bp-service                    # Business services: auth / file / logging / user
+├── bp-ai                         # AI: DeepSeek chat service, tool set, chat debug page
 ├── bp-web                        # Web layer: Controllers, rate-limit aspect, global exceptions, logging filter
 └── bp-app                        # Bootstrap module: BootApplication, executable jar, all environment configs
 ```
@@ -129,7 +134,9 @@ bp-common-core (no internal deps, bottom layer)
    │        ▲
    ├── bp-service      (depends on cache/storage/mq/repository/security)
    │        ▲
-   ├── bp-web          (depends on bp-service + starter-web/actuator)
+   ├── bp-ai           (depends on bp-service + Spring AI starters)
+   │        ▲
+   ├── bp-web          (depends on bp-service + bp-ai + starter-web/actuator)
    │        ▲
    └── bp-app          (depends on bp-web, executable)
 ```
@@ -138,7 +145,8 @@ Wiring notes:
 
 - All Java classes live under `cloud.bytepulse.*` and are component-scanned by `BootApplication` (package `cloud.bytepulse`);
 - Mappers are registered by `MyBatisConfig` via `@MapperScan("cloud.bytepulse.**.mapper")`; entity fields follow automatic `snake_case ↔ camelCase` mapping;
-- External components (Redis / MinIO / MQ) are configured through the `bp.app.*` prefix plus per-environment YAML.
+- External components (Redis / MinIO / MQ) are configured through the `bp.app.*` prefix plus per-environment YAML;
+- The `bp-ai` module is auto-configured by the Spring AI starters; the DeepSeek key comes from the `DEEPSEEK_API_KEY` environment variable and chat memory is persisted through the JDBC repository.
 
 ### Key Class Index
 
@@ -158,11 +166,12 @@ Wiring notes:
 | bp-cache       | `cache.redis`                       | `RedisCache` / `RedisConfig` / `RedisPrefixSerializer`                         |
 | bp-storage     | `storage.minio`                     | `MinioTemplate` / `MinioConfig`                                                |
 | bp-repository  | `data.entity` / `data.mapper`       | Entities + Mappers (`SysUser` / `SysLog` / `FileMetadata`)                     |
-| bp-service     | `service.auth` / `file` / `logging` | Login, file and logging services                                               |
+| bp-service     | `service.auth` / `file` / `logging` / `user` | Login, file, logging and user services                                 |
+| bp-ai          | `ai.deepseek`                       | `DeepseekService` (ChatClient + system prompt) / `BPTools` (`@Tool` functions) |
 | bp-web         | `web.aspect`                        | `RequestLimitAspect` (Redis Lua rate limiting)                                 |
 | bp-web         | `web.exception.handler`             | `GlobalExceptionHandler`                                                       |
 | bp-web         | `web.logging`                       | `LoggingFilter` (capture / mask / persist), `NoLoggingUrlCollector`            |
-| bp-web         | `web.controller`                    | `AuthController` / `DevAuthController` / `FileController`                      |
+| bp-web         | `web.controller`                    | `AuthController` / `DevAuthController` / `FileController` / `AIController`     |
 
 ---
 
@@ -174,6 +183,7 @@ Wiring notes:
 - Redis 6.0+
 - MinIO (optional, only needed for file upload/access)
 - RabbitMQ (optional; `bp-mq` contains a simple delay-queue sample and can be left unconfigured)
+- A DeepSeek API key in the `DEEPSEEK_API_KEY` environment variable (required by `bp-ai`)
 
 ---
 
@@ -192,7 +202,7 @@ cd bp
 mysql -u root -p < init.sql
 ```
 
-The script creates the 4 tables required by the `bytepulse` database and seeds an `admin` user (the password is
+The script creates the 3 tables required by the `bytepulse` database and seeds an `admin` user (the password is
 hard-coded as a BCrypt hash in the script; to use your own password, replace the `password` column of `sys_user`
 with the BCrypt value of your target password before importing).
 
@@ -227,6 +237,12 @@ bp:
 ```
 
 > Environment YAMLs (dev/test/prod) override the same-named defaults in `config/application-app.yaml` (for example the MinIO `bucketName`).
+
+The AI module reads its key from the environment, so export it before starting:
+
+```powershell
+$env:DEEPSEEK_API_KEY="sk-your-key"
+```
 
 ### 4. Build and run
 
@@ -290,6 +306,14 @@ Logging uses Log4j2 (`log4j2-spring.xml`) and writes to the `.logs/` directory p
 | `bp.app.external-api.secret-key`    | `key`                   | Third-party API key (placeholder, see [Feature Status](#feature-status)) |
 | `bp.app.external-api.iv`            | `iv`                    | AES IV (placeholder, see [Feature Status](#feature-status))              |
 
+### AI Properties (`spring.ai`)
+
+| Property                                                  | Default               | Description                                              |
+| --------------------------------------------------------- | --------------------- | -------------------------------------------------------- |
+| `spring.ai.deepseek.api-key`                              | `${DEEPSEEK_API_KEY}` | DeepSeek API key, resolved from the environment variable |
+| `spring.ai.chat.memory.repository.jdbc.platform`          | `mysql`               | SQL dialect of the chat-memory repository                |
+| `spring.ai.chat.memory.repository.jdbc.initialize-schema` | `always`              | Creates the chat-memory table automatically on startup   |
+
 ---
 
 ## API Reference
@@ -303,6 +327,11 @@ Logging uses Log4j2 (`log4j2-spring.xml`) and writes to the `.logs/` directory p
 | `/file/access/{fileId}`         | GET    | Public file access (302 to presigned URL)                   | Anonymous                                                   |
 | `/file/authentication/{fileId}` | GET    | Private file access (302 after authentication)              | Authenticated                                               |
 | `/file/access/upload`           | POST   | File upload test (multipart: `files` + `bizId`)             | Anonymous                                                   |
+| `/ai/generate`                  | POST   | One-shot chat completion (`message` param)                  | Authenticated + rate-limited (10 requests / 8 s)            |
+| `/ai/generateStream`            | POST   | Streaming chat over SSE (`message` + `chatId` params)       | Authenticated + rate-limited (10 requests / 8 s)            |
+| `/ai/sse/demo`                  | GET    | SSE demo (5 messages, 1 s apart)                            | Anonymous                                                   |
+
+> The AI debug page is served at http://localhost:19420/chat.html and is in the anonymous allow-list.
 
 > Endpoints annotated with `@BpLogging` are automatically recorded to `sys_log` (operation type and description —
 > see [Request Logging](#request-logging)).
@@ -457,6 +486,19 @@ codes, preventing conflicts at the source.
 - Upload object path rule: `{bizType}/{yyyyMMdd}/{bizId||"_tmp"}/{fileId}.{ext}`;
 - `MinioTemplate` uses tiered signing when no expiration is given: <10MB → 10 minutes, 10–100MB → 60 minutes, >100MB → 24 hours.
 
+### AI Chat Assistant
+
+`DeepseekService` (`bp-ai`) builds a Spring AI `ChatClient` with a fixed system prompt and the `BPTools` tool set;
+conversation state is stored by the JDBC `ChatMemory` repository keyed by `chatId`.
+
+- `POST /ai/generate` returns the whole answer as a string;
+- `POST /ai/generateStream` subscribes to a `Flux<String>` and relays chunks as SSE events named `message`; each
+  chunk is JSON-encoded so the leading space after `data:` is not swallowed (code-block indentation survives).
+  Failures emit an `error` event and close the emitter; client disconnect or timeout disposes the subscription;
+- `BPTools` exposes three read-only `@Tool` functions: current user status, runtime/system metrics (OSHI) and weather
+  (wttr.in, resolved from the caller IP when no city is given). The tool context carries `userId` and `ip`;
+- Both chat endpoints are rate-limited (`@RequestLimit(count = 10, time = 8000)`) and require authentication.
+
 ---
 
 ## Database Tables
@@ -470,6 +512,9 @@ codes, preventing conflicts at the source.
 | `file_metadata` | File metadata | `object_name` (MinIO object name)/`content_type`/`size`/`access_level` (0 public, 1 auth required)/`biz_type`/`biz_id`/`status`                    |
 
 > `sys_log` adds `operate` (operation type) and `description` (operation description) columns, populated by `@BpLogging`.
+
+The `bp-ai` module uses Spring AI's JDBC chat-memory repository, which creates and maintains its own table
+automatically (`spring.ai.chat.memory.repository.jdbc.initialize-schema: always`), so it is not part of `init.sql`.
 
 Mappers use MyBatis-Plus `BaseMapper<T>` with automatic snake_case column ↔ camelCase property mapping.
 
@@ -491,6 +536,7 @@ To keep docs consistent with the code, current status of the following features 
 | Permission system (roles / permission points)           | 🚧 `LoginUser.permissions` support is ready, but the permission data source is a TODO (currently empty, so `@PreAuthorize` has no actual permission data)                                                                    |
 | Third-party API signature auth (HMAC/Nonce anti-replay) | 🚧 Foundations ready: `CryptoUtils` (RSA/AES/SHA/HMAC) and the `bp.app.external-api` config placeholder; the `api_credentials` table/entity were removed and the signature-verification filter/aspect is not implemented yet |
 | RabbitMQ (`bp-mq`)                                      | ✅ Includes a simple sample: `JacksonJsonMessageConverter` conversion, DLX + TTL delay queue (`RabbitConfig` / `DelayQueue`)                                                                                                 |
+| AI assistant (`bp-ai`)                                  | ✅ Implemented: DeepSeek chat (blocking + SSE streaming), JDBC-backed multi-turn memory, tool calling (current user / system info / weather) and a debug page at `/chat.html`                                                 |
 
 Before wiring up the reserved chains above, do not describe them as production-ready features in external materials.
 
@@ -524,7 +570,7 @@ java -jar bp-app/target/bp-app-0.0.1.jar --spring.profiles.active=prod
 
 ### Default anonymous / logging paths
 
-`/error`, `/actuator/**`, `/druid/**`, Swagger-related paths, etc. are in the anonymous list by default.
+`/error`, `/actuator/**`, `/druid/**`, Swagger-related paths, `/chat.html`, etc. are in the anonymous list by default.
 Declare business anonymous endpoints with `@Anonymous`, and endpoints needing call logging with `@BpLogging`.
 
 ---
