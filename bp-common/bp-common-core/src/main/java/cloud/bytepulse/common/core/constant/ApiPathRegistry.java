@@ -36,7 +36,8 @@ public class ApiPathRegistry {
                 "/META-INF/resources/webjars/**",
                 "/druid/**",
                 "/actuator/**",
-                "/error"
+                "/error",
+                "/chat.html"
         );
         for (RequestMethod method : RequestMethod.values()) {
             String methodName = method.name();
