@@ -21,3 +21,9 @@ spring:
   ai:
     deepseek:
       api-key: ${DEEPSEEK_API_KEY}
+    chat:
+      memory:
+        repository:
+          jdbc:
+            platform: mysql
+            initialize-schema: always
