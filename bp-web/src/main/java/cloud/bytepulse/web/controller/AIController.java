@@ -7,6 +7,8 @@ import cloud.bytepulse.common.core.model.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.deepseek.DeepSeekAssistantMessage;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -40,14 +42,43 @@ public class AIController {
 
     @PostMapping(value = "/generateStream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @RequestLimit(count = 10, time = 8000)
-    public SseEmitter generateStream(@RequestParam String message) {
-        SseEmitter emitter = new SseEmitter(60_000L);
-        Flux<String> flux = deepseekService.generateStream(message);
+    public SseEmitter generateStream(@RequestParam String message, @RequestParam String chatId) {
+        SseEmitter emitter = new SseEmitter(60_000L * 5);
+        Flux<ChatResponse> flux = deepseekService.generateStream(message, chatId);
 
         Disposable subscription = flux.subscribe(
                 chunk -> {
                     try {
-                        emitter.send(SseEmitter.event().name("message").data(chunk));
+                        // 1. 工具调用事件（优先判断，这类 chunk 通常没有文本）
+                        if (chunk.hasToolCalls()) {
+                            var toolCalls = chunk.getResult().getOutput().getToolCalls();
+                            emitter.send(SseEmitter.event()
+                                    .name("tool_call")
+                                    .data(toolCalls));
+                            return;
+                        }
+
+                        // 2. 思考/推理事件（DeepSeek 等模型）
+                        if (chunk.getResult() != null
+                                && chunk.getResult().getOutput() instanceof DeepSeekAssistantMessage msg) {
+                            String reasoning = msg.getReasoningContent();
+                            if (reasoning != null && !reasoning.isBlank()) {
+                                emitter.send(SseEmitter.event()
+                                        .name("reasoning")
+                                        .data(reasoning));
+                            }
+                        }
+
+                        // 3. 文本事件
+                        if (chunk.getResult() != null) {
+                            String text = chunk.getResult().getOutput().getText();
+                            // isBlank() 过滤纯空格/换行，但保留 "  hello  " 这种有实际内容的
+                            if (text != null && !text.isBlank()) {
+                                emitter.send(SseEmitter.event()
+                                        .name("message")
+                                        .data(text));
+                            }
+                        }
                     } catch (IOException e) {
                         // 客户端断开或写入失败, 仅取消订阅, 不调用 completeWithError
                         // 否则会触发 Tomcat ERROR 派发到 /error, 导致二次异常
@@ -79,7 +110,6 @@ public class AIController {
     }
 
 
-    // 用一个固定线程池处理推送，避免阻塞请求线程
     private static final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     @GetMapping(value = "/sse/demo", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
