@@ -85,7 +85,7 @@ public class ApiResponse<T> {
      * 返回 string 类型结果
      */
     public static ApiResponse<String> successWithString(String string) {
-        return new ApiResponse<>(HttpStatus.OK.value(), string);
+        return new ApiResponse<>(HttpStatus.OK.value(), getReasonPhrase(HttpStatus.OK), string);
     }
 
     /**
