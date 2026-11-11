@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BP 智能助手</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+            "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #f5f6f8;
+            color: #1f2328;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        [hidden] { display: none !important; }
+
+        header {
+            flex: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0 20px;
+            height: 48px;
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .page-title {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            min-width: 0;
+        }
+        .page-title .name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f2328;
+            white-space: nowrap;
+        }
+
+        .btn {
+            font: inherit; font-size: 13px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 5px 12px;
+            cursor: pointer;
+            transition: background .15s, border-color .15s, color .15s;
+            background: #fff;
+            white-space: nowrap;
+            line-height: 1.5;
+        }
+        .btn:disabled { opacity: .55; cursor: not-allowed; }
+        .btn.ghost { border-color: #d9dce1; color: #40454d; }
+        .btn.ghost:hover { background: #f5f6f8; }
+        .btn.authed { border-color: #cfe3d6; color: #2f7d4f; background: #f7fbf8; }
+        .btn.primary { background: #1677ff; color: #fff; border-color: #1677ff; }
+        .btn.primary:hover { background: #0f63d9; border-color: #0f63d9; }
+        .btn.danger { background: #e5484d; color: #fff; border-color: #e5484d; }
+        .btn.danger:hover { background: #c93b3b; border-color: #c93b3b; }
+
+        main { flex: 1; overflow-y: auto; }
+        .chat { max-width: 860px; margin: 0 auto; padding: 20px 16px 10px; }
+
+        .empty {
+            text-align: center;
+            padding: 14vh 20px 0;
+            color: #6b7280;
+        }
+        .empty h2 {
+            margin: 0 0 8px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #3f4550;
+        }
+        .empty p {
+            margin: 0 auto;
+            max-width: 460px;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #8a909a;
+        }
+
+        .row { display: flex; gap: 10px; margin-bottom: 16px; align-items: flex-start; }
+        .row.user { flex-direction: row-reverse; }
+
+        .avatar {
+            flex: none;
+            width: 28px; height: 28px;
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 500;
+            margin-top: 2px;
+            user-select: none;
+        }
+        .avatar.user-avatar {
+            background: #eef1f5;
+            color: #5b6472;
+            border: 1px solid #e0e4ea;
+        }
+        .avatar.ai-avatar {
+            background: #f2f4f7;
+            color: #4b5563;
+            border: 1px solid #e0e4ea;
+        }
+
+        .bubble {
+            max-width: min(78%, 640px);
+            padding: 9px 13px;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.75;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .row.user .bubble {
+            background: #1677ff;
+            color: #fff;
+        }
+        .row.ai .bubble {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+        }
+
+        .reasoning {
+            background: #fafbfc;
+            border: 1px solid #eceef2;
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-bottom: 8px;
+            font-size: 12.5px;
+            color: #666e7a;
+        }
+        .reasoning summary {
+            cursor: pointer;
+            user-select: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 400;
+            color: #8a909a;
+        }
+        .reasoning summary::-webkit-details-marker { display: none; }
+        .reasoning summary::before {
+            content: '';
+            width: 0; height: 0;
+            border-left: 4px solid #a5acb8;
+            border-top: 3px solid transparent;
+            border-bottom: 3px solid transparent;
+            transition: transform .2s;
+        }
+        .reasoning[open] summary::before { transform: rotate(90deg); }
+        .reasoning-text {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed #e8eaee;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .cursor::after {
+            content: '▍';
+            margin-left: 1px;
+            color: #1677ff;
+            animation: blink 1s steps(2, start) infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .error-text { color: #c93b3b; font-size: 13px; margin-top: 4px; }
+
+        .composer {
+            flex: none;
+            padding: 10px 16px 16px;
+            background: #f5f6f8;
+        }
+        .composer-inner {
+            max-width: 860px;
+            margin: 0 auto;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            padding: 6px 6px 6px 12px;
+            background: #fff;
+            border: 1px solid #d9dce1;
+            border-radius: 6px;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .composer-inner:focus-within {
+            border-color: #91baff;
+            box-shadow: 0 0 0 2px rgba(22,119,255,.12);
+        }
+        textarea {
+            flex: 1;
+            border: none; outline: none; resize: none;
+            background: transparent;
+            font: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            padding: 5px 0;
+            max-height: 160px;
+            color: inherit;
+        }
+        .composer .btn { padding: 6px 16px; }
+
+        dialog {
+            border: none;
+            border-radius: 6px;
+            padding: 0;
+            width: min(420px, 92vw);
+            color: inherit;
+            box-shadow: 0 8px 30px rgba(15,23,42,.18);
+        }
+        dialog::backdrop { background: rgba(15,23,42,.42); }
+        .dialog-body { padding: 18px 20px 16px; }
+        .dialog-body h3 {
+            margin: 0 0 6px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .dialog-body .hint {
+            margin: 0 0 12px;
+            font-size: 12.5px;
+            line-height: 1.7;
+            color: #8a909a;
+        }
+        .dialog-body input {
+            width: 100%;
+            padding: 7px 10px;
+            border-radius: 4px;
+            border: 1px solid #d9dce1;
+            font: inherit;
+            font-size: 13.5px;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .dialog-body input:focus {
+            border-color: #91baff;
+            box-shadow: 0 0 0 2px rgba(22,119,255,.12);
+        }
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .dialog-actions .spacer { margin-right: auto; }
+
+        @media (max-width: 560px) {
+            .bubble { max-width: 84%; }
+            .chat { padding: 14px 10px 6px; }
+            .composer { padding: 8px 10px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="page-title">
+        <span class="name">BP 智能助手</span>
+    </div>
+    <button type="button" class="btn ghost" id="authBtn">设置认证</button>
+</header>
+
+<main id="scrollArea">
+    <div class="chat" id="chat">
+        <div class="empty" id="empty">
+            <h2>你好，我是 BP 智能助手</h2>
+            <p>可以帮你解答用户管理、权限配置、订单审核、数据报表、系统监控等模块的使用问题。</p>
+        </div>
+    </div>
+</main>
+
+<footer class="composer">
+    <div class="composer-inner">
+        <textarea id="input" rows="1" placeholder="输入消息，Enter 发送，Shift + Enter 换行"></textarea>
+        <button type="button" class="btn primary" id="sendBtn">发送</button>
+    </div>
+</footer>
+
+<dialog id="authDialog">
+    <div class="dialog-body">
+        <h3>认证信息</h3>
+        <p class="hint">
+            该值会原样作为 <code>Authorization</code> 请求头发送（不加任何前缀，例如
+            <code>Bearer </code> 需要自己带上）。保存在浏览器本地。
+        </p>
+        <input id="authInput" type="text" autocomplete="off" spellcheck="false"
+               placeholder="粘贴你的 Authorization 值" />
+        <div class="dialog-actions">
+            <button type="button" class="btn ghost" id="authClear">清除</button>
+            <span class="spacer"></span>
+            <button type="button" class="btn ghost" id="authCancel">取消</button>
+            <button type="button" class="btn primary" id="authSave">保存</button>
+        </div>
+    </div>
+</dialog>
+
+<script>
+    (function () {
+        'use strict';
+
+        var AUTH_KEY = 'bp-ai-authorization';
+        var ENDPOINT = '/ai/generateStream';
+
+        /* ========== chatId：优先取地址栏 ?id=，没有则生成并写回地址栏 ========== */
+        var chatId = (function () {
+            var fromUrl = '';
+            try {
+                fromUrl = new URLSearchParams(location.search).get('id') || '';
+            } catch (e) {
+                fromUrl = '';
+            }
+            fromUrl = fromUrl.trim();
+
+            var id;
+            if (fromUrl) {
+                id = fromUrl;
+            } else if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                id = window.crypto.randomUUID();
+            } else {
+                id = 'chat-' + Date.now().toString(36) + '-' +
+                    Math.random().toString(36).slice(2, 10) +
+                    Math.random().toString(36).slice(2, 10);
+            }
+
+            try {
+                var url = new URL(location.href);
+                if (url.searchParams.get('id') !== id) {
+                    url.searchParams.set('id', id);
+                    history.replaceState(null, '', url.toString());
+                }
+            } catch (e) { /* 忽略 */ }
+
+            return id;
+        })();
+
+        var chatEl = document.getElementById('chat');
+        var emptyEl = document.getElementById('empty');
+        var scrollArea = document.getElementById('scrollArea');
+        var inputEl = document.getElementById('input');
+        var sendBtn = document.getElementById('sendBtn');
+
+        var authBtn = document.getElementById('authBtn');
+        var authDialog = document.getElementById('authDialog');
+        var authInput = document.getElementById('authInput');
+        var authSave = document.getElementById('authSave');
+        var authClear = document.getElementById('authClear');
+        var authCancel = document.getElementById('authCancel');
+
+        var authorization = localStorage.getItem(AUTH_KEY) || '';
+        var streaming = false;
+        var abortController = null;
+
+        /* ==================== 认证 ==================== */
+
+        function renderAuthBtn() {
+            if (authorization) {
+                authBtn.textContent = '已设置认证';
+                authBtn.classList.add('authed');
+                authBtn.title = '点击修改 Authorization';
+            } else {
+                authBtn.textContent = '设置认证';
+                authBtn.classList.remove('authed');
+                authBtn.title = '设置 Authorization 请求头';
+            }
+        }
+
+        function openAuthDialog() {
+            authInput.value = authorization;
+            if (typeof authDialog.showModal === 'function') {
+                authDialog.showModal();
+            } else {
+                authDialog.setAttribute('open', '');
+            }
+            authInput.focus();
+            authInput.select();
+        }
+
+        function closeAuthDialog() {
+            if (typeof authDialog.close === 'function') {
+                authDialog.close();
+            } else {
+                authDialog.removeAttribute('open');
+            }
+        }
+
+        function saveAuth() {
+            var value = authInput.value.trim();
+            if (value && /[^\x20-\x7E]/.test(value)) {
+                alert('Authorization 头只能包含 ASCII 字符（不能有中文等），请检查后重试。');
+                return;
+            }
+            authorization = value;
+            try {
+                if (value) localStorage.setItem(AUTH_KEY, value);
+                else localStorage.removeItem(AUTH_KEY);
+            } catch (e) { /* 忽略隐私模式下的存储异常 */ }
+            closeAuthDialog();
+            renderAuthBtn();
+            inputEl.focus();
+        }
+
+        authBtn.addEventListener('click', openAuthDialog);
+        authSave.addEventListener('click', saveAuth);
+        authCancel.addEventListener('click', closeAuthDialog);
+        authClear.addEventListener('click', function () {
+            authInput.value = '';
+            authorization = '';
+            try { localStorage.removeItem(AUTH_KEY); } catch (e) {}
+            closeAuthDialog();
+            renderAuthBtn();
+        });
+        authDialog.addEventListener('click', function (e) {
+            if (e.target === authDialog) closeAuthDialog();
+        });
+        authInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveAuth();
+            }
+        });
+
+        /* ==================== SSE 解析器 ==================== */
+
+        function createSSEParser(onEvent) {
+            var buffer = '';
+            var eventName = '';
+            var dataLines = [];
+
+            function dispatch() {
+                if (dataLines.length === 0 && !eventName) return;
+                var name = eventName || 'message';
+                var data = dataLines.join('\n');
+                eventName = '';
+                dataLines = [];
+                onEvent(name, data);
+            }
+
+            function parseLine(line) {
+                if (line === '') { dispatch(); return; }
+                if (line.charAt(0) === ':') return;
+                var idx = line.indexOf(':');
+                var field, value;
+                if (idx === -1) {
+                    field = line;
+                    value = '';
+                } else {
+                    field = line.slice(0, idx);
+                    value = line.slice(idx + 1);
+                }
+                if (field === 'event') {
+                    eventName = value.trim();
+                } else if (field === 'data') {
+                    dataLines.push(value);
+                }
+            }
+
+            return {
+                push: function (chunk) {
+                    buffer += chunk;
+                    var start = 0;
+                    var idx;
+                    while ((idx = buffer.indexOf('\n', start)) !== -1) {
+                        var line = buffer.slice(start, idx);
+                        start = idx + 1;
+                        if (line.charAt(line.length - 1) === '\r') line = line.slice(0, -1);
+                        parseLine(line);
+                    }
+                    buffer = buffer.slice(start);
+                },
+                end: function () {
+                    if (buffer) {
+                        var line = buffer.replace(/\r$/, '');
+                        if (line) parseLine(line);
+                        buffer = '';
+                    }
+                    dispatch();
+                }
+            };
+        }
+
+        /* ==================== 消息渲染 ==================== */
+
+        function hideEmpty() {
+            if (emptyEl && emptyEl.parentNode) emptyEl.parentNode.removeChild(emptyEl);
+            emptyEl = null;
+        }
+
+        function isNearBottom() {
+            return scrollArea.scrollHeight - scrollArea.scrollTop - scrollArea.clientHeight < 140;
+        }
+
+        function scrollToBottom(force) {
+            if (force || isNearBottom()) {
+                scrollArea.scrollTop = scrollArea.scrollHeight;
+            }
+        }
+
+        function appendUserMessage(text) {
+            var row = document.createElement('div');
+            row.className = 'row user';
+
+            var avatar = document.createElement('div');
+            avatar.className = 'avatar user-avatar';
+            avatar.textContent = '我';
+
+            var bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.textContent = text;
+
+            row.appendChild(avatar);
+            row.appendChild(bubble);
+            chatEl.appendChild(row);
+        }
+
+        function createAIMessage() {
+            var row = document.createElement('div');
+            row.className = 'row ai';
+
+            var avatar = document.createElement('div');
+            avatar.className = 'avatar ai-avatar';
+            avatar.textContent = 'BP';
+
+            var bubble = document.createElement('div');
+            bubble.className = 'bubble';
+
+            var reasoningEl = document.createElement('details');
+            reasoningEl.className = 'reasoning';
+            reasoningEl.open = true;
+            reasoningEl.hidden = true;
+
+            var summaryEl = document.createElement('summary');
+            summaryEl.textContent = '思考中…';
+
+            var reasoningText = document.createElement('div');
+            reasoningText.className = 'reasoning-text';
+
+            reasoningEl.appendChild(summaryEl);
+            reasoningEl.appendChild(reasoningText);
+
+            var contentEl = document.createElement('div');
+            contentEl.className = 'content';
+
+            bubble.appendChild(reasoningEl);
+            bubble.appendChild(contentEl);
+            row.appendChild(avatar);
+            row.appendChild(bubble);
+            chatEl.appendChild(row);
+
+            var hasReasoning = false;
+            var hasContent = false;
+
+            return {
+                appendReasoning: function (chunk) {
+                    if (!chunk) return;
+                    if (!hasReasoning) {
+                        hasReasoning = true;
+                        reasoningEl.hidden = false;
+                    }
+                    reasoningText.textContent += chunk;
+                },
+                appendContent: function (chunk) {
+                    if (!chunk) return;
+                    if (!hasContent) {
+                        hasContent = true;
+                        contentEl.classList.add('cursor');
+                    }
+                    if (hasReasoning && reasoningEl.open) {
+                        reasoningEl.open = false;
+                        summaryEl.textContent = '思考过程';
+                    }
+                    contentEl.textContent += chunk;
+                },
+                appendError: function (message) {
+                    contentEl.classList.remove('cursor');
+                    var err = document.createElement('div');
+                    err.className = 'error-text';
+                    err.textContent = '⚠ ' + message;
+                    contentEl.appendChild(err);
+                },
+                finish: function () {
+                    contentEl.classList.remove('cursor');
+                    if (hasReasoning) summaryEl.textContent = '思考过程';
+                    if (!hasReasoning && !hasContent) {
+                        contentEl.textContent = '（未收到回复内容）';
+                    }
+                }
+            };
+        }
+
+        /* ==================== 发送 ==================== */
+
+        function setStreaming(on) {
+            streaming = on;
+            if (on) {
+                sendBtn.textContent = '停止';
+                sendBtn.classList.remove('primary');
+                sendBtn.classList.add('danger');
+                sendBtn.disabled = false;
+            } else {
+                sendBtn.textContent = '发送';
+                sendBtn.classList.add('primary');
+                sendBtn.classList.remove('danger');
+                sendBtn.disabled = false;
+            }
+        }
+
+        async function sendMessage() {
+            if (streaming) return;
+
+            var text = inputEl.value.trim();
+            if (!text) return;
+
+            if (!authorization) {
+                openAuthDialog();
+                return;
+            }
+
+            hideEmpty();
+            inputEl.value = '';
+            autoResize();
+
+            appendUserMessage(text);
+            var ai = createAIMessage();
+            scrollToBottom(true);
+
+            setStreaming(true);
+            abortController = new AbortController();
+
+            var parser = createSSEParser(function (name, data) {
+                if (name === 'reasoning') {
+                    ai.appendReasoning(data);
+                } else if (name === 'message') {
+                    ai.appendContent(data);
+                } else if (name === 'error') {
+                    ai.appendError(data || '服务端返回错误');
+                }
+            });
+
+            try {
+                var url = ENDPOINT +
+                    '?message=' + encodeURIComponent(text) +
+                    '&chatId='  + encodeURIComponent(chatId);
+
+                var res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': authorization,
+                        'Accept': 'text/event-stream'
+                    },
+                    cache: 'no-store',
+                    signal: abortController.signal
+                });
+
+                if (!res.ok) {
+                    var detail = '';
+                    try { detail = await res.text(); } catch (e) {}
+                    throw new Error(
+                        '请求失败：HTTP ' + res.status + ' ' + res.statusText +
+                        (detail ? ' - ' + detail.slice(0, 200) : '')
+                    );
+                }
+                if (!res.body || typeof res.body.getReader !== 'function') {
+                    throw new Error('当前浏览器不支持流式响应，请更换 Chrome / Edge / Firefox 新版本');
+                }
+
+                var reader = res.body.getReader();
+                var decoder = new TextDecoder('utf-8');
+
+                while (true) {
+                    var result = await reader.read();
+                    if (result.done) break;
+                    parser.push(decoder.decode(result.value, { stream: true }));
+                    scrollToBottom(false);
+                }
+
+                var tail = decoder.decode();
+                if (tail) parser.push(tail);
+                parser.end();
+
+                ai.finish();
+            } catch (err) {
+                if (err && err.name === 'AbortError') {
+                    ai.finish();
+                } else {
+                    console.error(err);
+                    ai.appendError((err && err.message) ? err.message : String(err));
+                    ai.finish();
+                }
+            } finally {
+                setStreaming(false);
+                abortController = null;
+                scrollToBottom(true);
+                inputEl.focus();
+            }
+        }
+
+        /* ==================== 输入框 ==================== */
+
+        function autoResize() {
+            inputEl.style.height = 'auto';
+            inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
+        }
+
+        inputEl.addEventListener('input', autoResize);
+
+        inputEl.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+                e.preventDefault();
+                if (!streaming) sendMessage();
+            }
+        });
+
+        sendBtn.addEventListener('click', function () {
+            if (streaming) {
+                if (abortController) abortController.abort();
+                return;
+            }
+            sendMessage();
+        });
+
+        /* ==================== 初始化 ==================== */
+        renderAuthBtn();
+        autoResize();
+        inputEl.focus();
+
+        if (!authorization) {
+            setTimeout(function () { authBtn.focus(); }, 300);
+        }
+    })();
+</script>
+</body>
+</html>
