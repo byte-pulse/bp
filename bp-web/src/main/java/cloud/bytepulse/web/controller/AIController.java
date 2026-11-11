@@ -4,11 +4,10 @@ import cloud.bytepulse.ai.deepseek.DeepseekService;
 import cloud.bytepulse.common.core.annotation.Anonymous;
 import cloud.bytepulse.common.core.annotation.RequestLimit;
 import cloud.bytepulse.common.core.model.ApiResponse;
+import com.alibaba.fastjson2.JSON;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.deepseek.DeepSeekAssistantMessage;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -44,41 +43,48 @@ public class AIController {
     @RequestLimit(count = 10, time = 8000)
     public SseEmitter generateStream(@RequestParam String message, @RequestParam String chatId) {
         SseEmitter emitter = new SseEmitter(60_000L * 5);
-        Flux<ChatResponse> flux = deepseekService.generateStream(message, chatId);
+        Flux<String> flux = deepseekService.generateStream(message, chatId);
 
         Disposable subscription = flux.subscribe(
                 chunk -> {
                     try {
-                        // 1. 工具调用事件（优先判断，这类 chunk 通常没有文本）
-                        if (chunk.hasToolCalls()) {
-                            var toolCalls = chunk.getResult().getOutput().getToolCalls();
-                            emitter.send(SseEmitter.event()
-                                    .name("tool_call")
-                                    .data(toolCalls));
-                            return;
-                        }
+                        // 用 JSON 字符串编码: Spring 写出的 SSE 行是 data:<内容>,
+                        // 冒号后没有分隔空格, 客户端按规范会去掉一个前导空格,
+                        // 直接把原始文本放进 data 会吃掉片段开头的空格(代码块缩进丢失)
+                        emitter.send(SseEmitter.event()
+                                .name("message")
+                                .data(JSON.toJSONString(chunk)));
 
-                        // 2. 思考/推理事件（DeepSeek 等模型）
-                        if (chunk.getResult() != null
-                                && chunk.getResult().getOutput() instanceof DeepSeekAssistantMessage msg) {
-                            String reasoning = msg.getReasoningContent();
-                            if (reasoning != null && !reasoning.isBlank()) {
-                                emitter.send(SseEmitter.event()
-                                        .name("reasoning")
-                                        .data(reasoning));
-                            }
-                        }
-
-                        // 3. 文本事件
-                        if (chunk.getResult() != null) {
-                            String text = chunk.getResult().getOutput().getText();
-                            // isBlank() 过滤纯空格/换行，但保留 "  hello  " 这种有实际内容的
-                            if (text != null && !text.isBlank()) {
-                                emitter.send(SseEmitter.event()
-                                        .name("message")
-                                        .data(text));
-                            }
-                        }
+//                        // 1. 工具调用事件（优先判断，这类 chunk 通常没有文本）
+//                        if (chunk.hasToolCalls()) {
+//                            var toolCalls = chunk.getResult().getOutput().getToolCalls();
+//                            emitter.send(SseEmitter.event()
+//                                    .name("tool_call")
+//                                    .data(toolCalls));
+//                            return;
+//                        }
+//
+//                        // 2. 思考/推理事件（DeepSeek 等模型）
+//                        if (chunk.getResult() != null
+//                                && chunk.getResult().getOutput() instanceof DeepSeekAssistantMessage msg) {
+//                            String reasoning = msg.getReasoningContent();
+//                            if (reasoning != null && !reasoning.isBlank()) {
+//                                emitter.send(SseEmitter.event()
+//                                        .name("reasoning")
+//                                        .data(reasoning));
+//                            }
+//                        }
+//
+//                        // 3. 文本事件
+//                        if (chunk.getResult() != null) {
+//                            String text = chunk.getResult().getOutput().getText();
+//                            // isBlank() 过滤纯空格/换行，但保留 "  hello  " 这种有实际内容的&& !text.isBlank()
+//                            if (text != null) {
+//                                emitter.send(SseEmitter.event()
+//                                        .name("message")
+//                                        .data(text));
+//                            }
+//                        }
                     } catch (IOException e) {
                         // 客户端断开或写入失败, 仅取消订阅, 不调用 completeWithError
                         // 否则会触发 Tomcat ERROR 派发到 /error, 导致二次异常
