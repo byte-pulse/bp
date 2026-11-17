@@ -685,6 +685,38 @@
             breaks: true
         });
 
+        // 默认的 GFM 自动链接会把 URL 后面的中文/全角标点一起吞进链接,
+        // 这里接管裸 http(s) 链接: 只消费 ASCII 字符, 并去掉结尾的英文标点
+        marked.use({
+            extensions: [{
+                name: 'url',
+                level: 'inline',
+                start: function (src) {
+                    var m = /https?:\/\//i.exec(src);
+                    return m ? m.index : -1;
+                },
+                tokenizer: function (src) {
+                    var m = /^https?:\/\/[\w\-.~:\/?#\[\]@!$&'()*+,;=%]+/i.exec(src);
+                    if (!m) return;
+
+                    var url = m[0].replace(/[.,;:!?'"]+$/, '');
+                    // 去掉多余的右括号, 保留成对的括号(如 wiki 链接)
+                    while (url.slice(-1) === ')' && url.split('(').length < url.split(')').length) {
+                        url = url.slice(0, -1);
+                    }
+
+                    return {
+                        type: 'link',
+                        raw: url,
+                        href: url,
+                        title: null,
+                        text: url,
+                        tokens: [{type: 'text', raw: url, text: url}]
+                    };
+                }
+            }]
+        });
+
         function renderMarkdown(text) {
             if (!text) return '';
 
