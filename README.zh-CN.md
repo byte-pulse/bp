@@ -42,14 +42,14 @@
 - [配置文件](#配置文件)
 - [接口一览](#接口一览)
 - [核心机制](#核心机制)
-  - [统一响应格式](#统一响应格式)
-  - [认证与 Token 管理](#认证与-token-管理)
-  - [接口日志记录](#接口日志记录)
-  - [自定义注解体系](#自定义注解体系)
-  - [分布式限流](#分布式限流)
-  - [全局异常处理与错误码](#全局异常处理与错误码)
-  - [文件访问](#文件访问)
-  - [AI 对话助手](#ai-对话助手)
+    - [统一响应格式](#统一响应格式)
+    - [认证与 Token 管理](#认证与-token-管理)
+    - [接口日志记录](#接口日志记录)
+    - [自定义注解体系](#自定义注解体系)
+    - [分布式限流](#分布式限流)
+    - [全局异常处理与错误码](#全局异常处理与错误码)
+    - [文件访问](#文件访问)
+    - [AI 对话助手](#ai-对话助手)
 - [数据库表](#数据库表)
 - [功能状态说明](#功能状态说明)
 - [开发指南](#开发指南)
@@ -59,24 +59,29 @@
 
 ## 核心特性
 
-- **多模块分层架构** - `repository / service / web / security / infrastructure / common` 六层解耦，另有 `bp-ai` 模块，依赖方向自底向上。
-- **JWT + Redis 认证** - Spring Security 无状态认证；Token 明文（JWT 仅携带 `userId` 与 `fingerprint`），登录态存 Redis 并支持**滑动续期**与**单会话互踢**。
+- **多模块分层架构** - `repository / service / web / security / infrastructure / common` 六层解耦，另有 `bp-ai`
+  模块，依赖方向自底向上。
+- **JWT + Redis 认证** - Spring Security 无状态认证；Token 明文（JWT 仅携带 `userId` 与 `fingerprint`），登录态存 Redis 并支持
+  **滑动续期**与**单会话互踢**。
 - **图形验证码** - Hutool `GifCaptcha` 动态 GIF，校验码存 Redis，一次一验。
 - **多方式账号登录** - 用户名 / 手机号 / 邮箱三种标识自动路由查询，BCrypt 校验。
 - **分布式接口限流** - `@RequestLimit` 注解 + Redis Lua 原子计数，已登录按 `userId`、未登录按 IP。
 - **MinIO 文件访问** - 公开/鉴权两种访问模式，预签名 URL 302 跳转，Tika 探测 Content-Type。
 - **灵活注解控制** - `@Anonymous`、`@BpLogging`、`@Pageable`、`@RequestLimit` 覆盖安全、日志、文档、限流。
 - **统一异常与响应** - 全局异常处理器 + 中文语义化响应 + 业务错误码唯一性启动校验。
-- **接口调用日志** - 请求/响应体自动捕获、对 JSON 做脱敏、向响应注入 `traceId` 与 `timestamp`，操作日志（含类型与描述）落库 `sys_log`。
-- **AI 对话助手** - 基于 Spring AI 接入 DeepSeek：同步与 SSE 流式两种对话接口，多轮对话记忆经 JDBC 仓库持久化，并支持工具调用（当前用户状态、系统运行指标、天气）。
-- **丰富基础设施** - 动态数据源(Druid + MyBatis-Plus)、Redis 带前缀序列化、虚拟线程、SpringDoc、Actuator 全端点、RabbitMQ（含延迟队列案例）。
+- **接口调用日志** - 请求/响应体自动捕获、对 JSON 做脱敏、向响应注入 `traceId` 与 `timestamp`，操作日志（含类型与描述）落库
+  `sys_log`。
+- **AI 对话助手** - 基于 Spring AI 接入 DeepSeek：同步与 SSE 流式两种对话接口，多轮对话记忆经 JDBC
+  仓库持久化，并支持工具调用（当前用户状态、系统运行指标、天气）。
+- **丰富基础设施** - 动态数据源(Druid + MyBatis-Plus)、Redis 带前缀序列化、虚拟线程、SpringDoc、Actuator
+  全端点、RabbitMQ（含延迟队列案例）。
 
 ---
 
 ## 技术栈
 
 | 分类     | 组件                     | 版本           | 说明                                   |
-| -------- | ------------------------ | -------------- | -------------------------------------- |
+|----------|--------------------------|----------------|----------------------------------------|
 | 语言     | Java                     | 25             | `java.version=25`                      |
 | 框架     | Spring Boot              | 4.1.2          | 含虚拟线程                             |
 | AI       | Spring AI (DeepSeek)     | 2.0.0          | 对话客户端、流式输出、工具调用         |
@@ -103,7 +108,9 @@
 
 ## 模块架构
 
-根聚合 POM：`cloud.bytepulse:bp:0.0.1`，聚合顺序 `bp-repository → bp-common → bp-infrastructure → bp-web → bp-app → bp-service → bp-security → bp-ai`（顺序对聚合无影响，依赖由 POM 声明决定）。
+根聚合 POM：`cloud.bytepulse:bp:0.0.1`，聚合顺序
+`bp-repository → bp-common → bp-infrastructure → bp-web → bp-app → bp-service → bp-security → bp-ai`（顺序对聚合无影响，依赖由
+POM 声明决定）。
 
 ```
 bp (聚合 POM)
@@ -150,28 +157,28 @@ bp-common-core (无内部依赖，最底层)
 
 ### 关键类索引
 
-| 模块           | 包                                  | 说明                                                                            |
-| -------------- | ----------------------------------- | ------------------------------------------------------------------------------- |
-| bp-common-core | `common.core.annotation`            | `Anonymous` / `BpLogging` / `Pageable` / `RequestLimit`                         |
-| bp-common-core | `common.core.enums`                 | `OperateEnum`（日志操作类型枚举）                                               |
-| bp-common-core | `common.core.model`                 | `ApiResponse<T>` 统一响应、`ApiLoggingInfo`                                     |
-| bp-common-core | `common.core.component`             | `LoggingFilterInterface`（日志过滤器抽象基类）                                  |
-| bp-common-core | `common.core.exception`             | `BytePulseException`、错误码枚举、重复错误码校验器                              |
-| bp-common-core | `common.core.properties`            | `AppProperties`（前缀 `bp.app`）                                                |
-| bp-common-core | `common.core.constant`              | `ApiPathRegistry` 匿名 / 日志接口注册表                                         |
-| bp-common-core | `common.core.util`                  | `JWTUtils` / `CryptoUtils` / `ReqUtils` / `TraceIdUtils` / `JsonMaskerUtils` 等 |
-| bp-security    | `security.config`                   | `SecurityConfig` 过滤链、匿名路径收集器、日志过滤器接入                         |
-| bp-security    | `security.filter`                   | `JwtFilter`                                                                     |
-| bp-security    | `security`                          | `LoginUser` / `LoginUserInfo` / `Auths`                                         |
-| bp-cache       | `cache.redis`                       | `RedisCache` / `RedisConfig` / `RedisPrefixSerializer`                          |
-| bp-storage     | `storage.minio`                     | `MinioTemplate` / `MinioConfig`                                                 |
-| bp-repository  | `data.entity` / `data.mapper`       | 实体 + Mapper（`SysUser` / `SysLog` / `FileMetadata`）                          |
-| bp-service     | `service.auth` / `file` / `logging` / `user` | 登录、文件、日志与用户服务                                             |
-| bp-ai          | `ai.deepseek`                       | `DeepseekService`（ChatClient + 系统提示词）/ `BPTools`（`@Tool` 工具）          |
-| bp-web         | `web.aspect`                        | `RequestLimitAspect`（Redis Lua 限流）                                          |
-| bp-web         | `web.exception.handler`             | `GlobalExceptionHandler`                                                        |
-| bp-web         | `web.logging`                       | `LoggingFilter`（捕获/脱敏/落库）、`NoLoggingUrlCollector`                      |
-| bp-web         | `web.controller`                    | `AuthController` / `DevAuthController` / `FileController` / `AIController`      |
+| 模块           | 包                                           | 说明                                                                            |
+|----------------|----------------------------------------------|---------------------------------------------------------------------------------|
+| bp-common-core | `common.core.annotation`                     | `Anonymous` / `BpLogging` / `Pageable` / `RequestLimit`                         |
+| bp-common-core | `common.core.enums`                          | `OperateEnum`（日志操作类型枚举）                                               |
+| bp-common-core | `common.core.model`                          | `ApiResponse<T>` 统一响应、`ApiLoggingInfo`                                     |
+| bp-common-core | `common.core.component`                      | `LoggingFilterInterface`（日志过滤器抽象基类）                                  |
+| bp-common-core | `common.core.exception`                      | `BytePulseException`、错误码枚举、重复错误码校验器                              |
+| bp-common-core | `common.core.properties`                     | `AppProperties`（前缀 `bp.app`）                                                |
+| bp-common-core | `common.core.constant`                       | `ApiPathRegistry` 匿名 / 日志接口注册表                                         |
+| bp-common-core | `common.core.util`                           | `JWTUtils` / `CryptoUtils` / `ReqUtils` / `TraceIdUtils` / `JsonMaskerUtils` 等 |
+| bp-security    | `security.config`                            | `SecurityConfig` 过滤链、匿名路径收集器、日志过滤器接入                         |
+| bp-security    | `security.filter`                            | `JwtFilter`                                                                     |
+| bp-security    | `security`                                   | `LoginUser` / `LoginUserInfo` / `Auths`                                         |
+| bp-cache       | `cache.redis`                                | `RedisCache` / `RedisConfig` / `RedisPrefixSerializer`                          |
+| bp-storage     | `storage.minio`                              | `MinioTemplate` / `MinioConfig`                                                 |
+| bp-repository  | `data.entity` / `data.mapper`                | 实体 + Mapper（`SysUser` / `SysLog` / `FileMetadata`）                          |
+| bp-service     | `service.auth` / `file` / `logging` / `user` | 登录、文件、日志与用户服务                                                      |
+| bp-ai          | `ai.deepseek`                                | `DeepseekService`（ChatClient + 系统提示词）/ `BPTools`（`@Tool` 工具）         |
+| bp-web         | `web.aspect`                                 | `RequestLimitAspect`（Redis Lua 限流）                                          |
+| bp-web         | `web.exception.handler`                      | `GlobalExceptionHandler`                                                        |
+| bp-web         | `web.logging`                                | `LoggingFilter`（捕获/脱敏/落库）、`NoLoggingUrlCollector`                      |
+| bp-web         | `web.controller`                             | `AuthController` / `DevAuthController` / `FileController` / `AIController`      |
 
 ---
 
@@ -260,7 +267,7 @@ java -jar bp-app/target/bp-app-0.0.1.jar
 ### 5. 访问应用
 
 | 入口         | 地址                                         | 备注                         |
-| ------------ | -------------------------------------------- | ---------------------------- |
+|--------------|----------------------------------------------|------------------------------|
 | 应用         | http://localhost:19420/                      | 默认上下文 `/`               |
 | Swagger UI   | http://localhost:19420/swagger-ui/index.html | 默认分组「(全部接口)」       |
 | Druid 监控台 | http://localhost:19420/druid/login.html      | 账密 `bytepulse / bytepulse` |
@@ -290,7 +297,7 @@ dev/test/prod 三套环境结构一致（数据源默认 master/slave 均指向�
 ### `bp.app` 业务配置项
 
 | 配置项                              | 默认值                  | 说明                                                    |
-| ----------------------------------- | ----------------------- | ------------------------------------------------------- |
+|-------------------------------------|-------------------------|---------------------------------------------------------|
 | `bp.app.login.expiration-minutes`   | `30`                    | 登录态 Redis 有效期(分钟)，`0` = 永久                   |
 | `bp.app.redis.prefix`               | `bp:`                   | Redis 键前缀（写读自动补/去）                           |
 | `bp.app.minio.endpoint`             | `http://127.0.0.1:9000` | MinIO 地址                                              |
@@ -306,18 +313,18 @@ dev/test/prod 三套环境结构一致（数据源默认 master/slave 均指向�
 
 ### AI 配置项（`spring.ai`）
 
-| 配置项                                                    | 默认值                | 说明                                    |
-| --------------------------------------------------------- | --------------------- | --------------------------------------- |
-| `spring.ai.deepseek.api-key`                              | `${DEEPSEEK_API_KEY}` | DeepSeek API Key，取自同名环境变量      |
-| `spring.ai.chat.memory.repository.jdbc.platform`          | `mysql`               | 对话记忆仓库的 SQL 方言                 |
-| `spring.ai.chat.memory.repository.jdbc.initialize-schema` | `always`              | 启动时自动创建对话记忆表                |
+| 配置项                                                    | 默认值                | 说明                               |
+|-----------------------------------------------------------|-----------------------|------------------------------------|
+| `spring.ai.deepseek.api-key`                              | `${DEEPSEEK_API_KEY}` | DeepSeek API Key，取自同名环境变量 |
+| `spring.ai.chat.memory.repository.jdbc.platform`          | `mysql`               | 对话记忆仓库的 SQL 方言            |
+| `spring.ai.chat.memory.repository.jdbc.initialize-schema` | `always`              | 启动时自动创建对话记忆表           |
 
 ---
 
 ## 接口一览
 
 | 接口                            | 方法 | 说明                                                 | 权限                                                 |
-| ------------------------------- | ---- | ---------------------------------------------------- | ---------------------------------------------------- |
+|---------------------------------|------|------------------------------------------------------|------------------------------------------------------|
 | `/auth/captcha`                 | GET  | 获取 GIF 验证码（返回 `captcha` Base64 与 `uid`）    | 匿名 + 限流                                          |
 | `/auth/login`                   | POST | 用户名密码登录（携带验证码）                         | 匿名                                                 |
 | `/auth/getToken`                | POST | 免验证码快速登录（JSON body：`username`/`password`） | 匿名，仅 `dev`/`test` profile（`DevAuthController`） |
@@ -388,13 +395,17 @@ return ApiResponse.error("服务内部错误");   // code=500
 
 ### 接口日志记录
 
-标注 `@BpLogging` 的接口，其调用会被完整记录到 `sys_log`。链路由集成进 Spring Security 过滤链的抽象过滤器 `LoggingFilterInterface` 的子类 `LoggingFilter` 实现：
+标注 `@BpLogging` 的接口，其调用会被完整记录到 `sys_log`。链路由集成进 Spring Security 过滤链的抽象过滤器
+`LoggingFilterInterface` 的子类 `LoggingFilter` 实现：
 
-- 用 `ContentCachingRequestWrapper` / `ContentCachingResponseWrapper` 缓存请求与响应体，基于 `TraceIdUtils` 生成 `traceId`；
+- 用 `ContentCachingRequestWrapper` / `ContentCachingResponseWrapper` 缓存请求与响应体，基于 `TraceIdUtils` 生成
+  `traceId`；
 - 响应为 JSON 且非重定向时，向其注入 `traceId` 与 `timestamp`（见「统一响应格式」）；
 - multipart 请求不缓存文件内容，仅记录表单字段与文件元信息（文件名/大小/类型）；文件类响应记录大小/类型/文件名；
 - 请求体与响应体在入库前经 `JsonMaskerUtils.simpleMask()` 脱敏，避免敏感字段泄露；
-- 命中 `ApiPathRegistry.LOGGING_API`（由 `NoLoggingUrlCollector` 启动时扫描 `@BpLogging` 方法注册）的接口，调用 `LoggingService.asyncSaveLog` 写入 `sys_log`（`operate`/`description`/`uri`/`method`/`params`/`response`/`cost`/`requestIp`/`userId`/`exception` 等）。
+- 命中 `ApiPathRegistry.LOGGING_API`（由 `NoLoggingUrlCollector` 启动时扫描 `@BpLogging` 方法注册）的接口，调用
+  `LoggingService.asyncSaveLog` 写入 `sys_log`（`operate`/`description`/`uri`/`method`/`params`/`response`/`cost`/
+  `requestIp`/`userId`/`exception` 等）。
 
 ```java
 @PostMapping("/login")
@@ -405,12 +416,13 @@ public ApiResponse<LoginResultVO> login(@RequestBody @Validated LoginDTO loginDT
 }
 ```
 
-> 说明：`LoggingService.asyncSaveLog` 标注了 `@Async`，且 `BootApplication` 已开启 `@EnableAsync`，因此日志是**异步**写入 `sys_log` 的，不阻塞业务线程。
+> 说明：`LoggingService.asyncSaveLog` 标注了 `@Async`，且 `BootApplication` 已开启 `@EnableAsync`，因此日志是**异步**写入
+> `sys_log` 的，不阻塞业务线程。
 
 ### 自定义注解体系
 
 | 注解            | 位置    | 作用                                                                             |
-| --------------- | ------- | -------------------------------------------------------------------------------- |
+|-----------------|---------|----------------------------------------------------------------------------------|
 | `@Anonymous`    | 类/方法 | 接口免登录，路径自动并入匿名名单（`AnonymousUrlCollector` 启动扫描注册）         |
 | `@BpLogging`    | 方法    | 接口调用日志记录：`value`(操作类型 `OperateEnum`) + `desc`(描述)，写入 `sys_log` |
 | `@Pageable`     | 方法    | 让 SpringDoc 自动为接口补充 `pageNum`(默认1)/`pageSize`(默认10) 查询参数         |
@@ -442,7 +454,7 @@ public ApiResponse<LoginResultVO> login(@RequestBody @Validated LoginDTO loginDT
 `GlobalExceptionHandler`（`@ControllerAdvice`）统一处理：
 
 | 异常                                                 | HTTP    | 响应 `code`            |
-| ---------------------------------------------------- | ------- | ---------------------- |
+|------------------------------------------------------|---------|------------------------|
 | `BytePulseException`（业务异常）                     | 500     | 业务错误码（如 10001） |
 | `NoResourceFoundException`（资源不存在）             | 401     | 401                    |
 | 参数校验异常（`@Validated` / `ValidUtils`）          | 400     | 400                    |
@@ -500,7 +512,7 @@ throw new BytePulseException(AuthErrorCode.CAPTCHA_ERROR);
 [init.sql](init.sql) 初始化 `bytepulse` 库以下 3 张表：
 
 | 表              | 说明         | 关键字段                                                                                                                                        |
-| --------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
 | `sys_user`      | 系统用户     | `username`/`password`(BCrypt)/`phone`/`email`/`status`(0禁用 1启用)/`last_login` 等                                                             |
 | `sys_log`       | 系统接口日志 | `trace_id`(唯一)/`operate`/`description`/`http_method`/`query_params`/`body_params`/`response_result`/`cost`/`request_ip`/`user_id`/`exception` |
 | `file_metadata` | 文件元数据   | `object_name`(MinIO 对象名)/`content_type`/`size`/`access_level`(0公开 1需登录)/`biz_type`/`biz_id`/`status`                                    |
@@ -519,7 +531,7 @@ Mapper 使用 MyBatis-Plus `BaseMapper<T>`，实体下划线列 ↔ 驼峰属性
 为保证文档与代码一致，以下功能当前状态如下：
 
 | 功能                                    | 现状                                                                                                                                                |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | 认证 / 验证码 / 限流 / 统一异常         | ✅ 已实现并接线                                                                                                                                     |
 | 文件上传 / 访问                         | ✅ 服务与 MinIO 封装已实现；已暴露访问与上传（测试）接口                                                                                            |
 | 接口调用日志（`sys_log`）               | ✅ 已实现并接线：`LoggingFilter` 捕获请求/响应体、脱敏、注入 `traceId`/`timestamp`、异步落库 `sys_log`（`BootApplication` 已开启 `@EnableAsync`）   |
@@ -530,7 +542,7 @@ Mapper 使用 MyBatis-Plus `BaseMapper<T>`，实体下划线列 ↔ 驼峰属性
 | 权限体系（角色/权限点）                 | 🚧 `LoginUser.permissions` 支撑已就绪，但权限数据来源为 TODO（当前为空，`@PreAuthorize` 暂无实际权限点数据）                                        |
 | 第三方接口签名认证（HMAC/Nonce 防重放） | 🚧 基础能力已就绪：`CryptoUtils`(RSA/AES/SHA/HMAC)、`bp.app.external-api` 配置占位；`api_credentials` 表与实体已被移除，签名校验过滤器/切面尚未实现 |
 | RabbitMQ（`bp-mq`）                     | ✅ 含简单案例：`JacksonJsonMessageConverter` 消息转换、死信 + TTL 延迟队列（`RabbitConfig` / `DelayQueue`）                                         |
-| AI 对话助手（`bp-ai`）                  | ✅ 已实现：DeepSeek 对话（同步 + SSE 流式）、JDBC 多轮对话记忆、工具调用（当前用户 / 系统信息 / 天气），调试页面 `/chat.html`                      |
+| AI 对话助手（`bp-ai`）                  | ✅ 已实现：DeepSeek 对话（同步 + SSE 流式）、JDBC 多轮对话记忆、工具调用（当前用户 / 系统信息 / 天气），调试页面 `/chat.html`                       |
 
 接入上述预留链路前，请勿在对外描述中将其声明为已上线能力。
 
