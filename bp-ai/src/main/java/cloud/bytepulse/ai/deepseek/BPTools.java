@@ -20,20 +20,12 @@ import oshi.hardware.HWDiskStore;
 import oshi.hardware.HardwareAbstractionLayer;
 import oshi.software.os.OperatingSystem;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.lang.management.*;
-import java.util.Base64;
+import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,7 +40,24 @@ public class BPTools {
 
     private final UserService userService;
 
-    @Tool(description = "查询 bp 系统当前用户的账号状态和所属角色。只读操作。")
+    @Tool(description = "查询 bp 系统当天订单成交量。")
+    public String getDailyNumber() {
+        long seed = LocalDate.now().toEpochDay(); // 当天的唯一数字
+        Random random = new Random(seed);         // 用当天做种子
+        return String.valueOf(100000 + random.nextInt(900000));   // 6 位数字
+    }
+
+    @Tool(description = "查询 bp 公司当前合作公司, 列表返回")
+    public List<String> getCompanies() {
+        return Arrays.asList(
+                "Apple", "Microsoft", "Google", "Amazon", "Meta",
+                "Tesla", "Netflix", "Nvidia", "Intel", "IBM",
+                "Oracle", "Samsung", "Sony", "Toyota", "Alibaba",
+                "Tencent", "Baidu", "ByteDance", "Huawei", "Xiaomi"
+        );
+    }
+
+    @Tool(description = "查询 bp 系统当前对话用户的账号信息。只读操作。")
     public String queryCurrentUserStatus(ToolContext toolContext) {
         long userId = (long) toolContext.getContext().get("userId");
         SysUser user = userService.getUserStatus(userId);
