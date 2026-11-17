@@ -29,8 +29,8 @@ import java.util.concurrent.Executors;
 @RequiredArgsConstructor
 public class AIController {
 
+    private static final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final DeepseekService deepseekService;
-
 
     @PostMapping("/generate")
     @RequestLimit(count = 10, time = 8000)
@@ -114,9 +114,6 @@ public class AIController {
 
         return emitter;
     }
-
-
-    private static final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     @GetMapping(value = "/sse/demo", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Anonymous

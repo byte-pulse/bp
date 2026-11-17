@@ -68,6 +68,15 @@ public class GlobalExceptionHandler {
         return msg;
     }
 
+    private static boolean isEventStream(HttpServletResponse response) {
+        if (response.isCommitted()) {
+            return true;
+        }
+        String contentType = response.getContentType();
+        return contentType != null
+                && contentType.toLowerCase(Locale.ROOT).startsWith(MediaType.TEXT_EVENT_STREAM_VALUE);
+    }
+
     /**
      * 自定义业务务异常
      */
@@ -221,14 +230,5 @@ public class GlobalExceptionHandler {
         log.error("未处理错误 [TraceId={}]", TraceIdUtils.get(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(ApiResponse.error());
-    }
-
-    private static boolean isEventStream(HttpServletResponse response) {
-        if (response.isCommitted()) {
-            return true;
-        }
-        String contentType = response.getContentType();
-        return contentType != null
-                && contentType.toLowerCase(Locale.ROOT).startsWith(MediaType.TEXT_EVENT_STREAM_VALUE);
     }
 }

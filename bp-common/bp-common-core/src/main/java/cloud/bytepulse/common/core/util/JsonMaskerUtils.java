@@ -28,6 +28,38 @@ public final class JsonMaskerUtils {
             "refreshToken",
             "authorization"
     );
+    private static final JsonMasker MASKER = JsonMasker.getMasker(
+            JsonMaskingConfig.builder()
+                    // 手机号: 13800138000 -> 138****8000
+                    .maskKeys(
+                            Set.of("phone", "mobile"),
+                            KeyMaskingConfig.builder().maskStringsWith(
+                                    ValueMaskers.withRawValueFunction(JsonMaskerUtils::maskPhone)
+                            ).build()
+                    )
+                    // 邮箱: zhangsan@example.com -> z***@example.com
+                    .maskKeys(
+                            Set.of("email"),
+                            KeyMaskingConfig.builder().maskStringsWith(
+                                    ValueMaskers.withRawValueFunction(JsonMaskerUtils::maskEmail)
+                            ).build()
+                    )
+                    // 密码: 任意值 -> ******
+                    .maskKeys(
+                            Set.of("password", "pwd"),
+                            KeyMaskingConfig.builder().maskStringsWith(
+                                    ValueMaskers.with("******")
+                            ).build()
+                    )
+                    // 身份证: 110101199001011234 -> 110************234
+                    .maskKeys(
+                            Set.of("idCard", "idCardNumber"),
+                            KeyMaskingConfig.builder().maskStringsWith(
+                                    ValueMaskers.withRawValueFunction(JsonMaskerUtils::maskIdCard)
+                            ).build()
+                    )
+                    .build()
+    );
 
     private JsonMaskerUtils() {
         throw new UnsupportedOperationException("Utility class");
@@ -78,40 +110,6 @@ public final class JsonMaskerUtils {
 
         return mask(jsonString, Set.of(fields));
     }
-
-    private static final JsonMasker MASKER = JsonMasker.getMasker(
-            JsonMaskingConfig.builder()
-                    // 手机号: 13800138000 -> 138****8000
-                    .maskKeys(
-                            Set.of("phone", "mobile"),
-                            KeyMaskingConfig.builder().maskStringsWith(
-                                    ValueMaskers.withRawValueFunction(JsonMaskerUtils::maskPhone)
-                            ).build()
-                    )
-                    // 邮箱: zhangsan@example.com -> z***@example.com
-                    .maskKeys(
-                            Set.of("email"),
-                            KeyMaskingConfig.builder().maskStringsWith(
-                                    ValueMaskers.withRawValueFunction(JsonMaskerUtils::maskEmail)
-                            ).build()
-                    )
-                    // 密码: 任意值 -> ******
-                    .maskKeys(
-                            Set.of("password", "pwd"),
-                            KeyMaskingConfig.builder().maskStringsWith(
-                                    ValueMaskers.with("******")
-                            ).build()
-                    )
-                    // 身份证: 110101199001011234 -> 110************234
-                    .maskKeys(
-                            Set.of("idCard", "idCardNumber"),
-                            KeyMaskingConfig.builder().maskStringsWith(
-                                    ValueMaskers.withRawValueFunction(JsonMaskerUtils::maskIdCard)
-                            ).build()
-                    )
-                    .build()
-    );
-
 
     /**
      * @param jsonString JSON 字符串

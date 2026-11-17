@@ -40,6 +40,27 @@ public class BPTools {
 
     private final UserService userService;
 
+    /**
+     * 把秒数格式化为 "x 天 HH:mm:ss" 或 "HH:mm:ss"
+     */
+    private static String formatDuration(long seconds) {
+        long d = seconds / 86400;
+        long h = (seconds % 86400) / 3600;
+        long m = (seconds % 3600) / 60;
+        long s = seconds % 60;
+        return d > 0
+                ? String.format("%d 天 %02d:%02d:%02d", d, h, m, s)
+                : String.format("%02d:%02d:%02d", h, m, s);
+    }
+
+    private static long bytesToMB(long bytes) {
+        return bytes / 1024 / 1024;
+    }
+
+    private static long bytesToGB(long bytes) {
+        return bytes / 1024 / 1024 / 1024;
+    }
+
     @Tool(description = "查询 bp 系统当天订单成交量。")
     public String getDailyNumber() {
         long seed = LocalDate.now().toEpochDay(); // 当天的唯一数字
@@ -174,27 +195,6 @@ public class BPTools {
                     .append(", 耗时=").append(gc.getCollectionTime()).append("ms] ");
         }
         sb.append("\n\n");
-    }
-
-    /**
-     * 把秒数格式化为 "x 天 HH:mm:ss" 或 "HH:mm:ss"
-     */
-    private static String formatDuration(long seconds) {
-        long d = seconds / 86400;
-        long h = (seconds % 86400) / 3600;
-        long m = (seconds % 3600) / 60;
-        long s = seconds % 60;
-        return d > 0
-                ? String.format("%d 天 %02d:%02d:%02d", d, h, m, s)
-                : String.format("%02d:%02d:%02d", h, m, s);
-    }
-
-    private static long bytesToMB(long bytes) {
-        return bytes / 1024 / 1024;
-    }
-
-    private static long bytesToGB(long bytes) {
-        return bytes / 1024 / 1024 / 1024;
     }
 
     @Tool(description = "查天气, 不填参数查询 bp 系统当前用户所在地天气,填参数可以查指定城市。(数据来源:https://wttr.in/城市?format=j1)")
