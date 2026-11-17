@@ -2,12 +2,12 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <title>BP 智能助手</title>
 
     <!-- Markdown / 代码高亮 / HTML 安全过滤 -->
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github-dark.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/styles/github-dark.min.css"
+          rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.11.1/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
@@ -579,7 +579,7 @@
     <div class="page-title">
         <span class="name">BP 智能助手(当前页面仅用于测试)</span>
     </div>
-    <button type="button" class="btn ghost" id="authBtn">设置认证</button>
+    <button class="btn ghost" id="authBtn" type="button">设置认证</button>
 </header>
 
 <main id="scrollArea">
@@ -593,8 +593,8 @@
 
 <footer class="composer">
     <div class="composer-inner">
-        <textarea id="input" rows="1" placeholder="输入消息，Enter 发送，Shift + Enter 换行"></textarea>
-        <button type="button" class="btn primary" id="sendBtn">发送</button>
+        <textarea id="input" placeholder="输入消息，Enter 发送，Shift + Enter 换行" rows="1"></textarea>
+        <button class="btn primary" id="sendBtn" type="button">发送</button>
     </div>
 </footer>
 
@@ -605,13 +605,13 @@
             该值会原样作为 <code>Authorization</code> 请求头发送（不加任何前缀，例如
             <code>Bearer </code> 需要自己带上）。保存在浏览器本地。
         </p>
-        <input id="authInput" type="text" autocomplete="off" spellcheck="false"
-               placeholder="粘贴你的 Authorization 值"/>
+        <input autocomplete="off" id="authInput" placeholder="粘贴你的 Authorization 值" spellcheck="false"
+               type="text"/>
         <div class="dialog-actions">
-            <button type="button" class="btn ghost" id="authClear">清除</button>
+            <button class="btn ghost" id="authClear" type="button">清除</button>
             <span class="spacer"></span>
-            <button type="button" class="btn ghost" id="authCancel">取消</button>
-            <button type="button" class="btn primary" id="authSave">保存</button>
+            <button class="btn ghost" id="authCancel" type="button">取消</button>
+            <button class="btn primary" id="authSave" type="button">保存</button>
         </div>
     </div>
 </dialog>
