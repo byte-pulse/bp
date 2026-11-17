@@ -3,7 +3,6 @@ package cloud.bytepulse.web.aspect;
 
 import cloud.bytepulse.common.core.annotation.RequestLimit;
 import cloud.bytepulse.common.core.exception.BytePulseException;
-import cloud.bytepulse.common.core.model.ApiResponse;
 import cloud.bytepulse.common.core.util.ReqUtils;
 import cloud.bytepulse.security.Auths;
 import jakarta.servlet.http.HttpServletRequest;
