@@ -21,6 +21,9 @@ spring:
   ai:
     deepseek:
       api-key: ${DEEPSEEK_API_KEY}
+      base-url: https://api.chatanywhere.tech
+      chat:
+        model: deepseek-v4.1-flash-1017
     chat:
       memory:
         repository:
