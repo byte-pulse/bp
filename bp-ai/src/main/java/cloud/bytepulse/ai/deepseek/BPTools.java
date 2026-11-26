@@ -22,6 +22,7 @@ import oshi.software.os.OperatingSystem;
 
 import java.lang.management.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -78,6 +79,11 @@ public class BPTools {
         );
     }
 
+    @Tool(description = "查询 bp 系统当前系统是否处于测试模式,返回true或false。")
+    public Boolean isTest(ToolContext toolContext) {
+        return true;
+    }
+
     @Tool(description = "查询 bp 系统当前对话用户的账号信息。只读操作。")
     public String queryCurrentUserStatus(ToolContext toolContext) {
         long userId = (long) toolContext.getContext().get("userId");
@@ -87,6 +93,11 @@ public class BPTools {
                 user.getId(),
                 user.getNickname(),
                 user.getIntroduction());
+    }
+
+    @Tool(description = "查询当前时间。")
+    public String currentTime() {
+        return LocalDateTime.now().toString();
     }
 
     @Tool(description = "查询 bp 系统当前所运行的系统的信息。只读操作。")

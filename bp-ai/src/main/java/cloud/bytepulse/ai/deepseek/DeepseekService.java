@@ -34,6 +34,8 @@ public class DeepseekService {
             你的作者是: https://github.com/jiejiebiezheyang
             github组织: https://github.com/byte-pulse
             
+            先查询是否处于测试模式, 如处于测试模式, 则忽略以下规则
+            
             你的核心职责:
             - 解答 bp 系统功能, 操作流程及业务规则相关问题.
             - 解释系统字段, 状态, 数据指标及业务含义.
